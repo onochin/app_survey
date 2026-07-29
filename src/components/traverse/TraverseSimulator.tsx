@@ -1,7 +1,44 @@
-import { traverseDisplaySample } from "../../data/traverseSample";
+import type { TraverseDisplaySample } from "../../data/traverseSample";
+import type { SurveyCoordinate, SurveyPoint } from "../../types/traverse";
+import { formatAngleDms } from "../../utils/formatAngle";
 import TraverseSvg from "./TraverseSvg";
 
-function TraverseSimulator() {
+interface TraverseSimulatorProps {
+  readonly geometry: TraverseDisplaySample;
+  readonly referencePoints: readonly SurveyPoint[];
+  readonly observedSample: TraverseDisplaySample | null;
+  readonly selectedPointId: string | null;
+  readonly onSelectPoint: (pointId: string) => void;
+  readonly onMovePoint: (
+    pointId: string,
+    coordinate: SurveyCoordinate,
+  ) => void;
+  readonly onInteractionError: (message: string) => void;
+  readonly onOpenObservationBook: () => void;
+  readonly onReset: () => void;
+}
+
+function TraverseSimulator({
+  geometry,
+  referencePoints,
+  observedSample,
+  selectedPointId,
+  onSelectPoint,
+  onMovePoint,
+  onInteractionError,
+  onOpenObservationBook,
+  onReset,
+}: TraverseSimulatorProps) {
+  const selectedPoint = geometry.points.find(
+    (point) => point.id === selectedPointId,
+  );
+  const theoreticalAngle = geometry.angles.find(
+    (angle) => angle.pointId === selectedPointId,
+  );
+  const observedAngle = observedSample?.angles.find(
+    (angle) => angle.pointId === selectedPointId,
+  );
+
   return (
     <section className="simulator-card card" aria-labelledby="map-title">
       <div className="simulator-header">
@@ -13,13 +50,20 @@ function TraverseSimulator() {
           <h2 id="map-title">仮想現場図</h2>
         </div>
         <div className="map-status">
-          <span>サンプル No.01</span>
-          <strong>閉合トラバース</strong>
+          <span>P1〜P4をドラッグ可能</span>
+          <strong>図上値は理論値</strong>
         </div>
       </div>
 
       <div className="map-frame">
-        <TraverseSvg sample={traverseDisplaySample} />
+        <TraverseSvg
+          onInteractionError={onInteractionError}
+          onMovePoint={onMovePoint}
+          onSelectPoint={onSelectPoint}
+          referencePoints={referencePoints}
+          sample={geometry}
+          selectedPointId={selectedPointId}
+        />
       </div>
 
       <div className="simulator-footer">
@@ -27,21 +71,40 @@ function TraverseSimulator() {
           <span className="hint-icon" aria-hidden="true">
             i
           </span>
-          <p>
-            <strong>Aから時計回り</strong>
-            に測点と観測辺をたどってみましょう。
-          </p>
+          {selectedPoint === undefined ? (
+            <p>
+              <strong>P1〜P4を選んでドラッグ</strong>
+              すると、図上の理論距離と理論内角が変化します。
+            </p>
+          ) : (
+            <p>
+              <strong>{selectedPoint.name}を選択中</strong>
+              <span className="selected-point-reading">
+                理論内角{" "}
+                {theoreticalAngle === undefined
+                  ? "計算不可"
+                  : formatAngleDms(theoreticalAngle.angleDegrees, 1)}
+                {" / "}観測内角{" "}
+                {observedAngle === undefined
+                  ? "入力確認中"
+                  : formatAngleDms(observedAngle.angleDegrees, 1)}
+              </span>
+            </p>
+          )}
         </div>
 
-        <div className="phase-controls" aria-label="Phase 3で実装予定の操作">
-          <button disabled type="button">
+        <div className="phase-controls" aria-label="シミュレーター操作">
+          <button onClick={onReset} type="button">
             <span aria-hidden="true">↺</span>
             リセット
           </button>
-          <button className="primary-placeholder" disabled type="button">
+          <button
+            className="primary-action"
+            onClick={onOpenObservationBook}
+            type="button"
+          >
             <span aria-hidden="true">⌖</span>
-            観測をはじめる
-            <small>Phase 3</small>
+            観測値を編集
           </button>
         </div>
       </div>

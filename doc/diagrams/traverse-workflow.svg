@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">閉合トラバース計算の流れ</title>
+  <desc id="desc">現場観測から角度閉合差、角度補正、方位角、緯距経距、座標閉合差、座標補正、新点座標までの8段階</desc>
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0 0 9 4.5 0 9Z" fill="#95abc0"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#17345a" flood-opacity=".12"/>
+    </filter>
+    <style>
+      text { font-family: "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif; }
+      .step { font-size: 17px; font-weight: 900; fill: #1f78c8; }
+      .step-warm { fill: #b85825; }
+      .step-green { fill: #247454; }
+      .title { font-size: 21px; font-weight: 900; }
+      .copy { font-size: 16px; fill: #60758b; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="650" rx="28" fill="#f6fafe"/>
+  <text x="48" y="57" font-size="30" font-weight="800">閉合トラバースは「角度を整える → 座標を整える」の順</text>
+  <text x="48" y="86" font-size="18" fill="#60758b">測量理解ラボの8ステップは、観測値から最終座標へ進む一本道になっています。</text>
+
+  <g stroke="#95abc0" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <path d="M280 214H326"/>
+    <path d="M574 214H620"/>
+    <path d="M868 214H914"/>
+    <path d="M1038 286V347"/>
+    <path d="M914 470H868"/>
+    <path d="M620 470H574"/>
+    <path d="M326 470H280"/>
+  </g>
+
+  <g transform="translate(34 126)" filter="url(#shadow)">
+    <rect width="246" height="176" rx="20" fill="#fff" stroke="#d6e3ee"/>
+    <rect x="18" y="17" width="72" height="29" rx="14" fill="#e7f3ff"/>
+    <text x="54" y="38" text-anchor="middle" class="step">STEP 1</text>
+    <text x="18" y="83" class="title">観測角</text>
+    <text x="18" y="116" class="copy">全測点の内角を確認</text>
+    <text x="18" y="145" class="copy">Σβ を求める</text>
+  </g>
+
+  <g transform="translate(328 126)" filter="url(#shadow)">
+    <rect width="246" height="176" rx="20" fill="#fff" stroke="#d6e3ee"/>
+    <rect x="18" y="17" width="72" height="29" rx="14" fill="#e7f3ff"/>
+    <text x="54" y="38" text-anchor="middle" class="step">STEP 2</text>
+    <text x="18" y="83" class="title">角度閉合差</text>
+    <text x="18" y="116" class="copy">理論内角和との差</text>
+    <text x="18" y="145" class="copy">fβ を求める</text>
+  </g>
+
+  <g transform="translate(622 126)" filter="url(#shadow)">
+    <rect width="246" height="176" rx="20" fill="#fff" stroke="#d6e3ee"/>
+    <rect x="18" y="17" width="72" height="29" rx="14" fill="#e7f3ff"/>
+    <text x="54" y="38" text-anchor="middle" class="step">STEP 3</text>
+    <text x="18" y="83" class="title">角度補正</text>
+    <text x="18" y="116" class="copy">角度のずれを配分</text>
+    <text x="18" y="145" class="copy">補正角 β′</text>
+  </g>
+
+  <g transform="translate(916 126)" filter="url(#shadow)">
+    <rect width="246" height="176" rx="20" fill="#fff" stroke="#d6e3ee"/>
+    <rect x="18" y="17" width="72" height="29" rx="14" fill="#e7f3ff"/>
+    <text x="54" y="38" text-anchor="middle" class="step">STEP 4</text>
+    <text x="18" y="83" class="title">方位角</text>
+    <text x="18" y="116" class="copy">各辺が向く方向</text>
+    <text x="18" y="145" class="copy">北0°・時計回り</text>
+  </g>
+
+  <g transform="translate(916 384)" filter="url(#shadow)">
+    <rect width="246" height="176" rx="20" fill="#fff" stroke="#d6e3ee"/>
+    <rect x="18" y="17" width="72" height="29" rx="14" fill="#e7f3ff"/>
+    <text x="54" y="38" text-anchor="middle" class="step">STEP 5</text>
+    <text x="18" y="83" class="title">緯距・経距</text>
+    <text x="18" y="116" class="copy">距離をX・Yへ分解</text>
+    <text x="18" y="145" class="copy">ΔX、ΔY</text>
+  </g>
+
+  <g transform="translate(622 384)" filter="url(#shadow)">
+    <rect width="246" height="176" rx="20" fill="#fff" stroke="#d6e3ee"/>
+    <rect x="18" y="17" width="72" height="29" rx="14" fill="#fff1e7"/>
+    <text x="54" y="38" text-anchor="middle" class="step step-warm">STEP 6</text>
+    <text x="18" y="83" class="title">座標閉合差</text>
+    <text x="18" y="116" class="copy">一周後のずれ</text>
+    <text x="18" y="145" class="copy">fx、fy、f</text>
+  </g>
+
+  <g transform="translate(328 384)" filter="url(#shadow)">
+    <rect width="246" height="176" rx="20" fill="#fff" stroke="#d6e3ee"/>
+    <rect x="18" y="17" width="72" height="29" rx="14" fill="#fff1e7"/>
+    <text x="54" y="38" text-anchor="middle" class="step step-warm">STEP 7</text>
+    <text x="18" y="83" class="title">座標補正</text>
+    <text x="18" y="116" class="copy">ずれを各辺へ配分</text>
+    <text x="18" y="145" class="copy">コンパス法</text>
+  </g>
+
+  <g transform="translate(34 384)" filter="url(#shadow)">
+    <rect width="246" height="176" rx="20" fill="#e9f7f0" stroke="#b9dfcc"/>
+    <rect x="18" y="17" width="72" height="29" rx="14" fill="#fff"/>
+    <text x="54" y="38" text-anchor="middle" class="step step-green">STEP 8</text>
+    <text x="18" y="83" class="title">新点座標</text>
+    <text x="18" y="116" class="copy">補正後成分を加算</text>
+    <text x="18" y="145" class="copy">最終X・Y座標</text>
+  </g>
+
+  <g transform="translate(42 598)">
+    <rect width="1116" height="34" rx="17" fill="#17345a"/>
+    <text x="558" y="24" text-anchor="middle" font-size="17" font-weight="800" fill="#fff">STEP 1〜4：角度と方向を整える　　STEP 5〜8：座標成分と閉合差を整える</text>
+  </g>
+</svg>

@@ -1,0 +1,1482 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="測量理解ラボ・閉合多角測量シミュレーター初期版の起動方法と操作手順"
+    />
+    <title>操作手順書 | 測量理解ラボ</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --navy-950: #10223d;
+        --navy-900: #17345a;
+        --navy-700: #315a87;
+        --blue-600: #2376c8;
+        --blue-100: #e8f3ff;
+        --sky-50: #f5f9fd;
+        --slate-700: #41546a;
+        --slate-500: #6b7e92;
+        --slate-300: #cbd7e3;
+        --slate-200: #dde6ef;
+        --slate-100: #edf3f8;
+        --white: #ffffff;
+        --orange-600: #db6b2c;
+        --orange-100: #fff1e7;
+        --green-700: #247454;
+        --green-100: #e9f7f0;
+        --red-700: #ad3d3d;
+        --red-100: #fff0f0;
+        --shadow: 0 16px 42px rgb(25 55 88 / 10%);
+        --radius-lg: 20px;
+        --radius-md: 13px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--navy-950);
+        background:
+          radial-gradient(circle at 88% 2%, rgb(80 157 222 / 14%), transparent 26rem),
+          var(--sky-50);
+        font-family:
+          "Noto Sans JP", "Yu Gothic UI", "Hiragino Kaku Gothic ProN",
+          Meiryo, sans-serif;
+        line-height: 1.75;
+      }
+
+      a {
+        color: var(--blue-600);
+      }
+
+      a:hover {
+        color: var(--navy-900);
+      }
+
+      a:focus-visible,
+      button:focus-visible {
+        outline: 3px solid rgb(35 118 200 / 35%);
+        outline-offset: 3px;
+      }
+
+      code,
+      pre {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      code {
+        padding: 0.1em 0.35em;
+        border-radius: 5px;
+        background: var(--slate-100);
+        font-size: 0.92em;
+      }
+
+      .skip-link {
+        position: fixed;
+        z-index: 20;
+        top: 12px;
+        left: 12px;
+        padding: 9px 14px;
+        border-radius: 8px;
+        color: var(--white);
+        background: var(--navy-950);
+        transform: translateY(-180%);
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        color: var(--white);
+        background:
+          linear-gradient(118deg, rgb(16 34 61 / 98%), rgb(31 74 117 / 94%)),
+          var(--navy-950);
+      }
+
+      .hero::after {
+        position: absolute;
+        top: -180px;
+        right: -110px;
+        width: 430px;
+        height: 430px;
+        border: 70px solid rgb(255 255 255 / 5%);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .hero-inner {
+        position: relative;
+        z-index: 1;
+        width: min(1180px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 58px 0 54px;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: #9ed4ff;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 780px;
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 3.45rem);
+        line-height: 1.18;
+        letter-spacing: 0.01em;
+      }
+
+      .hero-lead {
+        max-width: 720px;
+        margin: 18px 0 0;
+        color: #d7e9f9;
+        font-size: 1.03rem;
+      }
+
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 25px;
+      }
+
+      .hero-meta span {
+        padding: 7px 12px;
+        border: 1px solid rgb(255 255 255 / 18%);
+        border-radius: 999px;
+        background: rgb(255 255 255 / 8%);
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .page-layout {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 30px;
+        width: min(1180px, calc(100% - 40px));
+        margin: 34px auto 72px;
+      }
+
+      .toc {
+        position: sticky;
+        top: 20px;
+        align-self: start;
+        padding: 22px;
+        border: 1px solid var(--slate-200);
+        border-radius: var(--radius-lg);
+        background: rgb(255 255 255 / 90%);
+        box-shadow: 0 10px 30px rgb(25 55 88 / 7%);
+      }
+
+      .toc strong {
+        display: block;
+        margin-bottom: 12px;
+        color: var(--slate-500);
+        font-size: 0.76rem;
+        letter-spacing: 0.11em;
+      }
+
+      .toc ol {
+        display: grid;
+        gap: 7px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .toc a {
+        display: block;
+        padding: 6px 8px;
+        border-radius: 7px;
+        color: var(--navy-900);
+        font-size: 0.91rem;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .toc a:hover {
+        background: var(--blue-100);
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .section-card {
+        margin-bottom: 24px;
+        padding: clamp(24px, 4vw, 42px);
+        border: 1px solid var(--slate-200);
+        border-radius: var(--radius-lg);
+        background: var(--white);
+        box-shadow: var(--shadow);
+        scroll-margin-top: 20px;
+      }
+
+      .section-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 28px;
+        margin-bottom: 10px;
+        padding: 0 10px;
+        border-radius: 999px;
+        color: var(--blue-600);
+        background: var(--blue-100);
+        font-size: 0.75rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      h2 {
+        margin: 0 0 13px;
+        font-size: clamp(1.4rem, 3vw, 2rem);
+        line-height: 1.35;
+      }
+
+      h3 {
+        margin: 30px 0 10px;
+        color: var(--navy-900);
+        font-size: 1.08rem;
+      }
+
+      p {
+        margin: 0 0 14px;
+      }
+
+      .muted {
+        color: var(--slate-500);
+      }
+
+      .notice {
+        margin: 20px 0;
+        padding: 15px 18px;
+        border-left: 4px solid var(--orange-600);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        background: var(--orange-100);
+      }
+
+      .notice strong,
+      .success strong,
+      .danger strong {
+        display: block;
+        margin-bottom: 3px;
+      }
+
+      .success {
+        margin: 18px 0;
+        padding: 15px 18px;
+        border-left: 4px solid var(--green-700);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        background: var(--green-100);
+      }
+
+      .danger {
+        margin: 18px 0;
+        padding: 15px 18px;
+        border-left: 4px solid var(--red-700);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        background: var(--red-100);
+      }
+
+      .command {
+        position: relative;
+        overflow-x: auto;
+        margin: 13px 0 20px;
+        padding: 18px 20px;
+        border: 1px solid #294662;
+        border-radius: var(--radius-md);
+        color: #e9f4ff;
+        background: #12283f;
+        line-height: 1.65;
+      }
+
+      .command code {
+        padding: 0;
+        color: inherit;
+        background: transparent;
+        font-size: 0.88rem;
+        white-space: pre;
+      }
+
+      .mode-grid,
+      .flow-grid,
+      .screen-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .mode-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .mode-card {
+        padding: 20px;
+        border: 1px solid var(--slate-200);
+        border-radius: var(--radius-md);
+        background: var(--sky-50);
+      }
+
+      .mode-card .port {
+        display: inline-block;
+        margin-bottom: 8px;
+        padding: 4px 9px;
+        border-radius: 999px;
+        color: var(--navy-900);
+        background: var(--slate-100);
+        font-size: 0.76rem;
+        font-weight: 800;
+      }
+
+      .mode-card h3 {
+        margin: 0 0 6px;
+      }
+
+      .mode-card p {
+        margin: 0;
+        color: var(--slate-700);
+        font-size: 0.92rem;
+      }
+
+      .flow-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin: 22px 0;
+        counter-reset: flow;
+      }
+
+      .flow-item {
+        position: relative;
+        padding: 18px 16px 17px;
+        border: 1px solid var(--slate-200);
+        border-radius: var(--radius-md);
+        background: var(--white);
+        counter-increment: flow;
+      }
+
+      .flow-item::before {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        margin-bottom: 11px;
+        place-items: center;
+        border-radius: 50%;
+        color: var(--white);
+        background: var(--blue-600);
+        content: counter(flow);
+        font-size: 0.82rem;
+        font-weight: 900;
+      }
+
+      .flow-item strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .flow-item span {
+        color: var(--slate-500);
+        font-size: 0.84rem;
+      }
+
+      .numbered-steps {
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: manual-step;
+      }
+
+      .numbered-steps > li {
+        position: relative;
+        min-height: 54px;
+        margin-bottom: 17px;
+        padding: 2px 0 18px 58px;
+        border-bottom: 1px solid var(--slate-100);
+        counter-increment: manual-step;
+      }
+
+      .numbered-steps > li:last-child {
+        margin-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .numbered-steps > li::before {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-radius: 11px;
+        color: var(--blue-600);
+        background: var(--blue-100);
+        content: counter(manual-step);
+        font-weight: 900;
+      }
+
+      .numbered-steps strong {
+        display: block;
+        margin-bottom: 3px;
+      }
+
+      ul {
+        padding-left: 1.3rem;
+      }
+
+      li + li {
+        margin-top: 7px;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        margin-top: 16px;
+        border: 1px solid var(--slate-200);
+        border-radius: var(--radius-md);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--white);
+        font-size: 0.9rem;
+      }
+
+      th,
+      td {
+        padding: 13px 14px;
+        border-bottom: 1px solid var(--slate-200);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      thead th {
+        color: var(--navy-900);
+        background: var(--slate-100);
+        font-size: 0.8rem;
+        letter-spacing: 0.03em;
+      }
+
+      tbody tr:last-child th,
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      tbody th {
+        white-space: nowrap;
+      }
+
+      .screen-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 20px;
+      }
+
+      .figure-wide {
+        margin: 20px 0;
+      }
+
+      figure {
+        overflow: hidden;
+        margin: 0;
+        border: 1px solid var(--slate-200);
+        border-radius: var(--radius-md);
+        background: var(--sky-50);
+      }
+
+      figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-bottom: 1px solid var(--slate-200);
+      }
+
+      .zoomable-shot {
+        position: relative;
+        display: block;
+        overflow: hidden;
+        color: inherit;
+        background: var(--slate-100);
+      }
+
+      .zoomable-shot::after {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        padding: 7px 11px;
+        border: 1px solid rgb(255 255 255 / 32%);
+        border-radius: 999px;
+        color: var(--white);
+        background: rgb(16 34 61 / 88%);
+        box-shadow: 0 5px 18px rgb(16 34 61 / 24%);
+        content: "＋ クリックして拡大";
+        font-size: 0.75rem;
+        font-weight: 800;
+        pointer-events: none;
+      }
+
+      .zoomable-shot:hover::after,
+      .zoomable-shot:focus-visible::after {
+        background: var(--blue-600);
+      }
+
+      .annotated-shot {
+        position: relative;
+      }
+
+      .shot-pin {
+        position: absolute;
+        z-index: 2;
+        top: var(--pin-y);
+        left: var(--pin-x);
+        display: grid;
+        width: 32px;
+        height: 32px;
+        border: 3px solid var(--white);
+        border-radius: 50%;
+        color: var(--white);
+        background: var(--orange-600);
+        box-shadow: 0 4px 12px rgb(16 34 61 / 30%);
+        place-items: center;
+        transform: translate(-50%, -50%);
+        font-size: 0.82rem;
+        font-weight: 900;
+        pointer-events: none;
+      }
+
+      .callout-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 11px;
+        margin: 18px 0 26px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .callout-grid li {
+        display: grid;
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        margin: 0;
+        padding: 13px;
+        border: 1px solid var(--slate-200);
+        border-radius: 11px;
+        background: var(--sky-50);
+      }
+
+      .callout-number {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        color: var(--white);
+        background: var(--orange-600);
+        place-items: center;
+        font-size: 0.78rem;
+        font-weight: 900;
+      }
+
+      .callout-grid strong {
+        display: block;
+        margin-bottom: 2px;
+      }
+
+      .callout-grid p {
+        margin: 0;
+        color: var(--slate-700);
+        font-size: 0.86rem;
+        line-height: 1.6;
+      }
+
+      .practice-card {
+        margin: 20px 0;
+        padding: 20px;
+        border: 2px solid #b7dbfb;
+        border-radius: var(--radius-md);
+        background: var(--blue-100);
+      }
+
+      .practice-card h3 {
+        margin: 0 0 7px;
+        color: var(--navy-950);
+      }
+
+      .practice-card p:last-child {
+        margin-bottom: 0;
+      }
+
+      .screenshot-crop {
+        --crop-y: 0%;
+        position: relative;
+        overflow: hidden;
+        margin-top: 18px;
+        border: 1px solid var(--slate-200);
+        border-radius: var(--radius-md);
+        background: var(--slate-100);
+      }
+
+      .screenshot-crop.is-field {
+        --crop-y: -12.5%;
+        aspect-ratio: 1366 / 590;
+      }
+
+      .screenshot-crop.is-workbook {
+        --crop-y: -50.6%;
+        aspect-ratio: 1366 / 660;
+      }
+
+      .screenshot-crop .zoomable-shot {
+        width: 100%;
+        height: 100%;
+      }
+
+      .screenshot-crop img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        max-width: none;
+        height: auto;
+        border: 0;
+        transform: translateY(var(--crop-y));
+      }
+
+      .image-caption {
+        margin: 9px 0 20px;
+        color: var(--slate-500);
+        font-size: 0.82rem;
+      }
+
+      .term-pair {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 16px 0;
+      }
+
+      .term-pair div {
+        padding: 15px;
+        border-radius: 11px;
+      }
+
+      .term-pair div:first-child {
+        border: 1px solid #b9d9f7;
+        background: var(--blue-100);
+      }
+
+      .term-pair div:last-child {
+        border: 1px solid #f1c9ac;
+        background: var(--orange-100);
+      }
+
+      .term-pair strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .term-pair p {
+        margin: 0;
+        font-size: 0.88rem;
+      }
+
+      figcaption {
+        padding: 12px 14px;
+        color: var(--slate-700);
+        font-size: 0.82rem;
+      }
+
+      kbd {
+        padding: 2px 7px;
+        border: 1px solid var(--slate-300);
+        border-bottom-width: 2px;
+        border-radius: 5px;
+        color: var(--navy-950);
+        background: var(--white);
+        box-shadow: 0 1px 0 rgb(16 34 61 / 8%);
+        font-family: inherit;
+        font-size: 0.82em;
+        font-weight: 800;
+      }
+
+      .checklist {
+        display: grid;
+        gap: 9px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .checklist li {
+        position: relative;
+        margin: 0;
+        padding-left: 30px;
+      }
+
+      .checklist li::before {
+        position: absolute;
+        top: 0.14em;
+        left: 0;
+        display: grid;
+        width: 20px;
+        height: 20px;
+        place-items: center;
+        border-radius: 50%;
+        color: var(--green-700);
+        background: var(--green-100);
+        content: "✓";
+        font-size: 0.73rem;
+        font-weight: 900;
+      }
+
+      footer {
+        padding: 26px 20px 44px;
+        color: var(--slate-500);
+        text-align: center;
+        font-size: 0.83rem;
+      }
+
+      @media (max-width: 900px) {
+        .page-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .toc {
+          position: static;
+        }
+
+        .toc ol {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .flow-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .callout-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .hero-inner,
+        .page-layout {
+          width: min(100% - 24px, 1180px);
+        }
+
+        .hero-inner {
+          padding: 42px 0 40px;
+        }
+
+        .page-layout {
+          margin-top: 18px;
+        }
+
+        .section-card,
+        .toc {
+          border-radius: 15px;
+        }
+
+        .mode-grid,
+        .flow-grid,
+        .screen-grid,
+        .term-pair,
+        .toc ol {
+          grid-template-columns: 1fr;
+        }
+
+        .shot-pin {
+          width: 26px;
+          height: 26px;
+          border-width: 2px;
+          font-size: 0.7rem;
+        }
+
+        .zoomable-shot::after {
+          right: 7px;
+          bottom: 7px;
+          padding: 5px 8px;
+          content: "＋ 拡大";
+          font-size: 0.68rem;
+        }
+
+        .numbered-steps > li {
+          padding-left: 50px;
+        }
+      }
+
+      @media print {
+        body {
+          background: var(--white);
+          font-size: 10.5pt;
+        }
+
+        .hero {
+          color: var(--navy-950);
+          background: var(--white);
+          border-bottom: 2px solid var(--navy-950);
+        }
+
+        .hero-lead,
+        .eyebrow {
+          color: var(--navy-900);
+        }
+
+        .hero-meta span {
+          border-color: var(--slate-300);
+        }
+
+        .page-layout {
+          display: block;
+          width: 100%;
+          margin: 20px 0;
+        }
+
+        .toc,
+        .skip-link {
+          display: none;
+        }
+
+        .section-card {
+          break-inside: avoid;
+          margin-bottom: 14px;
+          border: 1px solid var(--slate-300);
+          box-shadow: none;
+        }
+
+        a {
+          color: inherit;
+          text-decoration: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へ移動</a>
+
+    <header class="hero">
+      <div class="hero-inner">
+        <p class="eyebrow">Survey Learning Lab / User Guide</p>
+        <h1>測量理解ラボ<br />操作手順書</h1>
+        <p class="hero-lead">
+          閉合多角測量シミュレーター初期版の起動、観測値の操作、
+          8段階の計算、閉合差の確認までを説明します。
+        </p>
+        <div class="hero-meta" aria-label="文書情報">
+          <span>対象：Phase 4 初期版</span>
+          <span>ローカル利用</span>
+          <span>最終更新：2026年7月</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-layout">
+      <nav class="toc" aria-label="目次">
+        <strong>CONTENTS</strong>
+        <ol>
+          <li><a href="#quick-start">すぐに起動する</a></li>
+          <li><a href="#modes">2つの起動方法</a></li>
+          <li><a href="#build">ビルドと更新</a></li>
+          <li><a href="#screen">画面の見方</a></li>
+          <li><a href="#operation">基本操作</a></li>
+          <li><a href="#calculation">8つの計算ステップ</a></li>
+          <li><a href="#closure-quiz">誤差表示と確認問題</a></li>
+          <li><a href="#trouble">警告・困ったとき</a></li>
+          <li><a href="#finish">終了方法</a></li>
+        </ol>
+      </nav>
+
+      <main id="main">
+        <section class="section-card" id="quick-start">
+          <span class="section-number">01</span>
+          <h2>現在の完成版をすぐに起動する</h2>
+          <div class="success">
+            <strong>トラバース測量そのものを先に理解したい場合</strong>
+            <a href="トラバース測量の解説.html">図で学ぶ「トラバース測量 入門」</a>
+            を先に読むと、観測値、方位角、閉合差の意味が分かりやすくなります。
+          </div>
+          <p>
+            パソコンを再起動した後は、ターミナルを開いて次の2行を実行します。
+            ソースコードを更新していなければ、毎回ビルドする必要はありません。
+          </p>
+          <pre class="command"><code>cd ~/ai_proj/app_simulation/survey-learning-lab
+npm run preview</code></pre>
+          <p>
+            ターミナルに表示されたURLをブラウザで開きます。通常は
+            <a href="http://localhost:4173/">http://localhost:4173/</a> です。
+          </p>
+          <div class="success">
+            <strong>起動できた状態</strong>
+            ターミナルに <code>Local: http://localhost:4173/</code>
+            と表示され、ブラウザに「閉合多角測量シミュレーター」が表示されます。
+          </div>
+          <div class="notice">
+            <strong>ターミナルは起動中のままにします</strong>
+            ブラウザのタブを閉じてもサーバーは動き続けます。完全に終了するには、
+            起動したターミナルで <kbd>Ctrl</kbd> + <kbd>C</kbd> を押します。
+          </div>
+        </section>
+
+        <section class="section-card" id="modes">
+          <span class="section-number">02</span>
+          <h2>開発版とビルド版の使い分け</h2>
+          <div class="mode-grid">
+            <article class="mode-card">
+              <span class="port">通常 5173</span>
+              <h3>開発・修正するとき</h3>
+              <pre class="command"><code>npm run dev</code></pre>
+              <p>
+                ファイルの変更が自動反映されます。これからプログラムを修正するときに使います。
+              </p>
+            </article>
+            <article class="mode-card">
+              <span class="port">通常 4173</span>
+              <h3>完成版を確認するとき</h3>
+              <pre class="command"><code>npm run preview</code></pre>
+              <p>
+                <code>dist/</code>に作成済みの本番用ファイルを確認します。通常利用はこちらです。
+              </p>
+            </article>
+          </div>
+          <p class="muted">
+            2つを同時に起動する必要はありません。利用目的に合う一方だけを起動してください。
+          </p>
+        </section>
+
+        <section class="section-card" id="build">
+          <span class="section-number">03</span>
+          <h2>ビルドと更新の手順</h2>
+
+          <h3>初回またはソースコードを更新した後</h3>
+          <ol class="numbered-steps">
+            <li>
+              <strong>動いているサーバーを終了する</strong>
+              開発版またはビルド版を起動したターミナルで
+              <kbd>Ctrl</kbd> + <kbd>C</kbd> を押します。
+            </li>
+            <li>
+              <strong>プロジェクトへ移動する</strong>
+              <pre class="command"><code>cd ~/ai_proj/app_simulation/survey-learning-lab</code></pre>
+            </li>
+            <li>
+              <strong>型と計算ロジックを検証する</strong>
+              <pre class="command"><code>npm run typecheck
+npm test</code></pre>
+              エラーがなく、テストがすべて <code>passed</code> になることを確認します。
+            </li>
+            <li>
+              <strong>本番用ファイルを作り直す</strong>
+              <pre class="command"><code>npm run build</code></pre>
+              成功すると、更新されたファイルが<code>dist/</code>へ生成されます。
+            </li>
+            <li>
+              <strong>ビルド版を起動して確認する</strong>
+              <pre class="command"><code>npm run preview</code></pre>
+              表示されたURLをブラウザで開き、更新内容を確認します。
+            </li>
+          </ol>
+
+          <div class="notice">
+            <strong>ビルドと公開は別です</strong>
+            <code>npm run build</code>と<code>npm run preview</code>は、
+            このパソコン内で生成・確認する処理です。インターネットへの公開は行いません。
+          </div>
+        </section>
+
+        <section class="section-card" id="screen">
+          <span class="section-number">04</span>
+          <h2>画面の見方</h2>
+          <p>
+            最初は項目が多く見えますが、操作する場所は主に
+            <strong>画面中央の観測エリア</strong>と
+            <strong>右側の「次へ」ボタン</strong>です。
+            下の画像内の番号と説明を照らし合わせてください。
+          </p>
+
+          <figure class="figure-wide">
+            <div class="annotated-shot">
+              <a
+                class="zoomable-shot"
+                href="screenshots/phase3-initial-1366.png"
+                target="_blank"
+                rel="noopener"
+                title="初期画面の原寸画像を新しいタブで開く"
+              >
+                <img
+                  src="screenshots/phase3-initial-1366.png"
+                  alt="閉合多角測量シミュレーターの初期画面。画面各部に1から7の案内番号を表示"
+                />
+              </a>
+              <span class="shot-pin" style="--pin-x: 75%; --pin-y: 3%">1</span>
+              <span class="shot-pin" style="--pin-x: 9%; --pin-y: 24%">2</span>
+              <span class="shot-pin" style="--pin-x: 87%; --pin-y: 10%">3</span>
+              <span class="shot-pin" style="--pin-x: 48%; --pin-y: 28%">4</span>
+              <span class="shot-pin" style="--pin-x: 87%; --pin-y: 30%">5</span>
+              <span class="shot-pin" style="--pin-x: 48%; --pin-y: 61%">6</span>
+              <span class="shot-pin" style="--pin-x: 87%; --pin-y: 59%">7</span>
+            </div>
+            <figcaption>
+              初期画面の全体像。画像をクリックすると、新しいタブで原寸画像を確認できます。
+            </figcaption>
+          </figure>
+
+          <ol class="callout-grid" aria-label="初期画面の各領域">
+            <li>
+              <span class="callout-number">1</span>
+              <div>
+                <strong>上部メニュー</strong>
+                <p>初期版では「学習モード」の多角測量を使用します。</p>
+              </div>
+            </li>
+            <li>
+              <span class="callout-number">2</span>
+              <div>
+                <strong>教材メニュー</strong>
+                <p>青色の「多角測量」が現在の教材です。ほかの教材は今後の実装予定です。</p>
+              </div>
+            </li>
+            <li>
+              <span class="callout-number">3</span>
+              <div>
+                <strong>学習の進み具合</strong>
+                <p>「観測→計算→誤差確認」のどこまで進んだかを示します。</p>
+              </div>
+            </li>
+            <li>
+              <span class="callout-number">4</span>
+              <div>
+                <strong>仮想現場図</strong>
+                <p>A、P1〜P4、Bを結んだ測量経路です。P1〜P4だけをドラッグできます。</p>
+              </div>
+            </li>
+            <li>
+              <span class="callout-number">5</span>
+              <div>
+                <strong>計算ステップ一覧</strong>
+                <p>8段階の現在位置です。緑色が現在確認しているステップです。</p>
+              </div>
+            </li>
+            <li>
+              <span class="callout-number">6</span>
+              <div>
+                <strong>観測手簿と各タブ</strong>
+                <p>観測値の入力、計算簿、誤差の図、確認問題を切り替えます。</p>
+              </div>
+            </li>
+            <li>
+              <span class="callout-number">7</span>
+              <div>
+                <strong>計算内容と「次へ」</strong>
+                <p>式・代入値・結果・解説を読み、青いボタンで次のステップへ進みます。</p>
+              </div>
+            </li>
+          </ol>
+
+          <div class="flow-grid" aria-label="学習の基本的な流れ">
+            <div class="flow-item">
+              <strong>観測</strong>
+              <span>まずサンプル値を確認</span>
+            </div>
+            <div class="flow-item">
+              <strong>計算</strong>
+              <span>右側のボタンで8段階を進む</span>
+            </div>
+            <div class="flow-item">
+              <strong>誤差確認</strong>
+              <span>ステップ6以降に図を確認</span>
+            </div>
+            <div class="flow-item">
+              <strong>確認問題</strong>
+              <span>正解して学習を完了</span>
+            </div>
+          </div>
+
+          <div class="screen-grid">
+            <figure>
+              <a
+                class="zoomable-shot"
+                href="screenshots/phase4-closure-1366.png"
+                target="_blank"
+                rel="noopener"
+                title="閉合差画面の原寸画像を新しいタブで開く"
+              >
+                <img
+                  src="screenshots/phase4-closure-1366.png"
+                  alt="閉合差ベクトルを表示した測量理解ラボの画面"
+                />
+              </a>
+              <figcaption>
+                ステップ6以降の「誤差の見える化」。クリックすると原寸表示します。
+              </figcaption>
+            </figure>
+            <figure>
+              <a
+                class="zoomable-shot"
+                href="screenshots/phase4-complete-1366.png"
+                target="_blank"
+                rel="noopener"
+                title="確認問題画面の原寸画像を新しいタブで開く"
+              >
+                <img
+                  src="screenshots/phase4-complete-1366.png"
+                  alt="確認問題に正解した測量理解ラボの完了画面"
+                />
+              </a>
+              <figcaption>
+                全8ステップ後の確認問題。クリックすると原寸表示します。
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="section-card" id="operation">
+          <span class="section-number">05</span>
+          <h2>初めて使うときの操作</h2>
+
+          <div class="practice-card">
+            <h3>最初は測点も数値も変更しなくて大丈夫です</h3>
+            <p>
+              このアプリには、最初から計算できるサンプル観測値が入っています。
+              1回目はそのまま8ステップを進め、全体の流れをつかむのがおすすめです。
+              測点のドラッグや数値変更は、2回目の練習で試します。
+            </p>
+          </div>
+
+          <h3>練習1：サンプルをそのまま計算する</h3>
+          <ol class="numbered-steps">
+            <li>
+              <strong>何も変更せず、右側のSTEP 1を見る</strong>
+              最初は「観測角」です。「使用する式」「代入した数値」「計算結果」を上から読みます。
+            </li>
+            <li>
+              <strong>青い「次へ：ステップ2」を押す</strong>
+              右側の計算内容が「角度閉合差」に変わり、ステップ一覧の現在位置も移動します。
+            </li>
+            <li>
+              <strong>同じ操作でステップ8まで進める</strong>
+              各ステップで式と結果を読んでから「次へ」を押します。
+              途中で「計算簿」タブを開くと、到達した項目が順番に表示されます。
+            </li>
+            <li>
+              <strong>ステップ6で誤差を図にする</strong>
+              「誤差の見える化」タブを押します。本来の閉合点と、計算上の閉合点のずれを確認します。
+            </li>
+            <li>
+              <strong>ステップ8の後に確認問題へ回答する</strong>
+              「確認問題」タブで回答を選び、「回答を確認する」を押します。
+              正解すると学習の流れが完了します。
+            </li>
+            <li>
+              <strong>「リセット」で最初に戻す</strong>
+              2回目の練習に入る前に、仮想現場図の下の「リセット」を押します。
+            </li>
+          </ol>
+
+          <div class="screenshot-crop is-field">
+            <a
+              class="zoomable-shot"
+              href="screenshots/phase3-initial-1366.png"
+              target="_blank"
+              rel="noopener"
+              title="仮想現場図と計算ステップの原寸画像を新しいタブで開く"
+            >
+              <img
+                src="screenshots/phase3-initial-1366.png"
+                alt="初期状態の仮想現場図と右側の計算ステップ"
+              />
+            </a>
+          </div>
+          <p class="image-caption">
+            仮想現場図と右側の計算欄。画像をクリックすると画面全体を原寸で確認できます。
+          </p>
+
+          <h3>練習2：測点を動かして図の変化を見る</h3>
+          <ol class="numbered-steps">
+            <li>
+              <strong>P1、P2、P3、P4のどれかをクリックする</strong>
+              選択した点の名前と「理論内角／観測内角」が、現場図の下に表示されます。
+              AとBは既知の固定点なので動かせません。
+            </li>
+            <li>
+              <strong>選択した点をゆっくりドラッグする</strong>
+              点につながる線、黒い理論距離、緑の理論内角が変わります。
+              辺が交差しない範囲で動かしてください。
+            </li>
+            <li>
+              <strong>観測手簿の「理論」を見比べる</strong>
+              図形から計算される理論値は変わりますが、入力済みの観測値は自動では変わりません。
+              これにより、理想的な図形と実際の観測値の差を比較できます。
+            </li>
+          </ol>
+
+          <div class="term-pair">
+            <div>
+              <strong>理論値とは</strong>
+              <p>
+                画面上の測点配置から幾何学的に求めた距離・内角です。
+                P1〜P4をドラッグすると変わります。
+              </p>
+            </div>
+            <div>
+              <strong>観測値とは</strong>
+              <p>
+                現場で測ったと想定する入力値です。測点をドラッグしても変わらず、
+                観測手簿で編集します。
+              </p>
+            </div>
+          </div>
+
+          <h3>練習3：観測値を変更して計算し直す</h3>
+          <ol class="numbered-steps">
+            <li>
+              <strong>「観測値を編集」を押す</strong>
+              仮想現場図の右下にあるボタンです。観測手簿まで自動的に移動します。
+            </li>
+            <li>
+              <strong>初期方位角 A→P1を確認する</strong>
+              北を0度として時計回りに測った方向を、十進度で入力します。
+              入力範囲は0度以上360度未満です。
+            </li>
+            <li>
+              <strong>1つの観測角または距離を少しだけ変更する</strong>
+              観測角は0度より大きく360度未満、距離は正の数です。
+              まずは1項目だけ変更すると、結果との関係を追いやすくなります。
+            </li>
+            <li>
+              <strong>右側のSTEP 1から再計算する</strong>
+              入力を変更すると計算ステップは自動的にSTEP 1へ戻ります。
+              「次へ」を順番に押し、閉合差がどう変わったか比較します。
+            </li>
+          </ol>
+
+          <div class="screenshot-crop is-workbook">
+            <a
+              class="zoomable-shot"
+              href="screenshots/phase3-initial-1366.png"
+              target="_blank"
+              rel="noopener"
+              title="観測手簿の原寸画像を新しいタブで開く"
+            >
+              <img
+                src="screenshots/phase3-initial-1366.png"
+                alt="初期方位角、観測角、距離を入力する観測手簿"
+              />
+            </a>
+          </div>
+          <p class="image-caption">
+            観測手簿。上段が初期方位角、各行が測点ごとの観測角と次の点までの距離です。
+            画像をクリックすると画面全体を原寸で確認できます。
+          </p>
+
+          <div class="notice">
+            <strong>値を変更したらSTEP 1へ戻るのは正常です</strong>
+            入力条件が変わると、それまでの計算結果は使えないためです。
+            新しい観測値で8ステップを最初から確認してください。
+          </div>
+
+          <h3>主なボタン</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>表示</th>
+                  <th>動作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>リセット</th>
+                  <td>測点、入力値、計算ステップ、確認問題をサンプルの初期状態へ戻します。</td>
+                </tr>
+                <tr>
+                  <th>観測値を編集</th>
+                  <td>観測手簿を開き、入力欄まで移動します。</td>
+                </tr>
+                <tr>
+                  <th>次へ：ステップ○</th>
+                  <td>入力が正しい場合に、次の計算内容を表示します。</td>
+                </tr>
+                <tr>
+                  <th>×</th>
+                  <td>画面上部のメッセージを閉じます。原因が残っている警告は再表示されることがあります。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section-card" id="calculation">
+          <span class="section-number">06</span>
+          <h2>8つの計算ステップ</h2>
+          <p>
+            各ステップでは「使用する式」「代入した数値」「計算結果」に加え、
+            必要な理由とよくある間違いを確認できます。
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>STEP</th>
+                  <th>項目</th>
+                  <th>確認する内容</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>1</th>
+                  <td>観測角</td>
+                  <td>AからBまで、巡回順に6つの観測内角を確認します。</td>
+                </tr>
+                <tr>
+                  <th>2</th>
+                  <td>角度閉合差</td>
+                  <td>観測内角和と理論内角和との差を求めます。</td>
+                </tr>
+                <tr>
+                  <th>3</th>
+                  <td>角度補正</td>
+                  <td>角度閉合差を各観測角へ均等に配分します。</td>
+                </tr>
+                <tr>
+                  <th>4</th>
+                  <td>方位角</td>
+                  <td>A→P1の初期方位角から各辺の方位角を求めます。</td>
+                </tr>
+                <tr>
+                  <th>5</th>
+                  <td>緯距・経距</td>
+                  <td>距離を北方向のΔXと東方向のΔYへ分解します。</td>
+                </tr>
+                <tr>
+                  <th>6</th>
+                  <td>座標閉合差</td>
+                  <td>fx、fy、合成閉合差f、閉合比を求めます。</td>
+                </tr>
+                <tr>
+                  <th>7</th>
+                  <td>座標補正</td>
+                  <td>コンパス法で閉合差を辺長に比例配分します。</td>
+                </tr>
+                <tr>
+                  <th>8</th>
+                  <td>新点座標</td>
+                  <td>補正後の成分を順次加算し、各点の座標を確定します。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="muted">
+            計算簿の未到達項目は「—」で表示されます。ステップを進めると順番に開示されます。
+          </p>
+        </section>
+
+        <section class="section-card" id="closure-quiz">
+          <span class="section-number">07</span>
+          <h2>閉合差の見える化と確認問題</h2>
+          <h3>誤差の見える化</h3>
+          <ul>
+            <li>ステップ6へ到達すると「誤差の見える化」タブが表示可能になります。</li>
+            <li>本来の閉合点と計算上の閉合点、X方向の<code>fx</code>、Y方向の<code>fy</code>、合成値<code>f</code>を確認します。</li>
+            <li>図の誤差ベクトルは見やすさのため100倍で表示されます。数値欄は実際の値です。</li>
+            <li>閉合差が非常に大きい場合は、100倍したベクトルが図枠へ収まるよう自動調整されます。</li>
+          </ul>
+
+          <h3>学習を完了する</h3>
+          <ol class="numbered-steps">
+            <li>
+              <strong>ステップ8まで進める</strong>
+              右側のボタンが「全8ステップ完了」になったことを確認します。
+            </li>
+            <li>
+              <strong>「確認問題」タブを開く</strong>
+              閉合差が大きくなる原因について、4つの選択肢から回答します。
+            </li>
+            <li>
+              <strong>回答を選び「回答を確認する」を押す</strong>
+              不正解の場合は解説を読み、選び直せます。正解すると学習フローが完了します。
+            </li>
+          </ol>
+        </section>
+
+        <section class="section-card" id="trouble">
+          <span class="section-number">08</span>
+          <h2>警告・困ったとき</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>表示・状態</th>
+                  <th>対応</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>観測辺が交差しています</th>
+                  <td>P1〜P4を動かし、辺が交差しない単純な閉合多角形に戻します。交差中は計算を進められません。</td>
+                </tr>
+                <tr>
+                  <th>測点同士が近すぎる</th>
+                  <td>選択中の点を、他の測点から少し離れた位置へ動かします。</td>
+                </tr>
+                <tr>
+                  <th>入力値を修正してください</th>
+                  <td>「観測手簿」の赤く表示された入力欄と、その下の説明を確認します。</td>
+                </tr>
+                <tr>
+                  <th>4173を開けない</th>
+                  <td><code>npm run preview</code>を実行したターミナルが動いているか、表示されたURLが別のポートになっていないか確認します。</td>
+                </tr>
+                <tr>
+                  <th>修正が反映されない</th>
+                  <td><kbd>Ctrl</kbd> + <kbd>C</kbd>で終了し、型チェック、テスト、ビルド、previewを順に再実行します。</td>
+                </tr>
+                <tr>
+                  <th>最初からやり直したい</th>
+                  <td>仮想現場図の下にある「リセット」を押します。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="danger">
+            <strong>入力内容は保存されません</strong>
+            この初期版には学習履歴の保存機能がありません。リセット、ページの再読み込み、
+            またはサーバーの終了により、画面上の操作内容は初期状態へ戻ります。
+          </div>
+        </section>
+
+        <section class="section-card" id="finish">
+          <span class="section-number">09</span>
+          <h2>終了前の確認</h2>
+          <ul class="checklist">
+            <li>必要な計算結果を画面で確認した</li>
+            <li>入力内容が保存されないことを確認した</li>
+            <li>起動したターミナルで <kbd>Ctrl</kbd> + <kbd>C</kbd> を押した</li>
+            <li>ターミナルに戻ったことを確認してブラウザを閉じた</li>
+          </ul>
+
+          <div class="notice">
+            <strong>学習用アプリです</strong>
+            本アプリの計算結果は、実務上の測量成果、公共測量、登記、設計、
+            または品質保証を必要とする用途には使用しないでください。
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer>
+      測量理解ラボ — 閉合多角測量シミュレーター初期版 操作手順書
+    </footer>
+  </body>
+</html>

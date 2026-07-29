@@ -2,6 +2,7 @@ import type {
   AngleObservation,
   SurveyPoint,
   TraverseLeg,
+  TraverseObservation,
 } from "../types/traverse";
 
 export interface TraverseDisplaySample {
@@ -138,11 +139,15 @@ const angles = [
 ] as const satisfies readonly AngleObservation[];
 
 /**
- * Phase 2では静的な現場図だけに使用する。
- * 初期方位角の対象辺とB点の座標拘束は、仕様確認が必要なため含めない。
+ * Aを既知座標とし、A→P1の初期方位角を持つ閉合トラバースの観測例。
+ * Bは図上では固定するが、既知座標による拘束には使用しない。
  */
-export const traverseDisplaySample: TraverseDisplaySample = {
+export const traverseSample: TraverseObservation = {
   points,
   legs,
   angles,
+  initialAzimuthDegrees: 45,
+  startPointId: "a",
 };
+
+export const traverseDisplaySample: TraverseDisplaySample = traverseSample;

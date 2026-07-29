@@ -1,15 +1,10 @@
-const calculationSteps = [
-  "観測角",
-  "角度閉合差",
-  "角度補正",
-  "方位角",
-  "緯距・経距",
-  "座標閉合差",
-  "座標補正",
-  "新点座標",
-] as const;
+import type { CalculationStep } from "../../types/traverse";
 
-function CalculationSteps() {
+interface CalculationStepsProps {
+  readonly steps: readonly CalculationStep[];
+}
+
+function CalculationSteps({ steps }: CalculationStepsProps) {
   return (
     <section className="steps-card card" aria-labelledby="steps-title">
       <div className="section-title-row">
@@ -17,22 +12,30 @@ function CalculationSteps() {
           <p className="card-kicker">LEARNING FLOW</p>
           <h2 id="steps-title">計算ステップ</h2>
         </div>
-        <span className="static-badge">静的表示</span>
+        <span className="interactive-badge">操作中</span>
       </div>
 
       <ol className="calculation-steps">
-        {calculationSteps.map((step, index) => {
-          const isCurrent = index === 0;
-
+        {steps.map((step) => {
           return (
-            <li className={isCurrent ? "is-current" : ""} key={step}>
+            <li
+              aria-current={
+                step.status === "current" ? "step" : undefined
+              }
+              className={`is-${step.status}`}
+              key={step.id}
+            >
               <span className="step-marker" aria-hidden="true">
-                {isCurrent ? "✓" : index + 1}
+                {step.status === "completed" ? "✓" : step.order}
               </span>
               <span className="step-copy">
-                <span className="step-title">{step}</span>
+                <span className="step-title">{step.title}</span>
                 <span className="step-state">
-                  {isCurrent ? "図で確認中" : "Phase 3で実装"}
+                  {step.status === "completed"
+                    ? "確認済み"
+                    : step.status === "current"
+                      ? "現在のステップ"
+                      : "未計算"}
                 </span>
               </span>
             </li>

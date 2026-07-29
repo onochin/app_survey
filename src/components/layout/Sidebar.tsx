@@ -15,6 +15,13 @@ interface SidebarIconProps {
   readonly name: SidebarIconName;
 }
 
+export type LearningSection = "basics" | "traverse";
+
+interface SidebarProps {
+  readonly activeSection: LearningSection;
+  readonly onSectionChange: (section: LearningSection) => void;
+}
+
 function SidebarIcon({ name }: SidebarIconProps) {
   if (name === "home") {
     return (
@@ -122,45 +129,63 @@ function SidebarIcon({ name }: SidebarIconProps) {
 }
 
 const navigationItems = [
-  { label: "ホーム", icon: "home", selected: false },
-  { label: "測量の基礎", icon: "book", selected: false },
-  { label: "多角測量", icon: "traverse", selected: true },
-  { label: "水準測量", icon: "level", selected: false },
-  { label: "GNSS / Drogger", icon: "satellite", selected: false },
-  { label: "座標系", icon: "globe", selected: false },
-  { label: "地形測量", icon: "terrain", selected: false },
-  { label: "写真測量", icon: "camera", selected: false },
-  { label: "3次元点群", icon: "points", selected: false },
-  { label: "応用測量", icon: "tools", selected: false },
-  { label: "法規・試験対策", icon: "law", selected: false },
+  { label: "ホーム", icon: "home", section: null },
+  { label: "測量の基礎", icon: "book", section: "basics" },
+  { label: "多角測量", icon: "traverse", section: "traverse" },
+  { label: "水準測量", icon: "level", section: null },
+  { label: "GNSS / Drogger", icon: "satellite", section: null },
+  { label: "座標系", icon: "globe", section: null },
+  { label: "地形測量", icon: "terrain", section: null },
+  { label: "写真測量", icon: "camera", section: null },
+  { label: "3次元点群", icon: "points", section: null },
+  { label: "応用測量", icon: "tools", section: null },
+  { label: "法規・試験対策", icon: "law", section: null },
 ] as const satisfies readonly {
   readonly label: string;
   readonly icon: SidebarIconName;
-  readonly selected: boolean;
+  readonly section: LearningSection | null;
 }[];
 
-function Sidebar() {
+function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
   return (
     <aside className="sidebar">
       <nav aria-label="教材メニュー">
         <ul className="sidebar-navigation">
-          {navigationItems.map((item) => (
-            <li key={item.label}>
-              <span
-                aria-current={item.selected ? "page" : undefined}
-                aria-disabled={!item.selected}
-                className={`sidebar-link ${item.selected ? "is-selected" : ""}`}
-                title={
-                  item.selected
-                    ? `${item.label}（選択中）`
-                    : `${item.label}（今後実装予定）`
-                }
-              >
-                <SidebarIcon name={item.icon} />
-                <span>{item.label}</span>
-              </span>
-            </li>
-          ))}
+          {navigationItems.map((item) => {
+            const isSelected = item.section === activeSection;
+
+            return (
+              <li key={item.label}>
+                {item.section === null ? (
+                  <span
+                    aria-disabled="true"
+                    className="sidebar-link"
+                    title={`${item.label}（今後実装予定）`}
+                  >
+                    <SidebarIcon name={item.icon} />
+                    <span>{item.label}</span>
+                  </span>
+                ) : (
+                  <button
+                    aria-current={isSelected ? "page" : undefined}
+                    className={`sidebar-link ${
+                      isSelected ? "is-selected" : ""
+                    }`}
+                    onClick={() => onSectionChange(item.section)}
+                    title={
+                      isSelected
+                        ? `${item.label}（選択中）`
+                        : `${item.label}を開く`
+                    }
+                    type="button"
+                  >
+                    <SidebarIcon name={item.icon} />
+                    <span>{item.label}</span>
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </nav>
 

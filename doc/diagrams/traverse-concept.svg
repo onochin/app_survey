@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">トラバース測量の基本概念</title>
+  <desc id="desc">既知点Aから複数の新点を経て既知点Bへ進み、各辺の距離と各点の水平角を測って座標を順番に求める図</desc>
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#dbe8f3" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0 0 10 5 0 10Z" fill="#1f78c8"/>
+    </marker>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#17345a" flood-opacity=".16"/>
+    </filter>
+    <style>
+      text { font-family: "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif; }
+      .small { font-size: 18px; fill: #60758b; }
+      .label { font-size: 22px; font-weight: 700; }
+      .point-name { font-size: 22px; font-weight: 800; }
+      .distance { font-size: 19px; font-weight: 800; fill: #315a87; }
+      .angle { font-size: 19px; font-weight: 800; fill: #db6b2c; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="650" rx="28" fill="#f6fafe"/>
+  <rect x="32" y="96" width="760" height="500" rx="22" fill="url(#grid)" stroke="#cbdbe9"/>
+  <text x="48" y="57" font-size="30" font-weight="800">トラバース測量は「角度＋距離」をつないで位置を求める</text>
+  <text x="48" y="84" class="small">位置が分かる点から出発し、折れ線に沿って次の点の座標を順番に計算します。</text>
+
+  <g stroke="#274966" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M112 500 285 405 438 235 635 300 728 155"/>
+  </g>
+
+  <g stroke="#1f78c8" stroke-width="3" fill="none" marker-end="url(#arrow-blue)">
+    <path d="M137 486 252 423"/>
+    <path d="M307 380 411 264"/>
+    <path d="M472 245 599 288"/>
+    <path d="M653 273 711 181"/>
+  </g>
+
+  <g>
+    <g transform="translate(112 500)">
+      <circle r="18" fill="#1f78c8" stroke="#fff" stroke-width="6" filter="url(#shadow)"/>
+      <circle r="5" fill="#fff"/>
+      <text x="-4" y="43" text-anchor="middle" class="point-name">A</text>
+      <rect x="-59" y="53" width="110" height="31" rx="15" fill="#e7f3ff"/>
+      <text x="-4" y="75" text-anchor="middle" class="small" font-weight="700">既知点</text>
+    </g>
+    <g transform="translate(285 405)">
+      <circle r="15" fill="#fff" stroke="#274966" stroke-width="6"/>
+      <circle r="4" fill="#1f78c8"/>
+      <text x="-24" y="32" text-anchor="end" class="point-name">P1</text>
+    </g>
+    <g transform="translate(438 235)">
+      <circle r="15" fill="#fff" stroke="#274966" stroke-width="6"/>
+      <circle r="4" fill="#1f78c8"/>
+      <text x="-2" y="-28" text-anchor="middle" class="point-name">P2</text>
+    </g>
+    <g transform="translate(635 300)">
+      <circle r="15" fill="#fff" stroke="#274966" stroke-width="6"/>
+      <circle r="4" fill="#1f78c8"/>
+      <text x="2" y="45" text-anchor="middle" class="point-name">P3</text>
+    </g>
+    <g transform="translate(728 155)">
+      <circle r="18" fill="#1f78c8" stroke="#fff" stroke-width="6" filter="url(#shadow)"/>
+      <circle r="5" fill="#fff"/>
+      <text x="4" y="-30" text-anchor="middle" class="point-name">B</text>
+      <rect x="-51" y="-81" width="110" height="31" rx="15" fill="#e7f3ff"/>
+      <text x="4" y="-59" text-anchor="middle" class="small" font-weight="700">既知点</text>
+    </g>
+  </g>
+
+  <g>
+    <rect x="163" y="428" width="108" height="34" rx="17" fill="#fff" stroke="#b9d8f2"/>
+    <text x="217" y="451" text-anchor="middle" class="distance">距離 S1</text>
+    <rect x="330" y="297" width="108" height="34" rx="17" fill="#fff" stroke="#b9d8f2"/>
+    <text x="384" y="320" text-anchor="middle" class="distance">距離 S2</text>
+    <rect x="504" y="240" width="108" height="34" rx="17" fill="#fff" stroke="#b9d8f2"/>
+    <text x="558" y="263" text-anchor="middle" class="distance">距離 S3</text>
+  </g>
+
+  <g fill="none" stroke="#db6b2c" stroke-width="5" stroke-linecap="round">
+    <path d="M252 423 Q293 435 316 371"/>
+    <path d="M411 264 Q443 282 472 245"/>
+    <path d="M599 288 Q633 320 653 273"/>
+  </g>
+  <g>
+    <text x="322" y="470" class="angle">水平角 β1</text>
+    <text x="451" y="299" class="angle">水平角 β2</text>
+    <text x="560" y="372" class="angle">水平角 β3</text>
+  </g>
+
+  <g transform="translate(282 360)" stroke="#17345a" stroke-width="4" fill="none">
+    <rect x="-13" y="-27" width="26" height="25" rx="4" fill="#ffc348"/>
+    <circle cy="-14" r="5" fill="#fff"/>
+    <path d="M0-2V16M0 8-17 34M0 8 17 34"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="826" y="112" width="334" height="150" rx="18" fill="#fff" stroke="#d6e3ee"/>
+    <circle cx="866" cy="151" r="21" fill="#e7f3ff"/>
+    <text x="866" y="158" text-anchor="middle" font-size="22" font-weight="900" fill="#1f78c8">1</text>
+    <text x="903" y="157" class="label">現場で観測</text>
+    <text x="855" y="196" class="small">・各辺の距離 S</text>
+    <text x="855" y="228" class="small">・各測点の水平角 β</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="826" y="284" width="334" height="150" rx="18" fill="#fff" stroke="#d6e3ee"/>
+    <circle cx="866" cy="323" r="21" fill="#fff0e7"/>
+    <text x="866" y="330" text-anchor="middle" font-size="22" font-weight="900" fill="#db6b2c">2</text>
+    <text x="903" y="329" class="label">机上で計算</text>
+    <text x="855" y="368" class="small">・辺の方向（方位角）</text>
+    <text x="855" y="400" class="small">・各点のX・Y座標</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="826" y="456" width="334" height="118" rx="18" fill="#17345a"/>
+    <text x="855" y="493" font-size="18" font-weight="700" fill="#9ed4ff">座標を順番に足す</text>
+    <text x="855" y="529" font-size="22" font-weight="800" fill="#fff">次点X = 現点X + ΔX</text>
+    <text x="855" y="558" font-size="22" font-weight="800" fill="#fff">次点Y = 現点Y + ΔY</text>
+  </g>
+
+  <text x="50" y="626" class="small">TS（トータルステーション）は、水平角と距離を同時に観測できる代表的な機器です。</text>
+</svg>

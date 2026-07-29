@@ -1,25 +1,42 @@
+import { useMemo, useState } from "react";
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
+import {
+  clampSvgCoordinate,
+  clientToSvgCoordinate,
+  createSurveySvgTransform,
+  surveyToSvgCoordinate,
+  svgToSurveyCoordinate,
+} from "../../calculations/geometry";
+import type { SvgCoordinate } from "../../calculations/geometry";
 import type { TraverseDisplaySample } from "../../data/traverseSample";
+import type { SurveyCoordinate, SurveyPoint } from "../../types/traverse";
 import { formatAngleDms } from "../../utils/formatAngle";
 
 interface TraverseSvgProps {
   readonly sample: TraverseDisplaySample;
-}
-
-interface ScreenCoordinate {
-  readonly x: number;
-  readonly y: number;
+  readonly referencePoints: readonly SurveyPoint[];
+  readonly selectedPointId: string | null;
+  readonly onSelectPoint: (pointId: string) => void;
+  readonly onMovePoint: (
+    pointId: string,
+    coordinate: SurveyCoordinate,
+  ) => void;
+  readonly onInteractionError: (message: string) => void;
 }
 
 const VIEWBOX_WIDTH = 900;
 const VIEWBOX_HEIGHT = 500;
-const PLOT_BOUNDS = {
+export const TRAVERSE_PLOT_BOUNDS = {
   left: 92,
   right: 724,
   top: 74,
   bottom: 414,
 } as const;
 
-function normalizeVector(vector: ScreenCoordinate): ScreenCoordinate {
+function normalizeVector(vector: SvgCoordinate): SvgCoordinate {
   const length = Math.hypot(vector.x, vector.y);
 
   if (length === 0) {
@@ -32,7 +49,7 @@ function normalizeVector(vector: ScreenCoordinate): ScreenCoordinate {
   };
 }
 
-function getReadableRotation(from: ScreenCoordinate, to: ScreenCoordinate) {
+function getReadableRotation(from: SvgCoordinate, to: SvgCoordinate) {
   let rotation = (Math.atan2(to.y - from.y, to.x - from.x) * 180) / Math.PI;
 
   if (rotation > 90 || rotation < -90) {
@@ -42,7 +59,7 @@ function getReadableRotation(from: ScreenCoordinate, to: ScreenCoordinate) {
   return rotation;
 }
 
-function TotalStationIcon({ x, y }: ScreenCoordinate) {
+function TotalStationIcon({ x, y }: SvgCoordinate) {
   return (
     <g
       aria-label="トータルステーション"
@@ -59,34 +76,29 @@ function TotalStationIcon({ x, y }: ScreenCoordinate) {
   );
 }
 
-function TraverseSvg({ sample }: TraverseSvgProps) {
-  const northValues = sample.points.map((point) => point.coordinate.x);
-  const eastValues = sample.points.map((point) => point.coordinate.y);
-  const minNorth = Math.min(...northValues);
-  const maxNorth = Math.max(...northValues);
-  const minEast = Math.min(...eastValues);
-  const maxEast = Math.max(...eastValues);
-  const northSpan = Math.max(maxNorth - minNorth, 1);
-  const eastSpan = Math.max(maxEast - minEast, 1);
-  const plotWidth = PLOT_BOUNDS.right - PLOT_BOUNDS.left;
-  const plotHeight = PLOT_BOUNDS.bottom - PLOT_BOUNDS.top;
-  const scale = Math.min(plotWidth / eastSpan, plotHeight / northSpan);
-  const drawingWidth = eastSpan * scale;
-  const drawingHeight = northSpan * scale;
-  const originX = PLOT_BOUNDS.left + (plotWidth - drawingWidth) / 2;
-  const originY = PLOT_BOUNDS.top + (plotHeight - drawingHeight) / 2;
+function TraverseSvg({
+  sample,
+  referencePoints,
+  selectedPointId,
+  onSelectPoint,
+  onMovePoint,
+  onInteractionError,
+}: TraverseSvgProps) {
+  const [draggingPointId, setDraggingPointId] = useState<string | null>(null);
+  const transform = useMemo(
+    () =>
+      createSurveySvgTransform(referencePoints, TRAVERSE_PLOT_BOUNDS),
+    [referencePoints],
+  );
 
   const screenByPointId = new Map(
     sample.points.map((point) => [
       point.id,
-      {
-        x: originX + (point.coordinate.y - minEast) * scale,
-        y: originY + (maxNorth - point.coordinate.x) * scale,
-      },
+      surveyToSvgCoordinate(point.coordinate, transform),
     ]),
   );
 
-  const getScreenPoint = (pointId: string): ScreenCoordinate => {
+  const getScreenPoint = (pointId: string): SvgCoordinate => {
     const screenPoint = screenByPointId.get(pointId);
 
     if (screenPoint === undefined) {
@@ -118,19 +130,82 @@ function TraverseSvg({ sample }: TraverseSvgProps) {
     sample.angles.map((angle) => [angle.pointId, angle.angleDegrees]),
   );
   const stationPosition = getScreenPoint("p2");
-  const scaleLength = 100 * scale;
+  const scaleLength = 100 * transform.scale;
+
+  const stopDragging = (): void => {
+    setDraggingPointId(null);
+  };
+
+  const handlePointerMove = (
+    event: ReactPointerEvent<SVGSVGElement>,
+  ): void => {
+    if (draggingPointId === null) {
+      return;
+    }
+
+    try {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const svgCoordinate = clientToSvgCoordinate(
+        { x: event.clientX, y: event.clientY },
+        rect,
+        VIEWBOX_WIDTH,
+        VIEWBOX_HEIGHT,
+      );
+      const bounded = clampSvgCoordinate(
+        svgCoordinate,
+        TRAVERSE_PLOT_BOUNDS,
+      );
+      onMovePoint(
+        draggingPointId,
+        svgToSurveyCoordinate(bounded, transform),
+      );
+    } catch {
+      stopDragging();
+      onInteractionError(
+        "画面位置を測量座標へ変換できませんでした。もう一度操作してください。",
+      );
+    }
+  };
+
+  const handlePointPointerDown = (
+    event: ReactPointerEvent<SVGGElement>,
+    point: SurveyPoint,
+  ): void => {
+    onSelectPoint(point.id);
+
+    if (point.isFixed) {
+      return;
+    }
+
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDraggingPointId(point.id);
+  };
+
+  const handlePointKeyDown = (
+    event: ReactKeyboardEvent<SVGGElement>,
+    pointId: string,
+  ): void => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onSelectPoint(pointId);
+    }
+  };
 
   return (
     <svg
       aria-labelledby="traverse-svg-title traverse-svg-description"
       className="traverse-svg"
-      role="img"
+      onPointerCancel={stopDragging}
+      onPointerMove={handlePointerMove}
+      onPointerUp={stopDragging}
+      role="group"
       viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
     >
       <title id="traverse-svg-title">閉合多角測量の仮想現場図</title>
       <desc id="traverse-svg-description">
         固定点AからP1、P2、P3、P4、固定点Bを順に通り、Aへ戻る六角形です。
-        各辺に観測距離、各測点の内側に観測内角を表示しています。
+        P1からP4はドラッグできます。図には理論距離と理論内角を表示しています。
       </desc>
 
       <defs>
@@ -301,9 +376,36 @@ function TraverseSvg({ sample }: TraverseSvgProps) {
               y: position.y + outward.y * 23,
             };
         const isFixed = point.isFixed;
+        const isSelected = point.id === selectedPointId;
+        const isDragging = point.id === draggingPointId;
 
         return (
-          <g className={`survey-point ${isFixed ? "is-fixed" : ""}`} key={point.id}>
+          <g
+            aria-label={`${point.name}（${
+              isFixed ? "固定点" : "ドラッグ可能"
+            }${isSelected ? "、選択中" : ""}）`}
+            className={[
+              "survey-point",
+              isFixed ? "is-fixed" : "is-draggable",
+              isSelected ? "is-selected" : "",
+              isDragging ? "is-dragging" : "",
+            ].join(" ")}
+            key={point.id}
+            onKeyDown={(event) => handlePointKeyDown(event, point.id)}
+            onPointerDown={(event) =>
+              handlePointPointerDown(event, point)
+            }
+            role="button"
+            tabIndex={0}
+          >
+            {isSelected ? (
+              <circle
+                className="selected-point-marker"
+                cx={position.x}
+                cy={position.y}
+                r="17"
+              />
+            ) : null}
             {isFixed ? (
               <circle
                 className="fixed-point-halo"
@@ -342,6 +444,16 @@ function TraverseSvg({ sample }: TraverseSvgProps) {
             >
               {point.name}
             </text>
+            {isSelected ? (
+              <text
+                className="selected-point-label"
+                textAnchor="middle"
+                x={position.x}
+                y={position.y - 21}
+              >
+                選択中
+              </text>
+            ) : null}
           </g>
         );
       })}

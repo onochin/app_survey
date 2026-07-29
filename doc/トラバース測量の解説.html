@@ -1,0 +1,1548 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="測量未経験者向けに、トラバース測量、閉合トラバース、方位角、緯距・経距、閉合差を図で説明する入門教材"
+    />
+    <title>トラバース測量 入門 | 測量理解ラボ</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #10223d;
+        --navy: #17345a;
+        --navy-soft: #315a87;
+        --blue: #1f78c8;
+        --blue-soft: #e7f3ff;
+        --paper: #ffffff;
+        --canvas: #f4f8fc;
+        --line: #d6e2ed;
+        --muted: #60758b;
+        --orange: #db6b2c;
+        --orange-soft: #fff1e7;
+        --green: #247454;
+        --green-soft: #e9f7f0;
+        --red: #a84040;
+        --red-soft: #fff0f0;
+        --shadow: 0 16px 44px rgb(23 52 90 / 10%);
+        --radius-lg: 22px;
+        --radius-md: 14px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 88% 0, rgb(31 120 200 / 13%), transparent 28rem),
+          var(--canvas);
+        font-family:
+          "Noto Sans JP", "Yu Gothic UI", "Hiragino Kaku Gothic ProN",
+          Meiryo, sans-serif;
+        line-height: 1.78;
+      }
+
+      a {
+        color: var(--blue);
+      }
+
+      a:hover {
+        color: var(--navy);
+      }
+
+      a:focus-visible {
+        outline: 3px solid rgb(31 120 200 / 35%);
+        outline-offset: 3px;
+      }
+
+      code {
+        padding: 0.1em 0.35em;
+        border-radius: 5px;
+        background: #edf3f8;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.92em;
+      }
+
+      .skip-link {
+        position: fixed;
+        z-index: 30;
+        top: 12px;
+        left: 12px;
+        padding: 8px 13px;
+        border-radius: 8px;
+        color: #fff;
+        background: var(--ink);
+        transform: translateY(-180%);
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        color: #fff;
+        background:
+          linear-gradient(120deg, rgb(16 34 61 / 99%), rgb(29 78 122 / 95%)),
+          var(--navy);
+      }
+
+      .hero::before,
+      .hero::after {
+        position: absolute;
+        border: 65px solid rgb(255 255 255 / 5%);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .hero::before {
+        top: -215px;
+        right: -90px;
+        width: 440px;
+        height: 440px;
+      }
+
+      .hero::after {
+        right: 260px;
+        bottom: -230px;
+        width: 330px;
+        height: 330px;
+      }
+
+      .hero-inner {
+        position: relative;
+        z-index: 1;
+        width: min(1180px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 60px 0 56px;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: #9ed4ff;
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 820px;
+        margin: 0;
+        font-size: clamp(2.1rem, 5.3vw, 3.75rem);
+        line-height: 1.15;
+        letter-spacing: 0.01em;
+      }
+
+      .hero-lead {
+        max-width: 760px;
+        margin: 18px 0 0;
+        color: #d9ebfa;
+        font-size: 1.05rem;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 11px;
+        margin-top: 26px;
+      }
+
+      .hero-actions a,
+      .hero-actions span {
+        display: inline-flex;
+        align-items: center;
+        min-height: 38px;
+        padding: 7px 13px;
+        border: 1px solid rgb(255 255 255 / 20%);
+        border-radius: 999px;
+        color: #fff;
+        background: rgb(255 255 255 / 8%);
+        font-size: 0.83rem;
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      .hero-actions a:hover {
+        background: rgb(255 255 255 / 16%);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 242px minmax(0, 1fr);
+        gap: 30px;
+        width: min(1180px, calc(100% - 40px));
+        margin: 34px auto 76px;
+      }
+
+      .toc {
+        position: sticky;
+        top: 20px;
+        align-self: start;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: rgb(255 255 255 / 92%);
+        box-shadow: 0 10px 30px rgb(23 52 90 / 7%);
+      }
+
+      .toc > strong {
+        display: block;
+        margin-bottom: 11px;
+        color: var(--muted);
+        font-size: 0.75rem;
+        letter-spacing: 0.12em;
+      }
+
+      .toc ol {
+        display: grid;
+        gap: 5px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .toc a {
+        display: block;
+        padding: 6px 8px;
+        border-radius: 7px;
+        color: var(--navy);
+        font-size: 0.88rem;
+        font-weight: 750;
+        text-decoration: none;
+      }
+
+      .toc a:hover {
+        background: var(--blue-soft);
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .section {
+        margin-bottom: 24px;
+        padding: clamp(24px, 4vw, 42px);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: var(--paper);
+        box-shadow: var(--shadow);
+        scroll-margin-top: 20px;
+      }
+
+      .section-number {
+        display: inline-grid;
+        min-width: 38px;
+        height: 28px;
+        margin-bottom: 10px;
+        padding: 0 10px;
+        border-radius: 999px;
+        color: var(--blue);
+        background: var(--blue-soft);
+        place-items: center;
+        font-size: 0.76rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+      }
+
+      h2 {
+        margin: 0 0 13px;
+        font-size: clamp(1.45rem, 3vw, 2.05rem);
+        line-height: 1.35;
+      }
+
+      h3 {
+        margin: 31px 0 10px;
+        color: var(--navy);
+        font-size: 1.12rem;
+      }
+
+      h4 {
+        margin: 0 0 5px;
+        font-size: 1rem;
+      }
+
+      p {
+        margin: 0 0 14px;
+      }
+
+      .lead {
+        color: #344b64;
+        font-size: 1.02rem;
+      }
+
+      .one-sentence {
+        margin: 22px 0;
+        padding: 23px;
+        border: 2px solid #acd2f2;
+        border-radius: var(--radius-md);
+        background: var(--blue-soft);
+      }
+
+      .one-sentence span {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--blue);
+        font-size: 0.76rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+      }
+
+      .one-sentence strong {
+        display: block;
+        font-size: clamp(1.08rem, 2.5vw, 1.4rem);
+        line-height: 1.55;
+      }
+
+      .term-equation {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 13px;
+        align-items: center;
+        margin: 19px 0;
+        text-align: center;
+      }
+
+      .term-equation div {
+        padding: 18px 13px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--canvas);
+      }
+
+      .term-equation strong {
+        display: block;
+        color: var(--navy);
+      }
+
+      .term-equation span {
+        color: var(--blue);
+        font-size: 1.4rem;
+        font-weight: 900;
+      }
+
+      .note,
+      .warning,
+      .success {
+        margin: 19px 0;
+        padding: 15px 18px;
+        border-left: 4px solid;
+        border-radius: 0 12px 12px 0;
+      }
+
+      .note {
+        border-color: var(--orange);
+        background: var(--orange-soft);
+      }
+
+      .warning {
+        border-color: var(--red);
+        background: var(--red-soft);
+      }
+
+      .success {
+        border-color: var(--green);
+        background: var(--green-soft);
+      }
+
+      .note strong,
+      .warning strong,
+      .success strong {
+        display: block;
+        margin-bottom: 3px;
+      }
+
+      .diagram {
+        overflow: hidden;
+        margin: 22px 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: var(--canvas);
+      }
+
+      .zoomable {
+        position: relative;
+        display: block;
+        overflow: hidden;
+        color: inherit;
+        background: #edf3f8;
+      }
+
+      .zoomable img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .zoomable::after {
+        position: absolute;
+        right: 13px;
+        bottom: 13px;
+        padding: 5px 9px;
+        border: 1px solid rgb(255 255 255 / 32%);
+        border-radius: 999px;
+        color: #fff;
+        background: rgb(16 34 61 / 88%);
+        box-shadow: 0 5px 18px rgb(16 34 61 / 24%);
+        content: "＋ 拡大";
+        font-size: 0.7rem;
+        font-weight: 850;
+        pointer-events: none;
+      }
+
+      .zoomable:hover::after,
+      .zoomable:focus-visible::after {
+        background: var(--blue);
+      }
+
+      figcaption {
+        padding: 12px 15px;
+        color: var(--muted);
+        font-size: 0.83rem;
+      }
+
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 13px;
+        margin: 19px 0;
+      }
+
+      .info-card {
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--canvas);
+      }
+
+      .info-card .tag {
+        display: inline-block;
+        margin-bottom: 9px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        color: var(--blue);
+        background: var(--blue-soft);
+        font-size: 0.72rem;
+        font-weight: 900;
+      }
+
+      .info-card p {
+        margin: 0;
+        color: #41576d;
+        font-size: 0.9rem;
+      }
+
+      .two-column {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin: 18px 0;
+      }
+
+      .compare-card {
+        padding: 19px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+
+      .compare-card.is-field {
+        background: var(--green-soft);
+      }
+
+      .compare-card.is-desk {
+        background: var(--blue-soft);
+      }
+
+      .compare-card ul {
+        margin-bottom: 0;
+      }
+
+      ul,
+      ol {
+        padding-left: 1.35rem;
+      }
+
+      li + li {
+        margin-top: 7px;
+      }
+
+      .formula-box {
+        display: grid;
+        gap: 10px;
+        margin: 18px 0;
+        padding: 20px;
+        border-radius: 14px;
+        color: #edf7ff;
+        background: var(--navy);
+      }
+
+      .formula-box div {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px 18px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgb(255 255 255 / 13%);
+      }
+
+      .formula-box div:last-child {
+        padding-bottom: 0;
+        border: 0;
+      }
+
+      .formula-box span {
+        color: #acd9fb;
+        font-size: 0.88rem;
+      }
+
+      .formula-box strong {
+        color: #fff;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 1.02rem;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        margin: 17px 0;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        font-size: 0.9rem;
+      }
+
+      th,
+      td {
+        padding: 13px 14px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      thead th {
+        color: var(--navy);
+        background: #edf3f8;
+        font-size: 0.8rem;
+        letter-spacing: 0.03em;
+      }
+
+      tbody th {
+        white-space: nowrap;
+      }
+
+      tbody tr:last-child th,
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .step-list {
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: learning-step;
+      }
+
+      .step-list > li {
+        position: relative;
+        min-height: 56px;
+        margin: 0 0 17px;
+        padding: 2px 0 18px 58px;
+        border-bottom: 1px solid #e9eff5;
+        counter-increment: learning-step;
+      }
+
+      .step-list > li:last-child {
+        margin-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .step-list > li::before {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: grid;
+        width: 39px;
+        height: 39px;
+        border-radius: 11px;
+        color: var(--blue);
+        background: var(--blue-soft);
+        content: counter(learning-step);
+        font-weight: 900;
+        place-items: center;
+      }
+
+      .step-list strong {
+        display: block;
+        margin-bottom: 3px;
+      }
+
+      .app-path {
+        margin: 18px 0;
+        padding: 18px;
+        border-radius: 13px;
+        color: #fff;
+        background: var(--navy);
+        text-align: center;
+      }
+
+      .app-path strong {
+        font-size: clamp(1rem, 3vw, 1.35rem);
+        letter-spacing: 0.03em;
+      }
+
+      .exercise {
+        margin: 18px 0;
+        padding: 20px;
+        border: 2px solid #b4d9f7;
+        border-radius: 14px;
+        background: var(--blue-soft);
+      }
+
+      .exercise h3 {
+        margin-top: 0;
+        color: var(--ink);
+      }
+
+      .exercise ol {
+        margin-bottom: 0;
+      }
+
+      details {
+        margin-top: 10px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: var(--canvas);
+      }
+
+      summary {
+        padding: 14px 16px;
+        cursor: pointer;
+        color: var(--navy);
+        font-weight: 850;
+      }
+
+      details p {
+        margin: 0;
+        padding: 0 16px 16px;
+        color: #41576d;
+      }
+
+      .source-list {
+        display: grid;
+        gap: 11px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .source-list li {
+        margin: 0;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: var(--canvas);
+      }
+
+      .source-list a {
+        font-weight: 850;
+      }
+
+      .source-list small {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+      }
+
+      footer {
+        padding: 26px 20px 44px;
+        color: var(--muted);
+        text-align: center;
+        font-size: 0.83rem;
+      }
+
+      @media (max-width: 940px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .toc {
+          position: static;
+        }
+
+        .toc ol {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .card-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 640px) {
+        .hero-inner,
+        .layout {
+          width: min(100% - 24px, 1180px);
+        }
+
+        .hero-inner {
+          padding: 43px 0 41px;
+        }
+
+        .layout {
+          margin-top: 18px;
+        }
+
+        .section,
+        .toc {
+          border-radius: 16px;
+        }
+
+        .toc ol,
+        .card-grid,
+        .two-column,
+        .term-equation {
+          grid-template-columns: 1fr;
+        }
+
+        .term-equation > span {
+          transform: rotate(90deg);
+        }
+
+        .zoomable::after {
+          right: 7px;
+          bottom: 7px;
+          padding: 5px 8px;
+          content: "＋ 拡大";
+          font-size: 0.68rem;
+        }
+
+        .step-list > li {
+          padding-left: 50px;
+        }
+      }
+
+      @media print {
+        body {
+          background: #fff;
+          font-size: 10.5pt;
+        }
+
+        .hero {
+          color: var(--ink);
+          background: #fff;
+          border-bottom: 2px solid var(--ink);
+        }
+
+        .hero-lead,
+        .eyebrow {
+          color: var(--navy);
+        }
+
+        .hero-actions span,
+        .hero-actions a {
+          color: var(--ink);
+          border-color: var(--line);
+        }
+
+        .layout {
+          display: block;
+          width: 100%;
+          margin: 18px 0;
+        }
+
+        .toc,
+        .skip-link,
+        .zoomable::after {
+          display: none;
+        }
+
+        .section {
+          margin-bottom: 14px;
+          border: 1px solid var(--line);
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へ移動</a>
+
+    <header class="hero">
+      <div class="hero-inner">
+        <p class="eyebrow">Survey Learning Lab / Basic Guide</p>
+        <h1>トラバース測量 入門</h1>
+        <p class="hero-lead">
+          「角度と距離から、どうして座標が分かるのか」を出発点に、
+          閉合トラバースの誤差と補正、測量理解ラボとの対応まで図で説明します。
+        </p>
+        <div class="hero-actions" aria-label="文書情報と関連資料">
+          <span>対象：初めて学ぶ方</span>
+          <span>図解6点・画面例1点</span>
+          <span>最終更新：2026年7月29日</span>
+          <a href="操作手順.html">シミュレーター操作手順へ →</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav class="toc" aria-label="目次">
+        <strong>CONTENTS</strong>
+        <ol>
+          <li><a href="#summary">30秒で分かる概要</a></li>
+          <li><a href="#field">現場で何を測るか</a></li>
+          <li><a href="#words">最初に覚える言葉</a></li>
+          <li><a href="#types">3種類のトラバース</a></li>
+          <li><a href="#coordinate">座標を求める仕組み</a></li>
+          <li><a href="#closure">なぜ閉じるのか</a></li>
+          <li><a href="#workflow">閉合計算の8段階</a></li>
+          <li><a href="#app">アプリとの対応</a></li>
+          <li><a href="#exercise">理解するための練習</a></li>
+          <li><a href="#faq">よくある疑問</a></li>
+          <li><a href="#glossary">用語集・参考資料</a></li>
+        </ol>
+      </nav>
+
+      <main id="main">
+        <section class="section" id="summary">
+          <span class="section-number">01</span>
+          <h2>30秒で分かるトラバース測量</h2>
+          <div class="one-sentence">
+            <span>ひとことで言うと</span>
+            <strong>
+              位置が分かっている点から出発し、「どちらへ」「何m進む」を繰り返して、
+              次の点の座標を順番に求める測量です。
+            </strong>
+          </div>
+          <p>
+            「どちらへ」は角度、「何m進む」は距離を観測して決めます。
+            一本道ではなく折れ線状に測点をつないでいくため、その形が多角形に見えます。
+          </p>
+
+          <div class="term-equation" aria-label="多角測量とトラバース測量の用語対応">
+            <div>
+              <strong>多角測量</strong>
+              日本語の呼び方
+            </div>
+            <span>＝</span>
+            <div>
+              <strong>トラバース測量</strong>
+              英語由来の呼び方
+            </div>
+          </div>
+          <div class="term-equation" aria-label="閉合多角測量と閉合トラバース測量の用語対応">
+            <div>
+              <strong>閉合多角測量</strong>
+              アプリ現在の表記
+            </div>
+            <span>＝</span>
+            <div>
+              <strong>閉合トラバース測量</strong>
+              この教材で主に使う表記
+            </div>
+          </div>
+
+          <div class="success">
+            <strong>最初に押さえる3点</strong>
+            ①現場では角度と距離を測る、②計算ではそれをX・Y方向へ分ける、
+            ③閉じた経路なら最後のずれから誤差を点検できる、という流れです。
+          </div>
+        </section>
+
+        <section class="section" id="field">
+          <span class="section-number">02</span>
+          <h2>現場では何を測り、机上では何を計算するのか</h2>
+          <p class="lead">
+            トラバース測量は、現場の「観測」と、その後の「計算」を分けて考えると理解しやすくなります。
+          </p>
+
+          <figure class="diagram">
+            <a
+              class="zoomable"
+              href="diagrams/traverse-concept.svg"
+              target="_blank"
+              rel="noopener"
+              title="トラバース測量の基本概念図を新しいタブで開く"
+            >
+              <img
+                src="diagrams/traverse-concept.svg"
+                alt="既知点AからP1、P2、P3を経て既知点Bへ進み、距離と水平角を観測する基本概念図"
+              />
+            </a>
+            <figcaption>
+              基本概念。画像をクリックすると、新しいタブで拡大表示できます。
+            </figcaption>
+          </figure>
+
+          <div class="two-column">
+            <article class="compare-card is-field">
+              <h3>現場：観測する</h3>
+              <ul>
+                <li>測点にトータルステーション（TS）を据える</li>
+                <li>前後の測点を視準して水平角を測る</li>
+                <li>次の測点までの距離を測る</li>
+                <li>次の測点へ機器を移して繰り返す</li>
+              </ul>
+            </article>
+            <article class="compare-card is-desk">
+              <h3>机上：座標を計算する</h3>
+              <ul>
+                <li>観測角から各辺の方位角を求める</li>
+                <li>距離を北・東方向の成分へ分ける</li>
+                <li>既知点の座標へ成分を順番に足す</li>
+                <li>閉合差を確認し、必要な調整を行う</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="note">
+            <strong>このアプリが扱う範囲</strong>
+            実際の機器の据付けや視準ではなく、水平角・距離を観測した後の
+            平面上の計算と誤差の意味を学ぶシミュレーターです。
+          </div>
+        </section>
+
+        <section class="section" id="words">
+          <span class="section-number">03</span>
+          <h2>最初に覚える6つの言葉</h2>
+          <div class="card-grid">
+            <article class="info-card">
+              <span class="tag">START</span>
+              <h4>既知点</h4>
+              <p>すでにX・Y座標が分かっている点。計算の出発基準になります。</p>
+            </article>
+            <article class="info-card">
+              <span class="tag">POINT</span>
+              <h4>新点・求点</h4>
+              <p>これから座標を求めたい点。P1、P2のように表します。</p>
+            </article>
+            <article class="info-card">
+              <span class="tag">STATION</span>
+              <h4>測点</h4>
+              <p>機器を据えたり、角度・距離の基準にしたりする点です。</p>
+            </article>
+            <article class="info-card">
+              <span class="tag">LEG</span>
+              <h4>辺</h4>
+              <p>隣り合う測点を結ぶ線。各辺について距離と方向を扱います。</p>
+            </article>
+            <article class="info-card">
+              <span class="tag">ANGLE</span>
+              <h4>観測角・内角</h4>
+              <p>測点で前の辺と次の辺がつくる角度。方位角の計算に使います。</p>
+            </article>
+            <article class="info-card">
+              <span class="tag">DIRECTION</span>
+              <h4>方位角</h4>
+              <p>辺がどちらを向くかを、北0°から時計回りで表した角度です。</p>
+            </article>
+          </div>
+          <p>
+            観測角は「2本の辺の間の角度」、方位角は「北から見た1本の辺の方向」です。
+            名前は似ていますが、役割が異なります。
+          </p>
+        </section>
+
+        <section class="section" id="types">
+          <span class="section-number">04</span>
+          <h2>トラバース測量の3種類</h2>
+          <p>
+            主な違いは、経路の最後がどこへ到着するかです。
+            閉合点や既知の終点があると、計算結果のずれを点検できます。
+          </p>
+
+          <figure class="diagram">
+            <a
+              class="zoomable"
+              href="diagrams/traverse-types.svg"
+              target="_blank"
+              rel="noopener"
+              title="トラバース測量の3種類の図を新しいタブで開く"
+            >
+              <img
+                src="diagrams/traverse-types.svg"
+                alt="閉合トラバース、結合トラバース、開放トラバースの違い"
+              />
+            </a>
+            <figcaption>
+              3種類の概念図。クリックすると拡大表示できます。
+            </figcaption>
+          </figure>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>種類</th>
+                  <th>経路</th>
+                  <th>誤差の確認</th>
+                  <th>このアプリ</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>閉合トラバース</th>
+                  <td>出発点へ戻り、輪になる</td>
+                  <td>角度と座標の閉合差を確認しやすい</td>
+                  <td>今回の学習対象</td>
+                </tr>
+                <tr>
+                  <th>結合トラバース</th>
+                  <td>既知点から別の既知点へ到着する</td>
+                  <td>計算した終点と既知座標を比較できる</td>
+                  <td>対象外</td>
+                </tr>
+                <tr>
+                  <th>開放トラバース</th>
+                  <td>未知の点で終わり、閉じない</td>
+                  <td>経路だけでは誤差の発見が難しい</td>
+                  <td>対象外</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="warning">
+            <strong>図は入門用に単純化しています</strong>
+            実務の基準点測量では、既知点、方向、路線・網の構成、観測方法、
+            許容範囲などを作業規程に従って計画します。
+          </div>
+        </section>
+
+        <section class="section" id="coordinate">
+          <span class="section-number">05</span>
+          <h2>角度と距離から座標を求める仕組み</h2>
+          <p>
+            斜めに進んだ距離を、そのままX・Y座標へ足すことはできません。
+            まず北方向と東方向の2つの進み量へ分解します。
+          </p>
+
+          <figure class="diagram">
+            <a
+              class="zoomable"
+              href="diagrams/azimuth-components.svg"
+              target="_blank"
+              rel="noopener"
+              title="方位角と座標成分の図を新しいタブで開く"
+            >
+              <img
+                src="diagrams/azimuth-components.svg"
+                alt="距離Sと方位角αから緯距ΔXと経距ΔYを求める図"
+              />
+            </a>
+            <figcaption>
+              方位角と座標成分。クリックすると拡大表示できます。
+            </figcaption>
+          </figure>
+
+          <div class="formula-box" aria-label="座標成分と次点座標の式">
+            <div>
+              <span>北方向の進み量（緯距）</span>
+              <strong>ΔX = S × cos α</strong>
+            </div>
+            <div>
+              <span>東方向の進み量（経距）</span>
+              <strong>ΔY = S × sin α</strong>
+            </div>
+            <div>
+              <span>次の点の座標</span>
+              <strong>Xnext = X + ΔX / Ynext = Y + ΔY</strong>
+            </div>
+          </div>
+
+          <ul>
+            <li>北へ進むと<code>ΔX</code>はプラス、南へ進むとマイナス</li>
+            <li>東へ進むと<code>ΔY</code>はプラス、西へ進むとマイナス</li>
+            <li><code>S</code>は距離、<code>α</code>はその辺の方位角</li>
+          </ul>
+
+          <h3>正方形ならどうなるか</h3>
+          <figure class="diagram">
+            <a
+              class="zoomable"
+              href="diagrams/square-example.svg"
+              target="_blank"
+              rel="noopener"
+              title="正方形の座標成分例を新しいタブで開く"
+            >
+              <img
+                src="diagrams/square-example.svg"
+                alt="100mの正方形を一周するとΔXとΔYの合計が0になる例"
+              />
+            </a>
+            <figcaption>
+              誤差のない正方形の例。クリックすると拡大表示できます。
+            </figcaption>
+          </figure>
+          <p>
+            理想的に閉じる経路では、北へ進んだ量と南へ進んだ量、
+            東へ進んだ量と西へ進んだ量がそれぞれ打ち消し合います。
+            そのため<code>ΣΔX = 0</code>、<code>ΣΔY = 0</code>になります。
+          </p>
+        </section>
+
+        <section class="section" id="closure">
+          <span class="section-number">06</span>
+          <h2>なぜ「閉じる」と誤差が分かるのか</h2>
+          <p>
+            出発点Aから一周してAへ戻るなら、計算上の終点もAと同じ座標になるはずです。
+            実際には観測誤差が積み重なり、少し離れたA′へ到着します。
+          </p>
+
+          <figure class="diagram">
+            <a
+              class="zoomable"
+              href="diagrams/closure-error.svg"
+              target="_blank"
+              rel="noopener"
+              title="閉合差の図を新しいタブで開く"
+            >
+              <img
+                src="diagrams/closure-error.svg"
+                alt="本来の閉合点Aと計算上の終点Aダッシュのずれをfx、fy、fで表す図"
+              />
+            </a>
+            <figcaption>
+              座標閉合差の意味。クリックすると拡大表示できます。
+            </figcaption>
+          </figure>
+
+          <h3>角度にも閉合条件がある</h3>
+          <p>
+            n角形の内角和は<code>(n − 2) × 180°</code>です。
+            このアプリはA、P1〜P4、Bの6点なので、理論内角和は720°になります。
+          </p>
+          <div class="formula-box" aria-label="アプリの角度閉合差の例">
+            <div>
+              <span>理論内角和</span>
+              <strong>(6 − 2) × 180° = 720°</strong>
+            </div>
+            <div>
+              <span>サンプルの観測内角和</span>
+              <strong>720°00′12″</strong>
+            </div>
+            <div>
+              <span>角度閉合差</span>
+              <strong>fβ = +12″</strong>
+            </div>
+            <div>
+              <span>6角へ均等配分する場合</span>
+              <strong>1角あたり −2″</strong>
+            </div>
+          </div>
+
+          <h3>座標のずれを数値にする</h3>
+          <div class="formula-box" aria-label="座標閉合差の式">
+            <div>
+              <span>X方向の閉合差</span>
+              <strong>fx = ΣΔX</strong>
+            </div>
+            <div>
+              <span>Y方向の閉合差</span>
+              <strong>fy = ΣΔY</strong>
+            </div>
+            <div>
+              <span>平面上の合成閉合差</span>
+              <strong>f = √(fx² + fy²)</strong>
+            </div>
+            <div>
+              <span>相対的な精度の目安</span>
+              <strong>閉合比 = f ÷ 総路線長 = 1 / (総路線長 ÷ f)</strong>
+            </div>
+          </div>
+
+          <h3>誤差が生まれる主な理由</h3>
+          <div class="card-grid">
+            <article class="info-card">
+              <span class="tag">SETUP</span>
+              <h4>機器の据付け</h4>
+              <p>測点の真上に据わっていない、整準が不十分など。</p>
+            </article>
+            <article class="info-card">
+              <span class="tag">ANGLE</span>
+              <h4>角度観測</h4>
+              <p>視準や読取り、記録に小さなずれが含まれるなど。</p>
+            </article>
+            <article class="info-card">
+              <span class="tag">DISTANCE</span>
+              <h4>距離観測</h4>
+              <p>気象、プリズム、器械条件、入力ミスなど。</p>
+            </article>
+          </div>
+
+          <div class="warning">
+            <strong>補正は、誤観測を隠す操作ではありません</strong>
+            まず閉合差が規定の許容範囲内かを確認し、大きすぎる場合は原因確認や再測を行います。
+            このアプリは学習用で、実務基準への適合判定は行いません。
+          </div>
+        </section>
+
+        <section class="section" id="workflow">
+          <span class="section-number">07</span>
+          <h2>閉合トラバース計算の8段階</h2>
+          <p>
+            最初に角度と方向を整え、その後で距離を座標成分へ分けて閉合差を整えます。
+          </p>
+
+          <figure class="diagram">
+            <a
+              class="zoomable"
+              href="diagrams/traverse-workflow.svg"
+              target="_blank"
+              rel="noopener"
+              title="閉合トラバース計算の流れを新しいタブで開く"
+            >
+              <img
+                src="diagrams/traverse-workflow.svg"
+                alt="観測角から新点座標までの8つの計算ステップ"
+              />
+            </a>
+            <figcaption>
+              測量理解ラボと同じ8段階。クリックすると拡大表示できます。
+            </figcaption>
+          </figure>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>STEP</th>
+                  <th>行うこと</th>
+                  <th>自分への確認質問</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>1 観測角</th>
+                  <td>全測点の内角を足す</td>
+                  <td>6つの観測角がそろっているか</td>
+                </tr>
+                <tr>
+                  <th>2 角度閉合差</th>
+                  <td>理論内角和との差を求める</td>
+                  <td>720°から何秒ずれたか</td>
+                </tr>
+                <tr>
+                  <th>3 角度補正</th>
+                  <td>角度閉合差を観測角へ配る</td>
+                  <td>補正後の内角和は720°か</td>
+                </tr>
+                <tr>
+                  <th>4 方位角</th>
+                  <td>初期方位角から各辺の方向を求める</td>
+                  <td>北0°・時計回りになっているか</td>
+                </tr>
+                <tr>
+                  <th>5 緯距・経距</th>
+                  <td>各距離をΔX・ΔYへ分ける</td>
+                  <td>南・西方向の符号はマイナスか</td>
+                </tr>
+                <tr>
+                  <th>6 座標閉合差</th>
+                  <td>fx、fy、fと閉合比を求める</td>
+                  <td>一周後にどちらへ何mずれたか</td>
+                </tr>
+                <tr>
+                  <th>7 座標補正</th>
+                  <td>閉合差を各辺へ配る</td>
+                  <td>補正量の合計が閉合差を打ち消すか</td>
+                </tr>
+                <tr>
+                  <th>8 新点座標</th>
+                  <td>補正後の成分を既知座標へ足す</td>
+                  <td>最後に出発点へ戻ったか</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="note">
+            <strong>アプリの補正方法</strong>
+            角度閉合差は均等に配分し、座標閉合差は辺長に比例して配る
+            コンパス法（ボーディッチ法）を使用しています。実務では条件や規程に応じて方法を選びます。
+          </div>
+        </section>
+
+        <section class="section" id="app">
+          <span class="section-number">08</span>
+          <h2>測量理解ラボでは、どこを見ればよいか</h2>
+          <div class="app-path">
+            <strong>A → P1 → P2 → P3 → P4 → B → A</strong>
+          </div>
+          <p>
+            この経路は最後にAへ戻るため、閉合トラバースです。
+            画面上の多角形は現場を単純化したもので、観測手簿の数値を使って8段階の計算を行います。
+          </p>
+
+          <figure class="diagram">
+            <a
+              class="zoomable"
+              href="screenshots/phase3-initial-1366.png"
+              target="_blank"
+              rel="noopener"
+              title="シミュレーター初期画面を新しいタブで開く"
+            >
+              <img
+                src="screenshots/phase3-initial-1366.png"
+                alt="閉合トラバースを学習する測量理解ラボの初期画面"
+              />
+            </a>
+            <figcaption>
+              シミュレーター初期画面。クリックすると原寸で確認できます。
+            </figcaption>
+          </figure>
+
+          <div class="two-column">
+            <article class="compare-card is-field">
+              <h3>図上の理論値</h3>
+              <p>
+                P1〜P4をドラッグした形から計算する距離・内角です。
+                点を動かすと変化します。
+              </p>
+            </article>
+            <article class="compare-card is-desk">
+              <h3>観測手簿の観測値</h3>
+              <p>
+                現場で測ったと仮定する入力値です。
+                点をドラッグしても自動では変化しません。
+              </p>
+            </article>
+          </div>
+
+          <ol class="step-list">
+            <li>
+              <strong>最初は値を変更しない</strong>
+              サンプル値のまま、右側の式・代入値・計算結果を読みます。
+            </li>
+            <li>
+              <strong>「次へ」を1回ずつ押す</strong>
+              8段階の因果関係を追います。途中で「計算簿」タブも確認します。
+            </li>
+            <li>
+              <strong>STEP 6で「誤差の見える化」を開く</strong>
+              fx、fy、fが図のどの向きに対応するか確認します。
+            </li>
+            <li>
+              <strong>STEP 8の後に確認問題へ回答する</strong>
+              正解すると学習フローが完了します。
+            </li>
+          </ol>
+
+          <p>
+            ボタンの位置や入力欄については、
+            <a href="操作手順.html#screen">操作手順書の「04 画面の見方」</a>と
+            <a href="操作手順.html#operation">「05 初めて使うときの操作」</a>を参照してください。
+          </p>
+        </section>
+
+        <section class="section" id="exercise">
+          <span class="section-number">09</span>
+          <h2>理解するための3つの練習</h2>
+
+          <article class="exercise">
+            <h3>練習A：まず標準サンプルを一周する</h3>
+            <ol>
+              <li>何も編集せずSTEP 1からSTEP 8まで進める</li>
+              <li>角度閉合差<code>+12″</code>と、1角あたりの補正<code>−2″</code>を確認する</li>
+              <li>STEP 6で<code>fx</code>、<code>fy</code>、<code>f</code>の向きを図と照合する</li>
+              <li>「補正前は少しずれるが、補正後は閉じる」ことを確認する</li>
+            </ol>
+          </article>
+
+          <article class="exercise">
+            <h3>練習B：距離を1つだけ変える</h3>
+            <ol>
+              <li>「リセット」を押し、「観測値を編集」を開く</li>
+              <li>A→P1の距離を、元の値から<code>+1.000 m</code>だけ増やす</li>
+              <li>再びSTEP 6まで進め、標準サンプルより閉合差がどう変わるかを見る</li>
+              <li>距離の誤りもX・Y両方のずれにつながることを確認する</li>
+              <li>確認後は「リセット」で元に戻す</li>
+            </ol>
+          </article>
+
+          <article class="exercise">
+            <h3>練習C：測点をドラッグする</h3>
+            <ol>
+              <li>「リセット」を押し、P2を辺が交差しない範囲で少し動かす</li>
+              <li>現場図の黒い理論距離と緑の理論内角が変わることを確認する</li>
+              <li>観測手簿の入力値は変わっていないことを確認する</li>
+              <li>「図形の理論値」と「観測した数値」は別物だと理解する</li>
+            </ol>
+          </article>
+
+          <div class="success">
+            <strong>この3点を説明できれば第一段階は完了です</strong>
+            「何を観測するか」「どう座標へ変換するか」「閉じるとなぜ誤差が分かるか」を、
+            図を見ながら自分の言葉で説明してみてください。
+          </div>
+        </section>
+
+        <section class="section" id="faq">
+          <span class="section-number">10</span>
+          <h2>よくある疑問</h2>
+
+          <details open>
+            <summary>閉合差があるのは、測量に失敗したということですか？</summary>
+            <p>
+              直ちに失敗という意味ではありません。観測には小さな誤差が含まれます。
+              閉合差を計算し、規定の許容範囲内か点検することが重要です。
+              大きすぎる場合は補正の前に原因確認や再測を行います。
+            </p>
+          </details>
+
+          <details>
+            <summary>観測角と方位角は何が違いますか？</summary>
+            <p>
+              観測角は測点で2本の辺の間を測った角度です。方位角は各辺が北から
+              時計回りに何度の方向を向くかを示します。観測角と初期方位角から、
+              次の辺の方位角を順番に求めます。
+            </p>
+          </details>
+
+          <details>
+            <summary>なぜアプリではXが北、Yが東なのですか？</summary>
+            <p>
+              このアプリは測量で使う平面座標の説明に合わせ、Xを北方向、Yを東方向としています。
+              数学グラフの横軸X・縦軸Yとは見え方が異なるため注意してください。
+            </p>
+          </details>
+
+          <details>
+            <summary>測点を動かしたのに観測値が変わらないのはなぜですか？</summary>
+            <p>
+              ドラッグは図形から求める理論値だけを変えます。観測値は現場で実際に読んだと仮定する
+              独立した数値なので、自動変更しません。両者を比べることが学習目的の一つです。
+            </p>
+          </details>
+
+          <details>
+            <summary>補正すれば、どんな大きな誤差でも使えますか？</summary>
+            <p>
+              使えません。補正は、点検して許容できる観測値に含まれる小さなずれを配分する計算です。
+              大きな閉合差や入力ミスを正当化するものではありません。
+            </p>
+          </details>
+
+          <details>
+            <summary>このアプリの結果を実際の測量成果に使えますか？</summary>
+            <p>
+              使えません。学習用に単純化した初期版で、公共測量等の規程適合、機器補正、
+              品質判定、成果表作成には対応していません。
+            </p>
+          </details>
+        </section>
+
+        <section class="section" id="glossary">
+          <span class="section-number">11</span>
+          <h2>用語集と参考資料</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>用語</th>
+                  <th>この教材での意味</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>TS</th>
+                  <td>水平角と距離などを観測するトータルステーション。</td>
+                </tr>
+                <tr>
+                  <th>初期方位角</th>
+                  <td>最初の辺が向く既知の方向。後続辺の方位角計算の出発点。</td>
+                </tr>
+                <tr>
+                  <th>緯距 ΔX</th>
+                  <td>1本の辺について、北・南方向へ進む座標成分。</td>
+                </tr>
+                <tr>
+                  <th>経距 ΔY</th>
+                  <td>1本の辺について、東・西方向へ進む座標成分。</td>
+                </tr>
+                <tr>
+                  <th>角度閉合差 fβ</th>
+                  <td>観測内角和と理論内角和との差。</td>
+                </tr>
+                <tr>
+                  <th>座標閉合差 fx・fy</th>
+                  <td>一周したX成分・Y成分の合計。理想的にはそれぞれ0。</td>
+                </tr>
+                <tr>
+                  <th>合成閉合差 f</th>
+                  <td>fxとfyを合成した平面上のずれの大きさ。</td>
+                </tr>
+                <tr>
+                  <th>閉合比</th>
+                  <td>路線の総延長に対して閉合差がどの程度かを示す比。</td>
+                </tr>
+                <tr>
+                  <th>コンパス法</th>
+                  <td>座標閉合差を各辺の長さに比例させて配分する調整方法。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>参考にした公的・教育資料</h3>
+          <ul class="source-list">
+            <li>
+              <a
+                href="https://web1.gsi.go.jp/sokuchikijun/sankaku-survey.html"
+                target="_blank"
+                rel="noopener"
+              >
+                国土地理院「三角点の測量方法」
+              </a>
+              <small>多角測量の定義、既知点・求点、距離と角度、TSの説明を確認。</small>
+            </li>
+            <li>
+              <a
+                href="https://www.gsi.go.jp/KOUKYOU/index.html"
+                target="_blank"
+                rel="noopener"
+              >
+                国土地理院「公共測量」
+              </a>
+              <small>作業規程の準則と公共測量関連資料への公式入口。</small>
+            </li>
+            <li>
+              <a
+                href="https://syllabus.kosen-k.go.jp/Pages/PublicSyllabus?department_id=14&amp;lang=ja&amp;school_id=23&amp;subject_id=42221&amp;year=2016"
+                target="_blank"
+                rel="noopener"
+              >
+                国立高等専門学校機構 Webシラバス「測量学ⅠＢ」
+              </a>
+              <small>閉合・結合・開放トラバース、方位角、緯距・経距、閉合差、調整法の学習項目を確認。</small>
+            </li>
+          </ul>
+
+          <div class="warning">
+            <strong>学習資料としての位置付け</strong>
+            本資料は初心者向けに概念を単純化した解説です。実際の公共測量・基準点測量では、
+            最新の法令、作業規程、仕様書、使用機器の取扱説明書、責任者の指示に従ってください。
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer>
+      測量理解ラボ — トラバース測量 入門
+    </footer>
+  </body>
+</html>
