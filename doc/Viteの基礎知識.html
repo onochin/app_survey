@@ -1,0 +1,1433 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Viteの役割、npmとの関係、開発サーバー、ビルド、previewを初心者向けに説明する入門教材"
+    />
+    <title>Viteの基礎知識 | 測量理解ラボ</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #10223d;
+        --navy: #17345a;
+        --navy-deep: #0c2947;
+        --blue: #2478cb;
+        --blue-soft: #e9f4ff;
+        --violet: #7567e8;
+        --violet-soft: #f0eeff;
+        --green: #247454;
+        --green-soft: #e9f7f0;
+        --orange: #c7652c;
+        --orange-soft: #fff2e8;
+        --red: #a64242;
+        --red-soft: #fff0f0;
+        --slate: #52677d;
+        --muted: #6d8194;
+        --line: #d9e4ee;
+        --canvas: #f4f8fc;
+        --paper: #ffffff;
+        --code: #10283f;
+        --shadow: 0 16px 44px rgb(20 52 86 / 10%);
+        --radius-large: 22px;
+        --radius-medium: 14px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 90% 0, rgb(117 103 232 / 10%), transparent 28rem),
+          radial-gradient(circle at 8% 18%, rgb(36 120 203 / 8%), transparent 24rem),
+          var(--canvas);
+        font-family:
+          "Noto Sans JP", "Yu Gothic UI", "Hiragino Kaku Gothic ProN",
+          Meiryo, sans-serif;
+        font-size: 16px;
+        line-height: 1.8;
+      }
+
+      a {
+        color: var(--blue);
+      }
+
+      a:hover {
+        color: var(--navy);
+      }
+
+      a:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid rgb(36 120 203 / 35%);
+        outline-offset: 3px;
+      }
+
+      code,
+      pre {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      code {
+        padding: 0.12em 0.38em;
+        border-radius: 5px;
+        background: #edf3f8;
+        font-size: 0.92em;
+      }
+
+      .skip-link {
+        position: fixed;
+        z-index: 30;
+        top: 12px;
+        left: 12px;
+        padding: 9px 14px;
+        color: #fff;
+        background: var(--ink);
+        border-radius: 8px;
+        transform: translateY(-180%);
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        color: #fff;
+        background:
+          radial-gradient(circle at 82% 34%, rgb(117 103 232 / 32%), transparent 18rem),
+          linear-gradient(120deg, #0b2946, #174c78 62%, #2e568a);
+      }
+
+      .hero::before,
+      .hero::after {
+        position: absolute;
+        border: 64px solid rgb(255 255 255 / 5%);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .hero::before {
+        top: -220px;
+        right: -90px;
+        width: 470px;
+        height: 470px;
+      }
+
+      .hero::after {
+        right: 330px;
+        bottom: -270px;
+        width: 390px;
+        height: 390px;
+      }
+
+      .hero-inner {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        width: min(1180px, calc(100% - 40px));
+        min-height: 390px;
+        align-items: center;
+        gap: 42px;
+        padding: 56px 0;
+        margin: 0 auto;
+        grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: #b7dcff;
+        font-size: 0.84rem;
+        font-weight: 900;
+        letter-spacing: 0.16em;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.3rem, 5.2vw, 4rem);
+        line-height: 1.16;
+        letter-spacing: 0.01em;
+      }
+
+      .hero-lead {
+        max-width: 720px;
+        margin: 20px 0 0;
+        color: #dbeafa;
+        font-size: 1.08rem;
+      }
+
+      .hero-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 26px;
+      }
+
+      .hero-tags span {
+        padding: 7px 12px;
+        color: #fff;
+        background: rgb(255 255 255 / 9%);
+        border: 1px solid rgb(255 255 255 / 18%);
+        border-radius: 999px;
+        font-size: 0.88rem;
+        font-weight: 750;
+      }
+
+      .hero-visual {
+        display: grid;
+        min-height: 250px;
+        place-items: center;
+      }
+
+      .hero-visual svg {
+        display: block;
+        width: min(100%, 440px);
+        height: auto;
+        overflow: visible;
+      }
+
+      .visual-orbit {
+        fill: none;
+        stroke: rgb(207 228 249 / 32%);
+        stroke-width: 1.5;
+      }
+
+      .visual-card {
+        fill: rgb(255 255 255 / 95%);
+        stroke: #c9dcf0;
+        stroke-width: 1.5;
+      }
+
+      .visual-terminal {
+        fill: #10283f;
+      }
+
+      .visual-terminal-dot {
+        fill: #77df9b;
+      }
+
+      .visual-terminal-text {
+        fill: #cce5f7;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 12px;
+      }
+
+      .visual-lightning {
+        fill: #f2d34c;
+        stroke: #a7771b;
+        stroke-linejoin: round;
+        stroke-width: 2;
+      }
+
+      .visual-label {
+        fill: #17345a;
+        font-size: 14px;
+        font-weight: 900;
+        text-anchor: middle;
+      }
+
+      .visual-sub {
+        fill: #60758b;
+        font-size: 10px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+
+      .layout {
+        display: grid;
+        width: min(1180px, calc(100% - 40px));
+        align-items: start;
+        gap: 30px;
+        margin: 36px auto 78px;
+        grid-template-columns: 250px minmax(0, 1fr);
+      }
+
+      .toc {
+        position: sticky;
+        top: 20px;
+        padding: 22px;
+        background: rgb(255 255 255 / 94%);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-large);
+        box-shadow: 0 10px 30px rgb(25 55 88 / 7%);
+      }
+
+      .toc > strong {
+        display: block;
+        margin-bottom: 12px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+      }
+
+      .toc ol {
+        display: grid;
+        gap: 6px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+
+      .toc a {
+        display: block;
+        padding: 7px 9px;
+        color: var(--navy);
+        border-radius: 8px;
+        font-size: 0.94rem;
+        font-weight: 750;
+        text-decoration: none;
+      }
+
+      .toc a:hover {
+        background: var(--blue-soft);
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .section-card {
+        padding: clamp(26px, 4vw, 44px);
+        margin-bottom: 26px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-large);
+        box-shadow: var(--shadow);
+        scroll-margin-top: 20px;
+      }
+
+      .section-label {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        padding: 5px 11px;
+        margin-bottom: 11px;
+        color: var(--blue);
+        background: var(--blue-soft);
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+      }
+
+      h2 {
+        margin: 0 0 16px;
+        color: var(--navy-deep);
+        font-size: clamp(1.65rem, 3vw, 2.25rem);
+        line-height: 1.35;
+      }
+
+      h3 {
+        margin: 0 0 9px;
+        color: var(--navy);
+        font-size: 1.18rem;
+        line-height: 1.45;
+      }
+
+      h4 {
+        margin: 0 0 6px;
+        color: var(--navy);
+        font-size: 1.02rem;
+      }
+
+      p {
+        margin: 0 0 16px;
+      }
+
+      .lead {
+        max-width: 760px;
+        color: var(--slate);
+        font-size: 1.05rem;
+      }
+
+      .key-message {
+        padding: 18px 20px;
+        margin: 22px 0 0;
+        color: #174b39;
+        background: var(--green-soft);
+        border: 1px solid #cce8d8;
+        border-left: 5px solid #3a9b70;
+        border-radius: 12px;
+        font-weight: 750;
+      }
+
+      .role-grid {
+        display: grid;
+        gap: 14px;
+        margin-top: 22px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .role-card {
+        min-width: 0;
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-medium);
+        background: #fbfdff;
+      }
+
+      .role-icon {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        place-items: center;
+        margin-bottom: 13px;
+        color: var(--blue);
+        background: var(--blue-soft);
+        border-radius: 12px;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.9rem;
+        font-weight: 900;
+      }
+
+      .role-card:nth-child(2) .role-icon {
+        color: var(--violet);
+        background: var(--violet-soft);
+      }
+
+      .role-card:nth-child(3) .role-icon {
+        color: var(--green);
+        background: var(--green-soft);
+      }
+
+      .role-card p {
+        margin: 0;
+        color: var(--slate);
+        font-size: 0.95rem;
+      }
+
+      .relationship {
+        display: grid;
+        align-items: stretch;
+        gap: 10px;
+        margin: 24px 0;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .relationship-card {
+        position: relative;
+        display: grid;
+        min-height: 132px;
+        align-content: center;
+        padding: 18px;
+        text-align: center;
+        background: #f8fbfe;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+      }
+
+      .relationship-card + .relationship-card::before {
+        position: absolute;
+        top: 50%;
+        left: -17px;
+        width: 24px;
+        color: var(--blue);
+        content: "→";
+        font-size: 1.25rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+      }
+
+      .relationship-card strong {
+        color: var(--navy);
+        font-size: 1.05rem;
+      }
+
+      .relationship-card span {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .command-stack {
+        display: grid;
+        gap: 18px;
+        margin-top: 24px;
+      }
+
+      .command-card {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 15px;
+      }
+
+      .command-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 16px 20px;
+        background: #f7fafc;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .command-heading h3 {
+        margin: 0;
+      }
+
+      .command-heading span {
+        flex: 0 0 auto;
+        padding: 5px 10px;
+        color: var(--slate);
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 750;
+      }
+
+      .terminal {
+        padding: 18px 20px;
+        overflow-x: auto;
+        color: #d6e8f7;
+        background: var(--code);
+      }
+
+      .terminal::before {
+        margin-right: 9px;
+        color: #79dda0;
+        content: "$";
+        font-weight: 900;
+      }
+
+      .terminal code {
+        padding: 0;
+        color: inherit;
+        background: transparent;
+        font-size: 1rem;
+        font-weight: 750;
+        white-space: nowrap;
+      }
+
+      .command-body {
+        padding: 18px 20px;
+      }
+
+      .command-body p:last-child {
+        margin-bottom: 0;
+      }
+
+      .fact-list {
+        display: grid;
+        gap: 8px;
+        padding: 0;
+        margin: 12px 0 0;
+        list-style: none;
+      }
+
+      .fact-list li {
+        position: relative;
+        padding-left: 27px;
+        color: var(--slate);
+      }
+
+      .fact-list li::before {
+        position: absolute;
+        top: 0.12em;
+        left: 0;
+        display: grid;
+        width: 20px;
+        height: 20px;
+        place-items: center;
+        color: var(--green);
+        background: var(--green-soft);
+        border-radius: 50%;
+        content: "✓";
+        font-size: 0.72rem;
+        font-weight: 900;
+      }
+
+      .comparison-wrap {
+        margin-top: 24px;
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+      }
+
+      table {
+        width: 100%;
+        min-width: 720px;
+        border-collapse: collapse;
+        background: #fff;
+      }
+
+      th,
+      td {
+        padding: 15px 17px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--navy);
+        background: #eef5fb;
+        font-size: 0.9rem;
+        white-space: nowrap;
+      }
+
+      td {
+        color: var(--slate);
+        font-size: 0.95rem;
+      }
+
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .flow {
+        display: grid;
+        gap: 14px;
+        margin: 24px 0 4px;
+      }
+
+      .flow-step {
+        display: grid;
+        align-items: center;
+        gap: 16px;
+        padding: 17px 19px;
+        background: #f9fbfd;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        grid-template-columns: 42px minmax(0, 1fr);
+      }
+
+      .flow-number {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        color: #fff;
+        background: linear-gradient(135deg, var(--blue), var(--violet));
+        border-radius: 12px;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.9rem;
+        font-weight: 900;
+      }
+
+      .flow-step strong {
+        display: block;
+        color: var(--navy);
+        font-size: 1.02rem;
+      }
+
+      .flow-step p {
+        margin: 3px 0 0;
+        color: var(--slate);
+        font-size: 0.95rem;
+      }
+
+      .file-tree {
+        padding: 20px 22px;
+        margin: 22px 0;
+        overflow-x: auto;
+        color: #d8e9f7;
+        background: var(--code);
+        border-radius: 14px;
+        line-height: 1.75;
+      }
+
+      .file-tree code {
+        padding: 0;
+        color: inherit;
+        background: transparent;
+        font-size: 0.94rem;
+        white-space: pre;
+      }
+
+      .callout-grid {
+        display: grid;
+        gap: 14px;
+        margin-top: 22px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .callout {
+        padding: 19px 20px;
+        border-radius: 13px;
+      }
+
+      .callout.is-good {
+        color: #174b39;
+        background: var(--green-soft);
+        border: 1px solid #cce8d8;
+      }
+
+      .callout.is-warning {
+        color: #74431f;
+        background: var(--orange-soft);
+        border: 1px solid #f0d1bd;
+      }
+
+      .callout h3 {
+        color: inherit;
+      }
+
+      .callout p {
+        margin: 0;
+      }
+
+      .mistake-list {
+        display: grid;
+        gap: 12px;
+        padding: 0;
+        margin: 22px 0 0;
+        list-style: none;
+      }
+
+      .mistake-list li {
+        display: grid;
+        align-items: start;
+        gap: 13px;
+        padding: 16px 18px;
+        background: #fffafa;
+        border: 1px solid #efd6d6;
+        border-radius: 12px;
+        grid-template-columns: 28px minmax(0, 1fr);
+      }
+
+      .mistake-mark {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        color: var(--red);
+        background: var(--red-soft);
+        border-radius: 8px;
+        font-weight: 900;
+      }
+
+      .mistake-list strong {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--navy);
+      }
+
+      .mistake-list p {
+        margin: 0;
+        color: var(--slate);
+      }
+
+      details {
+        overflow: hidden;
+        margin-top: 11px;
+        background: #fbfdff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+
+      summary {
+        padding: 15px 17px;
+        color: var(--navy);
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      details p {
+        padding: 0 17px 16px;
+        margin: 0;
+        color: var(--slate);
+      }
+
+      .practice {
+        color: #fff;
+        background:
+          radial-gradient(circle at 88% 12%, rgb(117 103 232 / 32%), transparent 18rem),
+          linear-gradient(130deg, #102b48, #174f78);
+        border-color: #224f77;
+      }
+
+      .practice .section-label {
+        color: #dfeaff;
+        background: rgb(255 255 255 / 10%);
+      }
+
+      .practice h2,
+      .practice h3 {
+        color: #fff;
+      }
+
+      .practice .lead {
+        color: #d8e7f4;
+      }
+
+      .practice-steps {
+        display: grid;
+        gap: 12px;
+        padding: 0;
+        margin: 24px 0 0;
+        list-style: none;
+        counter-reset: practice;
+      }
+
+      .practice-steps li {
+        display: grid;
+        align-items: center;
+        gap: 13px;
+        padding: 14px 16px;
+        background: rgb(255 255 255 / 8%);
+        border: 1px solid rgb(255 255 255 / 13%);
+        border-radius: 12px;
+        counter-increment: practice;
+        grid-template-columns: 32px minmax(0, 1fr);
+      }
+
+      .practice-steps li::before {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        place-items: center;
+        color: #123553;
+        background: #8ce0a9;
+        border-radius: 9px;
+        content: counter(practice);
+        font-weight: 900;
+      }
+
+      .practice code {
+        color: #fff;
+        background: rgb(255 255 255 / 12%);
+      }
+
+      .footer {
+        padding: 28px 20px 38px;
+        color: var(--muted);
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      @media (max-width: 940px) {
+        .hero-inner {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .hero-visual {
+          display: none;
+        }
+
+        .layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .toc {
+          position: static;
+        }
+
+        .toc ol {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .role-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .relationship {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .relationship-card:nth-child(3)::before {
+          display: none;
+        }
+      }
+
+      @media (max-width: 640px) {
+        body {
+          font-size: 15px;
+        }
+
+        .hero-inner,
+        .layout {
+          width: min(100% - 24px, 1180px);
+        }
+
+        .hero-inner {
+          min-height: 0;
+          padding: 42px 0;
+        }
+
+        h1 {
+          font-size: clamp(2.1rem, 12vw, 3rem);
+        }
+
+        .toc ol,
+        .relationship,
+        .callout-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .relationship-card + .relationship-card::before {
+          top: -19px;
+          left: 50%;
+          transform: translateX(-50%) rotate(90deg);
+        }
+
+        .relationship-card:nth-child(3)::before {
+          display: block;
+        }
+
+        .section-card {
+          padding: 24px 19px;
+          border-radius: 16px;
+        }
+
+        .command-heading {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 7px;
+        }
+
+        .flow-step {
+          align-items: start;
+        }
+      }
+
+      @media print {
+        body {
+          background: #fff;
+        }
+
+        .hero {
+          color: var(--ink);
+          background: #fff;
+          border-bottom: 2px solid var(--line);
+        }
+
+        .hero-lead,
+        .eyebrow {
+          color: var(--slate);
+        }
+
+        .hero-tags span {
+          color: var(--ink);
+          border-color: var(--line);
+        }
+
+        .hero-visual,
+        .toc {
+          display: none;
+        }
+
+        .hero-inner,
+        .layout {
+          width: 100%;
+        }
+
+        .layout {
+          display: block;
+          margin-top: 24px;
+        }
+
+        .section-card {
+          break-inside: avoid;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">本文へ移動</a>
+
+    <header class="hero">
+      <div class="hero-inner">
+        <div>
+          <p class="eyebrow">FRONTEND TOOLING — BEGINNER GUIDE</p>
+          <h1>Viteの基礎知識</h1>
+          <p class="hero-lead">
+            Viteは、Webアプリを「すばやく開発し、本番用にまとめる」ための道具です。
+            npmとの関係、3つの基本コマンド、<code>src</code>と<code>dist</code>の違いを順番に理解します。
+          </p>
+          <div class="hero-tags" aria-label="この教材で学ぶ項目">
+            <span>npmとの関係</span>
+            <span>開発サーバー</span>
+            <span>ビルド</span>
+            <span>preview</span>
+            <span>HMR</span>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <svg viewBox="0 0 440 290">
+            <path class="visual-orbit" d="M25 151c56-91 164-127 264-87s143 124 107 190" />
+            <path class="visual-orbit" d="M54 223c67 45 181 42 264-21s98-145 46-189" />
+            <rect class="visual-card" x="56" y="67" width="328" height="185" rx="22" />
+            <rect class="visual-terminal" x="79" y="91" width="282" height="102" rx="12" />
+            <circle class="visual-terminal-dot" cx="98" cy="110" r="5" />
+            <circle cx="115" cy="110" r="5" fill="#f2d34c" />
+            <circle cx="132" cy="110" r="5" fill="#f08d79" />
+            <text class="visual-terminal-text" x="96" y="143">$ npm run dev</text>
+            <text class="visual-terminal-text" x="96" y="168">Local: http://localhost:5173/</text>
+            <path class="visual-lightning" d="m223 25-38 73h31l-18 58 58-81h-34l24-50Z" />
+            <text class="visual-label" x="220" y="222">Vite</text>
+            <text class="visual-sub" x="220" y="240">高速な開発と本番ビルド</text>
+          </svg>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav class="toc" aria-label="目次">
+        <strong>CONTENTS</strong>
+        <ol>
+          <li><a href="#what-is-vite">1. Viteとは</a></li>
+          <li><a href="#relationship">2. npmとの関係</a></li>
+          <li><a href="#commands">3. 3つの基本コマンド</a></li>
+          <li><a href="#comparison">4. dev・build・preview</a></li>
+          <li><a href="#build-flow">5. ビルドの流れ</a></li>
+          <li><a href="#project-files">6. ファイルの役割</a></li>
+          <li><a href="#mistakes">7. よくある勘違い</a></li>
+          <li><a href="#troubleshooting">8. 困ったとき</a></li>
+          <li><a href="#practice">9. 練習手順</a></li>
+        </ol>
+      </nav>
+
+      <main id="main-content">
+        <section class="section-card" id="what-is-vite">
+          <span class="section-label">01 — OVERVIEW</span>
+          <h2>Viteとは何か</h2>
+          <p class="lead">
+            Vite（ヴィート）は、ReactやTypeScriptで作るWebアプリの
+            <strong>開発サーバー</strong>と<strong>本番ビルド</strong>を担当するツールです。
+          </p>
+
+          <div class="role-grid">
+            <article class="role-card">
+              <span class="role-icon">DEV</span>
+              <h3>開発中に表示する</h3>
+              <p>
+                ソースファイルをブラウザへ届けます。保存した変更をすぐ画面へ反映できます。
+              </p>
+            </article>
+            <article class="role-card">
+              <span class="role-icon">HMR</span>
+              <h3>変更部分だけ更新する</h3>
+              <p>
+                ページ全体を読み直さず、変更したモジュールだけを差し替えます。
+              </p>
+            </article>
+            <article class="role-card">
+              <span class="role-icon">DIST</span>
+              <h3>本番用にまとめる</h3>
+              <p>
+                JavaScriptやCSSを最適化し、配布用の<code>dist/</code>を生成します。
+              </p>
+            </article>
+          </div>
+
+          <p class="key-message">
+            Viteはアプリそのものではありません。アプリを作り、確認し、配布できる形へ整える「開発道具」です。
+          </p>
+        </section>
+
+        <section class="section-card" id="relationship">
+          <span class="section-label">02 — RELATIONSHIP</span>
+          <h2>npm、Node.js、Viteの関係</h2>
+          <p class="lead">
+            <code>npm run dev</code>と入力しても、実際の開発サーバーを動かすのはViteです。
+            npmは<code>package.json</code>の指示を読み、Viteを呼び出します。
+          </p>
+
+          <div class="relationship" aria-label="コマンドがViteへ届く流れ">
+            <div class="relationship-card">
+              <strong>あなた</strong>
+              <span>コマンドを入力</span>
+            </div>
+            <div class="relationship-card">
+              <strong>npm</strong>
+              <span>scriptsを探す</span>
+            </div>
+            <div class="relationship-card">
+              <strong>package.json</strong>
+              <span>実行内容を定義</span>
+            </div>
+            <div class="relationship-card">
+              <strong>Vite</strong>
+              <span>サーバーやビルドを実行</span>
+            </div>
+          </div>
+
+          <div class="callout-grid">
+            <article class="callout is-good">
+              <h3>Node.js</h3>
+              <p>
+                ブラウザの外でJavaScript製ツールを動かす実行環境です。ViteもNode.js上で動きます。
+              </p>
+            </article>
+            <article class="callout is-good">
+              <h3>npm</h3>
+              <p>
+                パッケージの管理と、<code>package.json</code>に登録されたコマンドの実行を担当します。
+              </p>
+            </article>
+          </div>
+
+          <p>
+            このプロジェクトでは、<code>package.json</code>に次のような対応が定義されています。
+          </p>
+          <pre class="file-tree"><code>"scripts": {
+  "dev": "vite",
+  "build": "tsc --noEmit &amp;&amp; vite build",
+  "preview": "vite preview"
+}</code></pre>
+        </section>
+
+        <section class="section-card" id="commands">
+          <span class="section-label">03 — COMMANDS</span>
+          <h2>最初に覚える3つのコマンド</h2>
+          <p class="lead">
+            開発、成果物の生成、成果物の確認という3段階に分けて覚えると迷いません。
+          </p>
+
+          <div class="command-stack">
+            <article class="command-card">
+              <div class="command-heading">
+                <h3>1. 開発する</h3>
+                <span>ソースを直接確認</span>
+              </div>
+              <div class="terminal"><code>npm run dev</code></div>
+              <div class="command-body">
+                <p>
+                  Viteの開発サーバーを起動します。表示された
+                  <code>http://localhost:5173/</code>などのURLをブラウザで開きます。
+                </p>
+                <ul class="fact-list">
+                  <li>ファイル保存後、画面がすばやく更新される</li>
+                  <li>開発者向けのエラーを確認しやすい</li>
+                  <li><code>dist/</code>は更新されない</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="command-card">
+              <div class="command-heading">
+                <h3>2. 本番用にまとめる</h3>
+                <span>distを生成</span>
+              </div>
+              <div class="terminal"><code>npm run build</code></div>
+              <div class="command-body">
+                <p>
+                  このプロジェクトでは、先にTypeScriptの型検査を行い、成功した場合だけ
+                  Viteが本番用ファイルを生成します。
+                </p>
+                <ul class="fact-list">
+                  <li>JavaScriptやCSSを圧縮・最適化する</li>
+                  <li>ファイル名へハッシュを付けてキャッシュ対策を行う</li>
+                  <li>完成したファイルを<code>dist/</code>へ出力する</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="command-card">
+              <div class="command-heading">
+                <h3>3. ビルド結果を確認する</h3>
+                <span>distを表示</span>
+              </div>
+              <div class="terminal"><code>npm run preview</code></div>
+              <div class="command-body">
+                <p>
+                  すでに作られている<code>dist/</code>をローカルサーバーで表示します。
+                  本番に近い状態を確認するためのコマンドです。
+                </p>
+                <ul class="fact-list">
+                  <li>preview自体はビルドを行わない</li>
+                  <li>ソース変更後は、先にbuildをやり直す</li>
+                  <li>公開用サーバーとして使うものではない</li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-card" id="comparison">
+          <span class="section-label">04 — COMPARISON</span>
+          <h2>dev・build・previewの違い</h2>
+          <p class="lead">
+            「何を入力にして、何が更新されるか」に注目すると違いが明確になります。
+          </p>
+
+          <div class="comparison-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>コマンド</th>
+                  <th>目的</th>
+                  <th>表示するもの</th>
+                  <th>distの更新</th>
+                  <th>終了方法</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>npm run dev</code></td>
+                  <td>開発と修正</td>
+                  <td><code>src/</code>などの最新ソース</td>
+                  <td>しない</td>
+                  <td><code>Ctrl+C</code></td>
+                </tr>
+                <tr>
+                  <td><code>npm run build</code></td>
+                  <td>本番成果物の生成</td>
+                  <td>画面は起動しない</td>
+                  <td>する</td>
+                  <td>完了すると自動終了</td>
+                </tr>
+                <tr>
+                  <td><code>npm run preview</code></td>
+                  <td>成果物の最終確認</td>
+                  <td><code>dist/</code></td>
+                  <td>しない</td>
+                  <td><code>Ctrl+C</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section-card" id="build-flow">
+          <span class="section-label">05 — BUILD FLOW</span>
+          <h2>Viteがビルドするときの流れ</h2>
+          <p class="lead">
+            難しい内部処理をすべて覚える必要はありません。入力から
+            <code>dist/</code>までの大きな流れを押さえましょう。
+          </p>
+
+          <div class="flow">
+            <div class="flow-step">
+              <span class="flow-number">01</span>
+              <div>
+                <strong><code>index.html</code>を入口として読む</strong>
+                <p>ViteはHTMLから参照されるJavaScriptやCSSをたどります。</p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <span class="flow-number">02</span>
+              <div>
+                <strong>モジュールのつながりを調べる</strong>
+                <p><code>import</code>をたどり、必要なファイルの関係を整理します。</p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <span class="flow-number">03</span>
+              <div>
+                <strong>ブラウザで使える形へ変換する</strong>
+                <p>React、TypeScript、CSSなどを配布可能な形式へ処理します。</p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <span class="flow-number">04</span>
+              <div>
+                <strong>ファイルを最適化する</strong>
+                <p>不要なコードを省き、圧縮し、キャッシュに適した名前を付けます。</p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <span class="flow-number">05</span>
+              <div>
+                <strong><code>dist/</code>へ出力する</strong>
+                <p>サーバーへ配置できるHTML、CSS、JavaScriptが完成します。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout-grid">
+            <article class="callout is-good">
+              <h3>開発時のHMR</h3>
+              <p>
+                変更した部分だけをブラウザへ送り直すため、毎回フルビルドする必要がありません。
+              </p>
+            </article>
+            <article class="callout is-warning">
+              <h3>本番用build</h3>
+              <p>
+                完成時にまとめて最適化します。ソースを変更したら、以前のdistは自動更新されません。
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-card" id="project-files">
+          <span class="section-label">06 — PROJECT FILES</span>
+          <h2>プロジェクト内の主なファイル</h2>
+          <p class="lead">
+            Viteを使うときは、「編集する場所」と「生成される場所」を区別することが大切です。
+          </p>
+
+          <pre class="file-tree"><code>survey-learning-lab/
+├── index.html          # Viteが最初に読むHTML
+├── package.json       # npmコマンドと依存パッケージ
+├── vite.config.ts     # Viteの設定
+├── tsconfig.json      # TypeScriptの設定
+├── src/               # 自分が編集するアプリのソース
+│   ├── main.tsx
+│   ├── App.tsx
+│   └── styles.css
+├── node_modules/      # npmが管理するパッケージ
+└── dist/              # buildで生成される本番成果物</code></pre>
+
+          <div class="callout-grid">
+            <article class="callout is-good">
+              <h3>編集する</h3>
+              <p>
+                通常は<code>src/</code>、<code>index.html</code>、設定ファイルを編集します。
+              </p>
+            </article>
+            <article class="callout is-warning">
+              <h3>直接編集しない</h3>
+              <p>
+                <code>dist/</code>と<code>node_modules/</code>はツールが管理するため、直接直しません。
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-card" id="mistakes">
+          <span class="section-label">07 — COMMON MISTAKES</span>
+          <h2>よくある勘違い</h2>
+
+          <ul class="mistake-list">
+            <li>
+              <span class="mistake-mark">×</span>
+              <div>
+                <strong>devで画面が変わったから、distも新しくなった</strong>
+                <p>
+                  devは最新ソースを表示するだけです。distを更新するにはbuildが必要です。
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="mistake-mark">×</span>
+              <div>
+                <strong>previewを起動すれば、自動でビルドされる</strong>
+                <p>
+                  previewは既存のdistを表示するだけです。先にbuildを実行します。
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="mistake-mark">×</span>
+              <div>
+                <strong>表示を直すためにdistのCSSを編集する</strong>
+                <p>
+                  次のbuildで消えます。必ず<code>src/styles.css</code>などのソースを直します。
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="mistake-mark">×</span>
+              <div>
+                <strong>開発サーバーを閉じるにはブラウザを閉じればよい</strong>
+                <p>
+                  サーバーはターミナルで動いています。起動したターミナルで
+                  <code>Ctrl+C</code>を押します。
+                </p>
+              </div>
+            </li>
+          </ul>
+        </section>
+
+        <section class="section-card" id="troubleshooting">
+          <span class="section-label">08 — TROUBLESHOOTING</span>
+          <h2>困ったときの見方</h2>
+
+          <details open>
+            <summary>Port 5173 is in use と表示された</summary>
+            <p>
+              5173番ポートを別のサーバーが使用しています。Viteが5174番などへ自動変更した場合は、
+              ターミナルに表示された新しいURLを開きます。不要なサーバーは
+              <code>Ctrl+C</code>で終了します。
+            </p>
+          </details>
+
+          <details>
+            <summary>npm run devでコマンドが見つからない</summary>
+            <p>
+              プロジェクトのディレクトリにいるか、<code>package.json</code>があるかを確認します。
+              依存関係が未導入の場合は、プロジェクトの手順に従って準備します。
+            </p>
+          </details>
+
+          <details>
+            <summary>previewの画面が古い</summary>
+            <p>
+              ソース変更後にbuildしていない可能性があります。previewを止め、
+              <code>npm run build</code>を実行してから、もう一度previewを起動します。
+            </p>
+          </details>
+
+          <details>
+            <summary>buildが失敗した</summary>
+            <p>
+              エラーの最初の数行と、ファイル名・行番号を確認します。このプロジェクトでは
+              TypeScriptエラーがあるとViteのビルドへ進みません。まず型エラーを直します。
+            </p>
+          </details>
+        </section>
+
+        <section class="section-card practice" id="practice">
+          <span class="section-label">09 — PRACTICE</span>
+          <h2>自分で試す練習手順</h2>
+          <p class="lead">
+            「開発表示」と「ビルド結果」の違いを自分で確認すると、3コマンドの役割が定着します。
+          </p>
+
+          <ol class="practice-steps">
+            <li>
+              <span><code>npm run dev</code>を実行し、表示されたURLを開く</span>
+            </li>
+            <li>
+              <span>ソースの小さな文章を変更し、保存すると画面へ反映されることを確認する</span>
+            </li>
+            <li>
+              <span><code>Ctrl+C</code>で開発サーバーを終了する</span>
+            </li>
+            <li>
+              <span><code>npm run build</code>を実行し、<code>dist/</code>が更新されることを確認する</span>
+            </li>
+            <li>
+              <span><code>npm run preview</code>を実行し、ビルド結果をブラウザで確認する</span>
+            </li>
+            <li>
+              <span><code>Ctrl+C</code>でpreviewサーバーを終了する</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="section-card">
+          <span class="section-label">QUICK REFERENCE</span>
+          <h2>最後に覚える3行</h2>
+          <div class="command-stack">
+            <article class="command-card">
+              <div class="terminal"><code>npm run dev      # 最新ソースで開発</code></div>
+            </article>
+            <article class="command-card">
+              <div class="terminal"><code>npm run build    # distを更新</code></div>
+            </article>
+            <article class="command-card">
+              <div class="terminal"><code>npm run preview  # distを確認</code></div>
+            </article>
+          </div>
+          <p class="key-message">
+            開発中はdev、更新完了後はbuild、完成したdistの確認はpreviewです。
+          </p>
+          <p>
+            さらに詳しく確認するときは、
+            <a href="https://ja.vite.dev/" rel="noreferrer">Vite公式日本語ドキュメント</a>
+            を参照してください。
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <footer class="footer">
+      測量理解ラボ — Viteの基礎知識（学習用資料）
+    </footer>
+  </body>
+</html>
