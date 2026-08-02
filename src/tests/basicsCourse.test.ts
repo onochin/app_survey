@@ -37,6 +37,21 @@ import {
   inverseDirectionPresets,
 } from "../components/basics/data/coordinateCalculation";
 import {
+  evaluateFieldDecision,
+  evaluateFieldWorkflowOrder,
+  evaluateObservationRecordIssueSelection,
+  fieldDecisionScenarios,
+  fieldValueKinds,
+  fieldWorkflowSteps,
+  findObservationRecordIssues,
+  initialFieldWorkflowStepOrder,
+  moveFieldWorkflowStep,
+  observationRecordSamples,
+  preObservationChecklistItems,
+  recordToResultStages,
+  summarizePreObservationChecklist,
+} from "../components/basics/data/fieldWorkflow";
+import {
   calculateElevationByHeightDifference,
   calculateElevationByInstrumentHeight,
   calculateInstrumentHeight,
@@ -106,7 +121,7 @@ describe("測量の基礎 教材レジストリ", () => {
     expect(new Set(lessonIds).size).toBe(lessonIds.length);
   });
 
-  it("第1章から第8章を実装済みとして進捗対象にする", () => {
+  it("第1章から第9章を実装済みとして進捗対象にする", () => {
     expect(availableBasicsLessons.map((lesson) => lesson.id)).toEqual([
       "point-and-position",
       "distance-and-direction",
@@ -116,10 +131,11 @@ describe("測量の基礎 教材レジストリ", () => {
       "leveling-basics",
       "observation-error",
       "coordinate-calculation",
+      "field-workflow",
     ]);
-    expect(
-      basicsLessons.filter((lesson) => lesson.status === "coming-soon"),
-    ).toHaveLength(1);
+    expect(basicsLessons.every((lesson) => lesson.status === "available")).toBe(
+      true,
+    );
   });
 
   it("次章導線は登録済みの章IDだけを参照する", () => {
@@ -1347,11 +1363,177 @@ describe("測量の基礎 教材レジストリ", () => {
     );
   });
 
-  it("第9章だけを準備中のまま維持する", () => {
+  it("第9章はPhase 5-2の安定ID・メタデータを持つ", () => {
+    const ninthLesson = basicsLessons.find(
+      (lesson) => lesson.id === "field-workflow",
+    );
+
+    expect(ninthLesson).toMatchObject({
+      id: "field-workflow",
+      title: "現場計画・記録・機器管理",
+      learningGoal:
+        "現場開始前、観測中、終了時に確認すべき項目を説明できる。",
+      nextLessonId: null,
+      status: "available",
+    });
+    expect(ninthLesson?.terms).toEqual(
+      expect.arrayContaining([
+        "作業計画",
+        "踏査",
+        "既知点",
+        "測点",
+        "機器点検",
+        "観測順序",
+        "野帳",
+        "観測手簿",
+        "現場検算",
+        "再測",
+        "再計算",
+        "観測値",
+        "計算値",
+        "成果値",
+        "データ保存",
+        "成果表",
+        "安全管理",
+      ]),
+    );
+    expect(ninthLesson?.cautions).toHaveLength(8);
+  });
+
+  it("現場作業13項目の順序を判定し、上下移動で教材例の正解へ直せる", () => {
+    const correctOrder = fieldWorkflowSteps.map((step) => step.id);
+    const initialEvaluation = evaluateFieldWorkflowOrder(
+      initialFieldWorkflowStepOrder,
+    );
+    const correctedOrder = moveFieldWorkflowStep(
+      initialFieldWorkflowStepOrder,
+      "inspect-equipment",
+      "up",
+    );
+
+    expect(fieldWorkflowSteps).toHaveLength(13);
+    expect(initialEvaluation.isCorrect).toBe(false);
+    expect(initialEvaluation.firstMismatchIndex).toBe(4);
+    expect(correctedOrder).toEqual(correctOrder);
+    expect(evaluateFieldWorkflowOrder(correctedOrder)).toMatchObject({
+      isCorrect: true,
+      firstMismatchIndex: null,
+    });
+    expect(() =>
+      evaluateFieldWorkflowOrder([
+        ...correctOrder.slice(0, -1),
+        correctOrder[0]!,
+      ]),
+    ).toThrow("重複なく");
+  });
+
+  it("観測前チェックリストの確認数・不足数・完了分類を集計する", () => {
+    const emptySummary = summarizePreObservationChecklist([]);
+    const firstGroupIds = preObservationChecklistItems
+      .filter((item) => item.groupId === "plan")
+      .map((item) => item.id);
+    const partialSummary = summarizePreObservationChecklist(firstGroupIds);
+    const allItemIds = preObservationChecklistItems.map((item) => item.id);
+    const completeSummary = summarizePreObservationChecklist(allItemIds);
+
+    expect(preObservationChecklistItems).toHaveLength(14);
+    expect(emptySummary).toMatchObject({
+      totalCount: 14,
+      checkedCount: 0,
+      remainingCount: 14,
+      isComplete: false,
+    });
+    expect(partialSummary.checkedCount).toBe(firstGroupIds.length);
+    expect(partialSummary.completeGroupIds).toContain("plan");
+    expect(partialSummary.isComplete).toBe(false);
+    expect(completeSummary).toMatchObject({
+      checkedCount: 14,
+      remainingCount: 0,
+      isComplete: true,
+    });
+  });
+
+  it("固定TS観測記録から不足項目を判定し、選択結果を照合する", () => {
+    const expectedIssues = new Map([
+      [
+        "height-settings-missing",
+        ["instrument-height", "target-height", "prism-constant"],
+      ],
+      [
+        "point-reference-missing",
+        ["station-point", "coordinate-reference", "backsight-point"],
+      ],
+      [
+        "inspection-storage-missing",
+        ["weather", "inspection-result", "raw-data-file"],
+      ],
+      ["complete-reference", []],
+    ] as const);
+
+    for (const sample of observationRecordSamples) {
+      const issueIds = findObservationRecordIssues(sample.record).map(
+        (issue) => issue.fieldId,
+      );
+      expect(issueIds).toEqual(expectedIssues.get(sample.id));
+      expect(
+        evaluateObservationRecordIssueSelection(sample.record, issueIds)
+          .isCorrect,
+      ).toBe(true);
+    }
+
+    const incompleteSample = observationRecordSamples[0];
     expect(
-      basicsLessons
-        .filter((lesson) => lesson.status === "coming-soon")
-        .map((lesson) => lesson.id),
-    ).toEqual(["field-workflow"]);
+      evaluateObservationRecordIssueSelection(incompleteSample.record, [
+        "instrument-height",
+      ]),
+    ).toMatchObject({
+      isCorrect: false,
+      issueCount: 3,
+      missedFieldIds: ["target-height", "prism-constant"],
+      extraFieldIds: [],
+    });
+  });
+
+  it("固定シナリオで採用・再計算・再測の推奨判断を返す", () => {
+    expect(
+      new Set(
+        fieldDecisionScenarios.map(
+          (scenario) => scenario.recommendedDecisionId,
+        ),
+      ),
+    ).toEqual(new Set(["adopt", "recalculate", "remeasure"]));
+
+    for (const scenario of fieldDecisionScenarios) {
+      expect(
+        evaluateFieldDecision(scenario.id, scenario.recommendedDecisionId),
+      ).toMatchObject({
+        isRecommended: true,
+        recommendedDecisionId: scenario.recommendedDecisionId,
+      });
+    }
+
+    expect(evaluateFieldDecision("transcription-error", "adopt")).toMatchObject(
+      {
+        isRecommended: false,
+        recommendedDecisionId: "recalculate",
+      },
+    );
+  });
+
+  it("観測値・計算値・成果値と観測手簿から成果表までの流れを区別する", () => {
+    expect(fieldValueKinds.map((kind) => kind.label)).toEqual([
+      "観測値",
+      "計算値",
+      "成果値",
+    ]);
+    expect(recordToResultStages.map((stage) => stage.title)).toEqual([
+      "観測手簿・野帳",
+      "計算簿",
+      "検算・検査",
+      "成果表",
+      "保存・引継ぎ",
+    ]);
+    expect(recordToResultStages[0]?.valueKindIds).toEqual(["observed"]);
+    expect(recordToResultStages[3]?.valueKindIds).toEqual(["result"]);
   });
 });

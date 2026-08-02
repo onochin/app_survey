@@ -87,15 +87,12 @@ try {
     "9章分の教材登録枠が表示されていません。",
   );
   assert(
-    (await comingSoonLessonButtons.count()) === 1 &&
-      (await comingSoonLessonButtons.evaluateAll((buttons) =>
-        buttons.every((button) => button instanceof HTMLButtonElement && button.disabled),
-      )),
-    "未実装の第9章が選択不可の「準備中」になっていません。",
+    (await comingSoonLessonButtons.count()) === 0,
+    "第1章～第9章のいずれかが「準備中」のままです。",
   );
   assert(
-    await page.getByText("0 / 8 章", { exact: true }).isVisible(),
-    "進捗の分母が実装済み8章になっていません。",
+    await page.getByText("0 / 9 章", { exact: true }).isVisible(),
+    "進捗の分母が実装済み9章になっていません。",
   );
   assert(
     (await page
@@ -209,7 +206,7 @@ try {
     .getByRole("button", { name: "理解した・次の章へ" })
     .click();
   assert(
-    await page.getByText("1 / 8 章", { exact: true }).isVisible() &&
+    await page.getByText("1 / 9 章", { exact: true }).isVisible() &&
       (await page
         .getByRole("heading", {
           name: "座標・標高・高さの基準",
@@ -988,7 +985,7 @@ try {
           { exact: true },
         )
         .isVisible()) &&
-      (await page.getByText("1 / 8 章", { exact: true }).isVisible()),
+      (await page.getByText("1 / 9 章", { exact: true }).isVisible()),
     "第5章のタイトル、到達目標、注意事項、進捗分母が表示されていません。",
   );
 
@@ -1344,7 +1341,7 @@ try {
           { exact: true },
         )
         .isVisible()) &&
-      (await page.getByText("1 / 8 章", { exact: true }).isVisible()),
+      (await page.getByText("1 / 9 章", { exact: true }).isVisible()),
     "第6章のタイトル、到達目標、注意事項、進捗分母が表示されていません。",
   );
   assert(
@@ -1648,7 +1645,7 @@ try {
         )
         .isVisible()) &&
       (await page.getByText("標本標準偏差", { exact: true }).first().isVisible()) &&
-      (await page.getByText("1 / 8 章", { exact: true }).isVisible()),
+      (await page.getByText("1 / 9 章", { exact: true }).isVisible()),
     "第7章のタイトル、到達目標、用語、注意事項、進捗分母が表示されていません。",
   );
 
@@ -2015,7 +2012,7 @@ try {
         )
         .isVisible()) &&
       (await page.getByText("緯距", { exact: true }).first().isVisible()) &&
-      (await page.getByText("1 / 8 章", { exact: true }).isVisible()),
+      (await page.getByText("1 / 9 章", { exact: true }).isVisible()),
     "第8章のタイトル、到達目標、用語、注意事項、進捗分母が表示されていません。",
   );
 
@@ -2225,6 +2222,259 @@ try {
     "390px幅で閉合トラバースへの導線を操作できません。",
   );
 
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page
+    .getByRole("button", { name: /現場計画・記録・機器管理/ })
+    .click();
+  assert(
+    (await page
+      .getByRole("heading", {
+        name: "現場計画・記録・機器管理",
+        exact: true,
+      })
+      .isVisible()) &&
+      (await page
+        .getByText(
+          "現場開始前、観測中、終了時に確認すべき項目を説明できる。",
+          { exact: true },
+        )
+        .isVisible()) &&
+      (await page.getByText("作業計画", { exact: true }).first().isVisible()) &&
+      (await page
+        .getByText(
+          "許容値や安全上の作業継続条件は、適用規程、精度区分、現場、機器に応じて確認します。",
+          { exact: true },
+        )
+        .isVisible()) &&
+      (await page.getByText("1 / 9 章", { exact: true }).isVisible()),
+    "第9章のタイトル、到達目標、用語、注意事項、進捗分母が表示されていません。",
+  );
+
+  const fieldOrderCard = page.locator(".basics-field-order-card");
+  await fieldOrderCard.getByRole("button", { name: "順序を確認" }).click();
+  assert(
+    (await fieldOrderCard.getByTestId("field-order-feedback").textContent())
+      ?.includes("5番目は「機器・付属品・設定・電源・保存準備を点検する」"),
+    "現場作業手順の初期誤りを判定できません。",
+  );
+  await fieldOrderCard
+    .getByRole("button", {
+      name: "機器・付属品・設定・電源・保存準備を点検するを上へ",
+    })
+    .click();
+  await fieldOrderCard.getByRole("button", { name: "順序を確認" }).click();
+  assert(
+    (await fieldOrderCard.getByTestId("field-order-feedback").textContent())
+      ?.includes("教材例の基本順序になりました"),
+    "現場作業手順を正しい順序へ並べ替えられません。",
+  );
+
+  const fieldChecklistSection = page.locator(
+    ".basics-field-checklist-section",
+  );
+  assert(
+    (await fieldChecklistSection
+      .getByTestId("field-checklist-progress")
+      .textContent())
+      ?.includes("0 / 14 項目確認"),
+    "第9章の観測前チェックリスト初期集計が正しくありません。",
+  );
+  await fieldChecklistSection
+    .getByRole("button", { name: "すべて確認" })
+    .click();
+  assert(
+    (await fieldChecklistSection
+      .getByTestId("field-checklist-progress")
+      .textContent())
+      ?.includes("14 / 14 項目確認") &&
+      (await fieldChecklistSection
+        .getByTestId("field-checklist-status")
+        .getByText(/14項目を確認しました/)
+        .isVisible()),
+    "第9章の観測前チェックリストを集計できません。",
+  );
+
+  const fieldRecordSection = page.locator(".basics-field-record-section");
+  await fieldRecordSection.getByTestId("record-field-instrument-height").click();
+  await fieldRecordSection.getByTestId("record-field-target-height").click();
+  await fieldRecordSection.getByTestId("record-field-prism-constant").click();
+  await fieldRecordSection
+    .getByRole("button", { name: "選択した項目を判定" })
+    .click();
+  assert(
+    await fieldRecordSection
+      .getByTestId("field-record-feedback")
+      .getByText("不足3項目をすべて特定しました。", { exact: true })
+      .isVisible(),
+    "不足項目を含む観測記録から問題点を特定できません。",
+  );
+
+  const fieldDecisionSection = page.locator(
+    ".basics-field-decision-section",
+  );
+  await fieldDecisionSection
+    .getByRole("button", { name: /採用する/ })
+    .click();
+  assert(
+    await fieldDecisionSection
+      .getByTestId("field-decision-feedback")
+      .getByText("この固定シナリオの推奨判断と一致します。", {
+        exact: true,
+      })
+      .isVisible(),
+    "異常なしシナリオで採用判断を確認できません。",
+  );
+  await fieldDecisionSection
+    .getByRole("button", {
+      name: "原記録は有効だが転記・計算に誤り",
+      exact: true,
+    })
+    .click();
+  await fieldDecisionSection
+    .getByRole("button", { name: /再計算する/ })
+    .click();
+  assert(
+    await fieldDecisionSection
+      .getByTestId("field-decision-feedback")
+      .getByText("この固定シナリオの推奨判断と一致します。", {
+        exact: true,
+      })
+      .isVisible(),
+    "転記・計算誤りシナリオで再計算判断を確認できません。",
+  );
+  await fieldDecisionSection
+    .getByRole("button", { name: "後視点の取り違えを発見", exact: true })
+    .click();
+  await fieldDecisionSection
+    .getByRole("button", { name: /再測する/ })
+    .click();
+  assert(
+    await fieldDecisionSection
+      .getByTestId("field-decision-feedback")
+      .getByText("この固定シナリオの推奨判断と一致します。", {
+        exact: true,
+      })
+      .isVisible(),
+    "後視点取り違えシナリオで再測判断を確認できません。",
+  );
+  await fieldDecisionSection
+    .getByRole("button", {
+      name: "原記録は有効だが転記・計算に誤り",
+      exact: true,
+    })
+    .click();
+  await fieldDecisionSection
+    .getByRole("button", { name: /再計算する/ })
+    .click();
+
+  const fieldValueSelector = page.locator(".basics-field-value-selector");
+  await fieldValueSelector.getByRole("button", { name: /成果値/ }).click();
+  assert(
+    (await page
+      .getByTestId("field-value-detail")
+      .getByRole("heading", { name: "成果値", exact: true })
+      .isVisible()) &&
+      (await page
+        .getByTestId("field-value-detail")
+        .getByText(/計算値が自動的に成果値になるわけではありません/)
+        .isVisible()),
+    "観測値・計算値・成果値の違いを切り替えて確認できません。",
+  );
+
+  const fieldResultFlow = page.locator(".basics-field-result-flow");
+  await fieldResultFlow.getByRole("button", { name: /成果表/ }).click();
+  assert(
+    (await page
+      .getByTestId("field-flow-detail")
+      .getByRole("heading", { name: "成果表", exact: true })
+      .isVisible()) &&
+      (await page
+        .getByTestId("field-flow-detail")
+        .getByText(/採用した値と、その値を正しく使うための付帯情報を整理する/)
+        .isVisible()),
+    "観測手簿から成果表までの流れを追跡できません。",
+  );
+
+  const chapterNineDesktopMetrics = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  assert(
+    chapterNineDesktopMetrics.scrollWidth <= chapterNineDesktopMetrics.clientWidth,
+    `第9章が1366px幅で横方向にはみ出しています: ${JSON.stringify(
+      chapterNineDesktopMetrics,
+    )}`,
+  );
+
+  await page.getByRole("button", { name: "多角測量" }).click();
+  assert(
+    (await page
+      .getByRole("heading", { name: "閉合トラバース測量シミュレーター" })
+      .isVisible()) &&
+      (await preservedTraverseDistanceInput.inputValue()) === "142.000",
+    "第9章から教材を切り替えると閉合トラバースの状態が失われます。",
+  );
+  await page.getByRole("button", { name: "測量の基礎" }).click();
+  assert(
+    (await page
+      .getByRole("heading", {
+        name: "現場計画・記録・機器管理",
+        exact: true,
+      })
+      .isVisible()) &&
+      (await fieldOrderCard.getByTestId("field-order-feedback").textContent())
+        ?.includes("教材例の基本順序になりました") &&
+      (await fieldChecklistSection
+        .getByTestId("field-checklist-progress")
+        .textContent())
+        ?.includes("14 / 14 項目確認") &&
+      (await fieldRecordSection
+        .getByTestId("record-field-instrument-height")
+        .getAttribute("aria-pressed")) === "true" &&
+      (await fieldRecordSection
+        .getByTestId("field-record-feedback")
+        .getByText("不足3項目をすべて特定しました。", { exact: true })
+        .isVisible()) &&
+      (await fieldDecisionSection
+        .getByRole("button", {
+          name: "原記録は有効だが転記・計算に誤り",
+          exact: true,
+        })
+        .getAttribute("aria-pressed")) === "true" &&
+      (await fieldDecisionSection
+        .getByRole("button", { name: /再計算する/ })
+        .getAttribute("aria-pressed")) === "true" &&
+      (await fieldValueSelector
+        .getByRole("button", { name: /成果値/ })
+        .getAttribute("aria-pressed")) === "true" &&
+      (await fieldResultFlow
+        .getByRole("button", { name: /成果表/ })
+        .getAttribute("aria-pressed")) === "true",
+    "教材を往復すると第9章の主要操作状態が失われます。",
+  );
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const chapterNineMobileMetrics = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  assert(
+    chapterNineMobileMetrics.scrollWidth <= chapterNineMobileMetrics.clientWidth,
+    `第9章が390px幅で横方向にはみ出しています: ${JSON.stringify(
+      chapterNineMobileMetrics,
+    )}`,
+  );
+  assert(
+    (await fieldOrderCard.getByRole("button", { name: "順序を確認" }).isVisible()) &&
+      (await fieldRecordSection
+        .getByRole("button", { name: "選択した項目を判定" })
+        .isVisible()) &&
+      (await fieldDecisionSection
+        .getByRole("button", { name: /再計算する/ })
+        .isVisible()),
+    "390px幅で第9章の主要操作を利用できません。",
+  );
+
   assert(
     consoleErrors.length === 0,
     `コンソールエラー: ${consoleErrors.join(" | ")}`,
@@ -2249,7 +2499,7 @@ try {
       {
         initialTraversePreserved: true,
         lessonRegistrySlots: 9,
-        comingSoonLessons: 1,
+        comingSoonLessons: 0,
         surveyPurposeSelection: true,
         pointSelection: true,
         courseSwitchStatePreserved: true,
@@ -2311,6 +2561,13 @@ try {
         traverseCourseLink: true,
         traverseInputStatePreserved: true,
         chapterEightStatePreserved: true,
+        fieldWorkflowOrder: true,
+        fieldPreObservationChecklist: true,
+        fieldObservationRecordIssues: true,
+        fieldAdoptRecalculateRemeasureDecision: true,
+        fieldObservedCalculatedResultValues: true,
+        fieldBookToResultTableFlow: true,
+        chapterNineStatePreserved: true,
         chapterOneDesktopHorizontalOverflow: false,
         chapterOneMobileHorizontalOverflow: false,
         chapterTwoDesktopHorizontalOverflow: false,
@@ -2327,6 +2584,8 @@ try {
         chapterSevenMobileHorizontalOverflow: false,
         chapterEightDesktopHorizontalOverflow: false,
         chapterEightMobileHorizontalOverflow: false,
+        chapterNineDesktopHorizontalOverflow: false,
+        chapterNineMobileHorizontalOverflow: false,
         mobileNavigation: true,
         coordinateApiRequests,
         externalApiRequests,

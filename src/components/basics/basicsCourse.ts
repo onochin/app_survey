@@ -1,6 +1,7 @@
 import DistanceAndDirectionLesson from "./lessons/DistanceAndDirectionLesson";
 import CoordinateCalculationLesson from "./lessons/CoordinateCalculationLesson";
 import ErrorAndEquipmentLesson from "./lessons/ErrorAndEquipmentLesson";
+import FieldWorkflowLesson from "./lessons/FieldWorkflowLesson";
 import HeightDifferenceLesson from "./lessons/HeightDifferenceLesson";
 import LevelingBasicsLesson from "./lessons/LevelingBasicsLesson";
 import ObservationErrorLesson from "./lessons/ObservationErrorLesson";
@@ -288,12 +289,41 @@ export const basicsLessons = [
     id: "field-workflow",
     number: "09",
     title: "現場計画・記録・機器管理",
-    description: "準備中",
-    learningGoal: null,
-    terms: [],
-    cautions: [],
+    description: "計画・観測・点検・保存をつなぎ、追跡できる成果を作る流れを学ぶ",
+    learningGoal:
+      "現場開始前、観測中、終了時に確認すべき項目を説明できる。",
+    terms: [
+      "作業計画",
+      "踏査",
+      "既知点",
+      "測点",
+      "機器点検",
+      "観測順序",
+      "野帳",
+      "観測手簿",
+      "現場検算",
+      "再測",
+      "再計算",
+      "観測値",
+      "計算値",
+      "成果値",
+      "データ保存",
+      "成果表",
+      "安全管理",
+    ],
+    cautions: [
+      "作業目的、成果、適用規程、現場条件を確認してから観測方法と点検方法を計画します。",
+      "既知点は点名だけでなく、成果、座標系、高さの基準、現地の保存状態を照合します。",
+      "天候、視通、立入条件、交通、地形などの危険を踏査し、現場ごとの安全計画に従います。",
+      "点名、機器、設定、器械高・プリズム高、定数、単位、観測条件を原観測値と一緒に記録します。",
+      "原記録と生データを計算値や成果値で上書きせず、相互に追跡できる状態で保存します。",
+      "異常の原因と影響範囲を確認し、正しい原記録から直せる場合は再計算、観測条件に問題がある場合は再測を検討します。",
+      "計算値を自動的に成果値とせず、点検・採用を経て座標系、高さの基準、単位とともに成果表へ示します。",
+      "許容値や安全上の作業継続条件は、適用規程、精度区分、現場、機器に応じて確認します。",
+    ],
     nextLessonId: null,
-    status: "coming-soon",
+    status: "available",
+    component: FieldWorkflowLesson,
   },
 ] as const satisfies readonly BasicsLessonDefinition[];
 
