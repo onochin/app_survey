@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   calculateTheoreticalTraverseGeometry,
   hasSelfIntersectingEdges,
@@ -11,6 +11,10 @@ import type {
   SurveyPoint,
   TraverseObservation,
 } from "../../types/traverse";
+import type {
+  LearningRecordMap,
+  LearningRecordUpdate,
+} from "../../types/learningRecord";
 import {
   buildCalculationSteps,
   toJapaneseCalculationError,
@@ -21,6 +25,17 @@ import {
   validateObservationDrafts,
 } from "../../utils/observationInput";
 import type { ObservationDrafts } from "../../utils/observationInput";
+import {
+  createEmptyLearningRecord,
+  createLearningRecords,
+  loadLearningRecords,
+  recordLearningPractice,
+  saveLearningRecords,
+  updateLearningRecord,
+} from "../../utils/learningRecords";
+import LearningRecordEditor from "../learning/LearningRecordEditor";
+import LearningReviewPanel from "../learning/LearningReviewPanel";
+import type { LearningReviewItem } from "../learning/LearningReviewPanel";
 import CalculationBook from "./CalculationBook";
 import CalculationDetail from "./CalculationDetail";
 import CalculationSteps from "./CalculationSteps";
@@ -37,10 +52,23 @@ type WorkbookTab =
   | "observation"
   | "calculation"
   | "closure"
-  | "quiz";
+  | "quiz"
+  | "learning-records";
 
 const learningStages = ["観測", "計算", "誤差確認"] as const;
 const MINIMUM_POINT_DISTANCE = 5;
+const QUIZ_LEARNING_ITEM_ID = "quiz-closure-causes";
+const LEARNING_CONTENT_IDS = [
+  "step-1",
+  "step-2",
+  "step-3",
+  "step-4",
+  "step-5",
+  "step-6",
+  "step-7",
+  "step-8",
+  QUIZ_LEARNING_ITEM_ID,
+] as const;
 const CROSSED_EDGES_MESSAGE =
   "観測辺が交差しています。単純な閉合多角形になるよう測点を動かしてください。交差中は計算を進められません。";
 
@@ -53,6 +81,31 @@ function cloneInitialPoints(): SurveyPoint[] {
 
 function createInitialDrafts(): ObservationDrafts {
   return createObservationDrafts(traverseSample);
+}
+
+function createInitialLearningState(): {
+  readonly records: LearningRecordMap;
+  readonly error: string | null;
+} {
+  if (typeof window === "undefined") {
+    return {
+      records: createLearningRecords(LEARNING_CONTENT_IDS),
+      error: null,
+    };
+  }
+
+  try {
+    return loadLearningRecords(
+      window.localStorage,
+      LEARNING_CONTENT_IDS,
+    );
+  } catch {
+    return {
+      records: createLearningRecords(LEARNING_CONTENT_IDS),
+      error:
+        "学習記録を読み込めませんでした。ブラウザの保存設定を確認してください。",
+    };
+  }
 }
 
 function activeLearningStage(
@@ -81,12 +134,37 @@ function TraverseWorkspace() {
     null,
   );
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [focusedStepIndex, setFocusedStepIndex] = useState(0);
   const [activeTab, setActiveTab] =
     useState<WorkbookTab>("observation");
   const [message, setMessage] = useState<string | null>(null);
   const [quizAnswer, setQuizAnswer] =
     useState<QuizAnswerId | null>(null);
   const [isQuizSubmitted, setIsQuizSubmitted] = useState(false);
+  const [initialLearningState] = useState(
+    createInitialLearningState,
+  );
+  const [learningRecords, setLearningRecords] =
+    useState<LearningRecordMap>(initialLearningState.records);
+  const [learningStorageError, setLearningStorageError] = useState<
+    string | null
+  >(initialLearningState.error);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      setLearningStorageError(
+        saveLearningRecords(window.localStorage, learningRecords),
+      );
+    } catch {
+      setLearningStorageError(
+        "学習記録を保存できませんでした。ブラウザの保存容量や設定を確認してください。",
+      );
+    }
+  }, [learningRecords]);
 
   const hasCrossedEdges = useMemo(
     () => hasSelfIntersectingEdges(points),
@@ -158,7 +236,32 @@ function TraverseWorkspace() {
       ),
     [calculationState.result, currentStepIndex],
   );
-  const currentStep = steps[currentStepIndex]!;
+  const currentStep = steps[focusedStepIndex]!;
+  const learningItems = useMemo<readonly LearningReviewItem[]>(
+    () => [
+      ...steps.map((step) => ({
+        id: step.id,
+        label: `STEP ${step.order}`,
+        title: step.title,
+      })),
+      {
+        id: QUIZ_LEARNING_ITEM_ID,
+        label: "確認問題",
+        title: "閉合差が大きくなる原因",
+      },
+    ],
+    [steps],
+  );
+  const activeLearningItem =
+    activeTab === "quiz"
+      ? learningItems[learningItems.length - 1]!
+      : learningItems[focusedStepIndex]!;
+  const activeLearningRecord =
+    learningRecords[activeLearningItem.id] ??
+    createEmptyLearningRecord();
+  const reviewCount = learningItems.filter(
+    (item) => learningRecords[item.id]?.needsReview,
+  ).length;
   const visibleMessage =
     message ??
     (hasCrossedEdges ? CROSSED_EDGES_MESSAGE : null) ??
@@ -167,6 +270,7 @@ function TraverseWorkspace() {
 
   const invalidateCalculation = (): void => {
     setCurrentStepIndex(0);
+    setFocusedStepIndex(0);
     setMessage(null);
   };
 
@@ -245,6 +349,7 @@ function TraverseWorkspace() {
 
     setPoints(movedPoints);
     setCurrentStepIndex(0);
+    setFocusedStepIndex(0);
     setMessage(
       hasSelfIntersectingEdges(movedPoints)
         ? CROSSED_EDGES_MESSAGE
@@ -275,7 +380,12 @@ function TraverseWorkspace() {
     }
 
     setMessage(null);
-    setCurrentStepIndex((current) => Math.min(current + 1, 7));
+    const nextStepIndex = Math.min(focusedStepIndex + 1, 7);
+
+    setFocusedStepIndex(nextStepIndex);
+    setCurrentStepIndex((current) =>
+      Math.max(current, nextStepIndex),
+    );
     setActiveTab("calculation");
   };
 
@@ -284,10 +394,13 @@ function TraverseWorkspace() {
     setDrafts(createInitialDrafts());
     setSelectedPointId(null);
     setCurrentStepIndex(0);
+    setFocusedStepIndex(0);
     setActiveTab("observation");
     setQuizAnswer(null);
     setIsQuizSubmitted(false);
-    setMessage("サンプルデータの初期状態へ戻しました。");
+    setMessage(
+      "サンプルデータの初期状態へ戻しました。学習記録は保持しています。",
+    );
   };
 
   const openObservationBook = (): void => {
@@ -300,6 +413,63 @@ function TraverseWorkspace() {
   const handleQuizAnswer = (answer: QuizAnswerId): void => {
     setQuizAnswer(answer);
     setIsQuizSubmitted(false);
+  };
+
+  const handleQuizSubmit = (): void => {
+    if (quizAnswer === null) {
+      return;
+    }
+
+    setIsQuizSubmitted(true);
+    setLearningRecords((current) =>
+      recordLearningPractice(
+        current,
+        QUIZ_LEARNING_ITEM_ID,
+        quizAnswer === QUIZ_CORRECT_ANSWER
+          ? {}
+          : { needsReview: true },
+      ),
+    );
+  };
+
+  const handleLearningRecordUpdate = (
+    update: LearningRecordUpdate,
+  ): void => {
+    setLearningRecords((current) =>
+      updateLearningRecord(
+        current,
+        activeLearningItem.id,
+        update,
+      ),
+    );
+  };
+
+  const handleLearningPractice = (): void => {
+    setLearningRecords((current) =>
+      recordLearningPractice(
+        current,
+        activeLearningItem.id,
+      ),
+    );
+  };
+
+  const handleOpenLearningItem = (itemId: string): void => {
+    if (itemId === QUIZ_LEARNING_ITEM_ID) {
+      setActiveTab("quiz");
+      return;
+    }
+
+    const stepIndex = steps.findIndex((step) => step.id === itemId);
+
+    if (stepIndex < 0) {
+      setMessage("学習項目を開けませんでした。");
+      return;
+    }
+
+    setCurrentStepIndex((current) => Math.max(current, stepIndex));
+    setFocusedStepIndex(stepIndex);
+    setActiveTab("calculation");
+    setMessage(null);
   };
 
   const isLearningComplete =
@@ -317,7 +487,7 @@ function TraverseWorkspace() {
         <div>
           <p className="eyebrow">多角測量 / 学習シミュレーター</p>
           <div className="page-title-row">
-            <h1 id="page-title">閉合多角測量シミュレーター</h1>
+            <h1 id="page-title">閉合トラバース測量シミュレーター</h1>
             <span className="phase-badge">Phase 4</span>
           </div>
           <p className="page-description">
@@ -429,6 +599,21 @@ function TraverseWorkspace() {
                 確認問題
                 <small>1問</small>
               </button>
+              <button
+                aria-controls="workbook-content"
+                aria-selected={activeTab === "learning-records"}
+                className={
+                  activeTab === "learning-records"
+                    ? "is-active"
+                    : ""
+                }
+                onClick={() => setActiveTab("learning-records")}
+                role="tab"
+                type="button"
+              >
+                学習メモ
+                <small>{reviewCount}件復習</small>
+              </button>
             </div>
 
             <div id="workbook-content" role="tabpanel">
@@ -463,16 +648,19 @@ function TraverseWorkspace() {
                   calculation={calculationState.result}
                   isRevealed={currentStepIndex >= 5}
                 />
-              ) : (
+              ) : activeTab === "quiz" ? (
                 <QuizCard
                   isSubmitted={isQuizSubmitted}
                   onSelectAnswer={handleQuizAnswer}
-                  onSubmit={() => {
-                    if (quizAnswer !== null) {
-                      setIsQuizSubmitted(true);
-                    }
-                  }}
+                  onSubmit={handleQuizSubmit}
                   selectedAnswer={quizAnswer}
+                />
+              ) : (
+                <LearningReviewPanel
+                  items={learningItems}
+                  onOpenItem={handleOpenLearningItem}
+                  records={learningRecords}
+                  storageError={learningStorageError}
                 />
               )}
             </div>
@@ -480,13 +668,23 @@ function TraverseWorkspace() {
         </div>
 
         <aside className="learning-panel" aria-label="学習ガイド">
-          <CalculationSteps steps={steps} />
+          <CalculationSteps
+            focusedStepId={currentStep.id}
+            steps={steps}
+          />
           <CalculationDetail
             hasGeometryError={hasCrossedEdges}
             hasInputError={!validation.isValid}
             isLastStep={currentStepIndex === 7}
             onNext={handleNext}
             step={currentStep}
+          />
+          <LearningRecordEditor
+            contentTitle={`${activeLearningItem.label}：${activeLearningItem.title}`}
+            onPractice={handleLearningPractice}
+            onUpdate={handleLearningRecordUpdate}
+            record={activeLearningRecord}
+            storageError={learningStorageError}
           />
           <ResultTable
             calculation={calculationState.result}

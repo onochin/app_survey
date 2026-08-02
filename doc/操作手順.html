@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="測量理解ラボ・閉合多角測量シミュレーター初期版の起動方法と操作手順"
+      content="測量理解ラボ・閉合トラバース測量シミュレーター初期版の起動方法と操作手順"
     />
     <title>操作手順書 | 測量理解ラボ</title>
     <style>
@@ -870,7 +870,7 @@
         <p class="eyebrow">Survey Learning Lab / User Guide</p>
         <h1>測量理解ラボ<br />操作手順書</h1>
         <p class="hero-lead">
-          閉合多角測量シミュレーター初期版の起動、観測値の操作、
+          閉合トラバース測量シミュレーター初期版の起動、観測値の操作、
           8段階の計算、閉合差の確認までを説明します。
         </p>
         <div class="hero-meta" aria-label="文書情報">
@@ -892,6 +892,7 @@
           <li><a href="#operation">基本操作</a></li>
           <li><a href="#calculation">8つの計算ステップ</a></li>
           <li><a href="#closure-quiz">誤差表示と確認問題</a></li>
+          <li><a href="#learning-records">学習記録と復習</a></li>
           <li><a href="#trouble">警告・困ったとき</a></li>
           <li><a href="#finish">終了方法</a></li>
         </ol>
@@ -919,7 +920,7 @@ npm run preview</code></pre>
           <div class="success">
             <strong>起動できた状態</strong>
             ターミナルに <code>Local: http://localhost:4173/</code>
-            と表示され、ブラウザに「閉合多角測量シミュレーター」が表示されます。
+            と表示され、ブラウザに「閉合トラバース測量シミュレーター」が表示されます。
           </div>
           <div class="notice">
             <strong>ターミナルは起動中のままにします</strong>
@@ -1015,7 +1016,7 @@ npm test</code></pre>
               >
                 <img
                   src="screenshots/phase3-initial-1366.png"
-                  alt="閉合多角測量シミュレーターの初期画面。画面各部に1から7の案内番号を表示"
+                  alt="名称変更前の閉合多角測量シミュレーター初期画面。画面各部に1から7の案内番号を表示"
                 />
               </a>
               <span class="shot-pin" style="--pin-x: 75%; --pin-y: 3%">1</span>
@@ -1030,6 +1031,11 @@ npm test</code></pre>
               初期画面の全体像。画像をクリックすると、新しいタブで原寸画像を確認できます。
             </figcaption>
           </figure>
+          <p class="muted">
+            この全体画像は名称変更前に撮影したため、タイトルが
+            「閉合多角測量」となっています。現在の画面では
+            「閉合トラバース測量」と表示されます。
+          </p>
 
           <ol class="callout-grid" aria-label="初期画面の各領域">
             <li>
@@ -1409,8 +1415,90 @@ npm test</code></pre>
           </ol>
         </section>
 
-        <section class="section-card" id="trouble">
+        <section class="section-card" id="learning-records">
           <span class="section-number">08</span>
+          <h2>理解チェック・メモ・復習リスト</h2>
+          <figure class="figure-wide">
+            <a
+              class="zoomable-shot"
+              href="screenshots/learning-records-1366.png"
+              target="_blank"
+              rel="noopener"
+              title="学習記録画面の原寸画像を新しいタブで開く"
+            >
+              <img
+                src="screenshots/learning-records-1366.png"
+                alt="右側に理解チェック、復習チェック、メモ入力欄を表示した画面"
+              />
+            </a>
+            <figcaption>
+              右側の「学習記録」カードの表示例。画像をクリックすると、
+              新しいタブで原寸画像を確認できます。
+            </figcaption>
+          </figure>
+          <ol class="numbered-steps">
+            <li>
+              <strong>記録したい項目を表示する</strong>
+              計算ステップまたは確認問題を開き、右側の「学習記録」を確認します。
+            </li>
+            <li>
+              <strong>理解度と復習予定を分けて記録する</strong>
+              学習済みなら「理解できた」、もう一度確認したい場合は
+              「あとで復習」をチェックします。両方を同時に付けることもできます。
+            </li>
+            <li>
+              <strong>自分用のメモを残す</strong>
+              分からなかった点、覚え方、次回確認する内容を500文字以内で入力します。
+              入力内容とチェックは自動保存されます。
+            </li>
+            <li>
+              <strong>反復回数を残す</strong>
+              その項目を学習したら「今回の学習を記録」を押します。
+              学習回数と最終記録日時が更新されます。
+            </li>
+            <li>
+              <strong>復習項目を一覧で確認する</strong>
+              下部の「学習メモ」タブを開きます。「あとで復習」の項目が上に並び、
+              「この項目を開く」から到達済みの計算ステップへ戻れます。
+            </li>
+          </ol>
+
+          <figure class="figure-wide">
+            <a
+              class="zoomable-shot"
+              href="screenshots/learning-review-list-1366.png"
+              target="_blank"
+              rel="noopener"
+              title="復習一覧の原寸画像を新しいタブで開く"
+            >
+              <img
+                src="screenshots/learning-review-list-1366.png"
+                alt="学習メモタブに要復習の項目、メモ、学習回数を表示した画面"
+              />
+            </a>
+            <figcaption>
+              「学習メモ」タブの復習一覧。画像をクリックすると、
+              新しいタブで原寸画像を確認できます。
+            </figcaption>
+          </figure>
+
+          <div class="notice">
+            <strong>保存先URLを統一してください</strong>
+            <code>http://localhost:5173</code>と
+            <code>http://localhost:4173</code>は別の保存領域です。
+            普段の学習は<code>npm run preview</code>のURL（通常は4173）へ
+            統一してください。
+          </div>
+
+          <div class="danger">
+            <strong>ブラウザ内だけの保存です</strong>
+            ブラウザのサイトデータを削除すると学習記録も消えます。
+            バックアップ書出し、端末間同期、ユーザー登録は未実装です。
+          </div>
+        </section>
+
+        <section class="section-card" id="trouble">
+          <span class="section-number">09</span>
           <h2>警告・困ったとき</h2>
           <div class="table-wrap">
             <table>
@@ -1450,18 +1538,19 @@ npm test</code></pre>
           </div>
 
           <div class="danger">
-            <strong>入力内容は保存されません</strong>
-            この初期版には学習履歴の保存機能がありません。リセット、ページの再読み込み、
-            またはサーバーの終了により、画面上の操作内容は初期状態へ戻ります。
+            <strong>観測値と学習記録では保存方法が異なります</strong>
+            測点位置と観測値は、リセットやページの再読み込みで初期状態へ戻ります。
+            理解チェック、復習チェック、メモ、学習回数はブラウザ内に残り、
+            「リセット」では削除されません。
           </div>
         </section>
 
         <section class="section-card" id="finish">
-          <span class="section-number">09</span>
+          <span class="section-number">10</span>
           <h2>終了前の確認</h2>
           <ul class="checklist">
             <li>必要な計算結果を画面で確認した</li>
-            <li>入力内容が保存されないことを確認した</li>
+            <li>必要な学習メモと復習チェックが自動保存されたことを確認した</li>
             <li>起動したターミナルで <kbd>Ctrl</kbd> + <kbd>C</kbd> を押した</li>
             <li>ターミナルに戻ったことを確認してブラウザを閉じた</li>
           </ul>
@@ -1476,7 +1565,7 @@ npm test</code></pre>
     </div>
 
     <footer>
-      測量理解ラボ — 閉合多角測量シミュレーター初期版 操作手順書
+      測量理解ラボ — 閉合トラバース測量シミュレーター初期版 操作手順書
     </footer>
   </body>
 </html>

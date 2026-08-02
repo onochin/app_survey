@@ -202,7 +202,9 @@ function TraverseSvg({
       role="group"
       viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
     >
-      <title id="traverse-svg-title">閉合多角測量の仮想現場図</title>
+      <title id="traverse-svg-title">
+        閉合トラバース測量の仮想現場図
+      </title>
       <desc id="traverse-svg-description">
         固定点AからP1、P2、P3、P4、固定点Bを順に通り、Aへ戻る六角形です。
         P1からP4はドラッグできます。図には理論距離と理論内角を表示しています。

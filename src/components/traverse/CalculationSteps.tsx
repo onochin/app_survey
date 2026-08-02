@@ -2,9 +2,13 @@ import type { CalculationStep } from "../../types/traverse";
 
 interface CalculationStepsProps {
   readonly steps: readonly CalculationStep[];
+  readonly focusedStepId: string;
 }
 
-function CalculationSteps({ steps }: CalculationStepsProps) {
+function CalculationSteps({
+  steps,
+  focusedStepId,
+}: CalculationStepsProps) {
   return (
     <section className="steps-card card" aria-labelledby="steps-title">
       <div className="section-title-row">
@@ -20,9 +24,11 @@ function CalculationSteps({ steps }: CalculationStepsProps) {
           return (
             <li
               aria-current={
-                step.status === "current" ? "step" : undefined
+                step.id === focusedStepId ? "step" : undefined
               }
-              className={`is-${step.status}`}
+              className={`is-${step.status}${
+                step.id === focusedStepId ? " is-focused" : ""
+              }`}
               key={step.id}
             >
               <span className="step-marker" aria-hidden="true">
@@ -31,7 +37,10 @@ function CalculationSteps({ steps }: CalculationStepsProps) {
               <span className="step-copy">
                 <span className="step-title">{step.title}</span>
                 <span className="step-state">
-                  {step.status === "completed"
+                  {step.id === focusedStepId &&
+                  step.status === "completed"
+                    ? "復習中"
+                    : step.status === "completed"
                     ? "確認済み"
                     : step.status === "current"
                       ? "現在のステップ"

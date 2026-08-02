@@ -31,6 +31,14 @@ try {
     await page.getByText("Phase 4", { exact: true }).isVisible(),
     "Phase 4バッジが表示されていません。",
   );
+  assert(
+    await page
+      .getByRole("heading", {
+        name: "閉合トラバース測量シミュレーター",
+      })
+      .isVisible(),
+    "現行のシミュレーター名が表示されていません。",
+  );
 
   await page.getByRole("tab", { name: /誤差の見える化/ }).click();
   assert(
@@ -168,6 +176,94 @@ try {
     });
   }
 
+  await page.getByRole("tab", { name: /学習メモ/ }).click();
+  assert(
+    await page
+      .getByText("閉合差が大きくなる原因", { exact: true })
+      .isVisible(),
+    "確認問題の学習記録が一覧にありません。",
+  );
+  assert(
+    await page.getByText("要復習", { exact: true }).isVisible(),
+    "誤答した確認問題が復習対象になっていません。",
+  );
+  assert(
+    await page.getByText("学習回数：2回", { exact: true }).isVisible(),
+    "確認問題の回答回数が記録されていません。",
+  );
+
+  await page.getByRole("tab", { name: "計算簿", exact: true }).click();
+  await page.getByLabel("理解できた").check();
+  await page.getByLabel("あとで復習").check();
+  await page
+    .getByPlaceholder(
+      "分からなかった点、覚え方、次回確認することを入力",
+    )
+    .fill("補正後の成分を座標へ加算する順番を復習する");
+  await page
+    .getByRole("button", { name: "今回の学習を記録" })
+    .click();
+
+  await page.getByRole("tab", { name: /学習メモ/ }).click();
+  assert(
+    await page
+      .locator(".learning-review-list")
+      .getByRole("heading", { name: "新点座標", exact: true })
+      .isVisible(),
+    "計算ステップの学習記録が一覧にありません。",
+  );
+  assert(
+    await page
+      .locator(".learning-review-note")
+      .getByText(
+        "補正後の成分を座標へ加算する順番を復習する",
+        { exact: true },
+      )
+      .isVisible(),
+    "入力した学習メモが一覧に反映されていません。",
+  );
+  assert(
+    (await page.locator(".learning-review-list > li").count()) === 2,
+    "記録済み項目の件数が正しくありません。",
+  );
+
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("tab", { name: /学習メモ/ }).click();
+  assert(
+    (await page.locator(".learning-review-list > li").count()) === 2,
+    "再読み込み後に学習記録を復元できません。",
+  );
+  assert(
+    await page
+      .locator(".learning-review-note")
+      .getByText(
+        "補正後の成分を座標へ加算する順番を復習する",
+        { exact: true },
+      )
+      .isVisible(),
+    "再読み込み後に学習メモを復元できません。",
+  );
+
+  await page
+    .locator(".learning-review-list > li")
+    .filter({ hasText: "新点座標" })
+    .getByRole("button", { name: "この項目を開く" })
+    .click();
+  assert(
+    await page
+      .locator(".calculation-detail")
+      .getByRole("heading", { name: "新点座標", exact: true })
+      .isVisible(),
+    "再読み込み後の復習一覧から記録済みステップを開けません。",
+  );
+
+  await page.getByRole("button", { name: "リセット" }).click();
+  await page.getByRole("tab", { name: /学習メモ/ }).click();
+  assert(
+    (await page.locator(".learning-review-list > li").count()) === 2,
+    "リセット操作で学習記録が消えました。",
+  );
+
   const metrics = await page.evaluate(() => {
     const documentElement = document.documentElement;
 
@@ -205,6 +301,9 @@ try {
         incorrectAnswerExplained: true,
         correctAnswerExplained: true,
         learningFlowCompleted: true,
+        incorrectQuizAddedToReview: true,
+        learningRecordPersistedAfterReload: true,
+        learningRecordPreservedAfterReset: true,
         consoleErrors,
         pageErrors,
         metrics,

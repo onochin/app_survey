@@ -1,4 +1,53 @@
+﻿# Python cache
+__pycache__/
+*.py[cod]
+
+# Windows metadata
+*:Zone.Identifier
+
+# Build and dependency files
+node_modules/
+dist/
+coverage/
+
+# 仮想環境
+.venv*/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# node
 node_modules/
 .npm-cache/
 coverage/
 dist/
+
+
+# local image files
+*.png
+*.jpg
+*.jpeg
+*.JPG
+*.JPEG
+*.gif
+*.webp
+*.bmp
+*.tif
+*.tiff
+*.heic
+*.heif
+*.avif
+*.glb
+*.gltf
+*.obj
+*.ply
+*.las
+*.laz
+*.fbx
+*.dae
+*.stl
+*.3ds
+*.3mf
+*.pmtiles
