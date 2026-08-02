@@ -8,8 +8,9 @@ import {
 import LessonFooter from "./ui/LessonFooter";
 import LessonHeader from "./ui/LessonHeader";
 import LessonNavigation from "./ui/LessonNavigation";
+import type { BasicsLessonComponentProps } from "./types";
 
-function SurveyBasics() {
+function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
   const [activeLessonId, setActiveLessonId] =
     useState<AvailableBasicsLessonId>(initialBasicsLessonId);
   const [completedLessonIds, setCompletedLessonIds] = useState<
@@ -176,7 +177,7 @@ function SurveyBasics() {
         <LessonHeader lesson={activeLessonData} />
 
         <div className="basics-lesson-content">
-          <ActiveLessonComponent />
+          <ActiveLessonComponent onOpenTraverse={onOpenTraverse} />
         </div>
 
         <LessonFooter

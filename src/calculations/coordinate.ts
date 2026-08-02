@@ -2,10 +2,22 @@ import type {
   AdjustedCoordinate,
   AdjustedCoordinateIncrement,
   CoordinateIncrement,
+  SurveyCoordinate,
   SurveyPoint,
   TraverseLeg,
 } from "../types/traverse";
 import { degreesToRadians, normalizeAzimuth } from "./angle";
+import {
+  calculateSurveyAzimuth,
+  calculateSurveyDistance,
+} from "./geometry";
+
+export interface CoordinateInverseResult {
+  readonly deltaX: number;
+  readonly deltaY: number;
+  readonly distance: number;
+  readonly azimuthDegrees: number | null;
+}
 
 function assertPositiveDistance(distance: number, name: string): void {
   if (!Number.isFinite(distance) || distance <= 0) {
@@ -50,6 +62,23 @@ export function calculateCoordinateIncrements(
   return legs.map((leg, index) =>
     calculateCoordinateIncrement(leg, azimuthsDegrees[index]!),
   );
+}
+
+export function calculateCoordinateInverse(
+  from: SurveyCoordinate,
+  to: SurveyCoordinate,
+): CoordinateInverseResult {
+  const distance = calculateSurveyDistance(from, to);
+  const deltaX = to.x - from.x;
+  const deltaY = to.y - from.y;
+
+  return {
+    deltaX,
+    deltaY,
+    distance,
+    azimuthDegrees:
+      distance === 0 ? null : calculateSurveyAzimuth(from, to),
+  };
 }
 
 export function accumulateAdjustedCoordinates(

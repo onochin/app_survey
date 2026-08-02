@@ -30,6 +30,13 @@ import {
   summarizeDistanceObservations,
 } from "../components/basics/data/distanceMeasurement";
 import {
+  calculateForwardCoordinate,
+  closureBridgeSample,
+  coordinateCalculationConcepts,
+  describeSurveyDirection,
+  inverseDirectionPresets,
+} from "../components/basics/data/coordinateCalculation";
+import {
   calculateElevationByHeightDifference,
   calculateElevationByInstrumentHeight,
   calculateInstrumentHeight,
@@ -99,7 +106,7 @@ describe("測量の基礎 教材レジストリ", () => {
     expect(new Set(lessonIds).size).toBe(lessonIds.length);
   });
 
-  it("第1章から第7章を実装済みとして進捗対象にする", () => {
+  it("第1章から第8章を実装済みとして進捗対象にする", () => {
     expect(availableBasicsLessons.map((lesson) => lesson.id)).toEqual([
       "point-and-position",
       "distance-and-direction",
@@ -108,10 +115,11 @@ describe("測量の基礎 教材レジストリ", () => {
       "total-station-observation",
       "leveling-basics",
       "observation-error",
+      "coordinate-calculation",
     ]);
     expect(
       basicsLessons.filter((lesson) => lesson.status === "coming-soon"),
-    ).toHaveLength(2);
+    ).toHaveLength(1);
   });
 
   it("次章導線は登録済みの章IDだけを参照する", () => {
@@ -1235,11 +1243,115 @@ describe("測量の基礎 教材レジストリ", () => {
     expect(observationErrorConcepts[5]?.description).toContain("閉合差");
   });
 
-  it("第8章と第9章を準備中のまま維持する", () => {
+  it("第8章はPhase 5-1の安定ID・メタデータ・次章IDを持つ", () => {
+    const eighthLesson = basicsLessons.find(
+      (lesson) => lesson.id === "coordinate-calculation",
+    );
+
+    expect(eighthLesson).toMatchObject({
+      id: "coordinate-calculation",
+      title: "座標計算と閉合トラバースへの橋渡し",
+      learningGoal:
+        "距離と方位角が、X・Y座標の変化へ分解されることを説明できる。",
+      nextLessonId: "field-workflow",
+      status: "available",
+    });
+    expect(eighthLesson?.terms).toEqual(
+      expect.arrayContaining([
+        "座標差",
+        "距離",
+        "方位角",
+        "座標増分",
+        "緯距",
+        "経距",
+        "正計算",
+        "逆計算",
+        "既知点",
+        "新点",
+        "閉合差",
+        "閉合トラバース",
+      ]),
+    );
+    expect(eighthLesson?.cautions).toHaveLength(7);
+  });
+
+  it("既知点・距離・方位角から座標増分と新点座標を正計算する", () => {
+    const result = calculateForwardCoordinate(
+      { x: 1_000, y: 500 },
+      50,
+      53.13010235415598,
+    );
+
+    expect(result.deltaX).toBeCloseTo(30, 12);
+    expect(result.deltaY).toBeCloseTo(40, 12);
+    expect(result.newPoint.x).toBeCloseTo(1_030, 12);
+    expect(result.newPoint.y).toBeCloseTo(540, 12);
+    expect(result.azimuthDegrees).toBeGreaterThanOrEqual(0);
+    expect(result.azimuthDegrees).toBeLessThan(360);
+    expect(() =>
+      calculateForwardCoordinate({ x: 0, y: 0 }, -1, 45),
+    ).toThrow(RangeError);
+    expect(() =>
+      calculateForwardCoordinate(
+        { x: Number.NaN, y: 0 },
+        10,
+        45,
+      ),
+    ).toThrow(TypeError);
+  });
+
+  it("北・東・南・西と各象限、同一点の方向表示を定義する", () => {
+    expect(inverseDirectionPresets.map((preset) => preset.label)).toEqual([
+      "北",
+      "北東",
+      "東",
+      "南東",
+      "南",
+      "南西",
+      "西",
+      "北西",
+      "同一点",
+    ]);
+    expect(describeSurveyDirection(0)).toBe("北");
+    expect(describeSurveyDirection(45)).toBe("北東");
+    expect(describeSurveyDirection(90)).toBe("東");
+    expect(describeSurveyDirection(135)).toBe("南東");
+    expect(describeSurveyDirection(180)).toBe("南");
+    expect(describeSurveyDirection(225)).toBe("南西");
+    expect(describeSurveyDirection(270)).toBe("西");
+    expect(describeSurveyDirection(315)).toBe("北西");
+    expect(describeSurveyDirection(null)).toBe("同一点（方向なし）");
+  });
+
+  it("複数辺の座標増分を累積し、fx・fyと計算終点を整合して持つ", () => {
+    const lastCoordinate = closureBridgeSample.coordinates.at(-1)!;
+
+    expect(closureBridgeSample.legs).toHaveLength(4);
+    expect(closureBridgeSample.coordinates).toHaveLength(5);
+    expect(closureBridgeSample.closure.fx).toBeCloseTo(0.2, 12);
+    expect(closureBridgeSample.closure.fy).toBeCloseTo(0.4, 12);
+    expect(closureBridgeSample.closure.linearClosure).toBeCloseTo(
+      Math.hypot(0.2, 0.4),
+      12,
+    );
+    expect(lastCoordinate.x).toBeCloseTo(
+      closureBridgeSample.startPoint.x + closureBridgeSample.closure.fx,
+      12,
+    );
+    expect(lastCoordinate.y).toBeCloseTo(
+      closureBridgeSample.startPoint.y + closureBridgeSample.closure.fy,
+      12,
+    );
+    expect(coordinateCalculationConcepts.at(-1)?.description).toContain(
+      "閉合差",
+    );
+  });
+
+  it("第9章だけを準備中のまま維持する", () => {
     expect(
       basicsLessons
         .filter((lesson) => lesson.status === "coming-soon")
         .map((lesson) => lesson.id),
-    ).toEqual(["coordinate-calculation", "field-workflow"]);
+    ).toEqual(["field-workflow"]);
   });
 });

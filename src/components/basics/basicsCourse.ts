@@ -1,4 +1,5 @@
 import DistanceAndDirectionLesson from "./lessons/DistanceAndDirectionLesson";
+import CoordinateCalculationLesson from "./lessons/CoordinateCalculationLesson";
 import ErrorAndEquipmentLesson from "./lessons/ErrorAndEquipmentLesson";
 import HeightDifferenceLesson from "./lessons/HeightDifferenceLesson";
 import LevelingBasicsLesson from "./lessons/LevelingBasicsLesson";
@@ -253,12 +254,35 @@ export const basicsLessons = [
     id: "coordinate-calculation",
     number: "08",
     title: "座標計算と閉合トラバースへの橋渡し",
-    description: "準備中",
-    learningGoal: null,
-    terms: [],
-    cautions: [],
+    description: "距離と方位角を座標増分へ分解し、新点座標と閉合差へつなげる",
+    learningGoal:
+      "距離と方位角が、X・Y座標の変化へ分解されることを説明できる。",
+    terms: [
+      "座標差",
+      "距離",
+      "方位角",
+      "座標増分",
+      "緯距",
+      "経距",
+      "正計算",
+      "逆計算",
+      "既知点",
+      "新点",
+      "閉合差",
+      "閉合トラバース",
+    ],
+    cautions: [
+      "Xは北方向、Yは東方向、方位角は北を0度として時計回りという規約を確認します。",
+      "角度の度と、三角関数へ渡すラジアンを混同しません。",
+      "X北・Y東の規約に合わせ、atan2へ渡すΔY・ΔXの順序を確認します。",
+      "同一点では距離は0ですが、方位角を一意に定義できません。",
+      "計算途中で丸めず、表示するときだけ必要な桁へ丸めます。",
+      "座標系や系番号が異なる座標値を直接計算しません。",
+      "閉合差が小さいことだけで、観測全体が正しいとは判断しません。",
+    ],
     nextLessonId: "field-workflow",
-    status: "coming-soon",
+    status: "available",
+    component: CoordinateCalculationLesson,
   },
   {
     id: "field-workflow",

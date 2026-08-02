@@ -1,5 +1,9 @@
 import type { ComponentType } from "react";
 
+export interface BasicsLessonComponentProps {
+  readonly onOpenTraverse: () => void;
+}
+
 export interface BasicsLessonMetadata {
   readonly id: string;
   readonly number: string;
@@ -14,7 +18,7 @@ export interface BasicsLessonMetadata {
 export interface AvailableBasicsLessonDefinition
   extends BasicsLessonMetadata {
   readonly status: "available";
-  readonly component: ComponentType;
+  readonly component: ComponentType<BasicsLessonComponentProps>;
 }
 
 export interface ComingSoonBasicsLessonDefinition

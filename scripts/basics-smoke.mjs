@@ -62,6 +62,14 @@ try {
     await page.getByText("Phase 4", { exact: true }).isVisible(),
     "初期表示が既存の多角測量ではありません。",
   );
+  const preservedTraverseDistanceInput = page.getByLabel(
+    "aからp1の観測距離",
+  );
+  await preservedTraverseDistanceInput.fill("142.000");
+  assert(
+    (await preservedTraverseDistanceInput.inputValue()) === "142.000",
+    "閉合トラバースの状態保持確認用入力を設定できません。",
+  );
 
   await page.getByRole("button", { name: "測量の基礎" }).click();
   assert(
@@ -79,15 +87,15 @@ try {
     "9章分の教材登録枠が表示されていません。",
   );
   assert(
-    (await comingSoonLessonButtons.count()) === 2 &&
+    (await comingSoonLessonButtons.count()) === 1 &&
       (await comingSoonLessonButtons.evaluateAll((buttons) =>
         buttons.every((button) => button instanceof HTMLButtonElement && button.disabled),
       )),
-    "未実装の2章が選択不可の「準備中」になっていません。",
+    "未実装の第9章が選択不可の「準備中」になっていません。",
   );
   assert(
-    await page.getByText("0 / 7 章", { exact: true }).isVisible(),
-    "進捗の分母が実装済み7章になっていません。",
+    await page.getByText("0 / 8 章", { exact: true }).isVisible(),
+    "進捗の分母が実装済み8章になっていません。",
   );
   assert(
     (await page
@@ -201,7 +209,7 @@ try {
     .getByRole("button", { name: "理解した・次の章へ" })
     .click();
   assert(
-    await page.getByText("1 / 7 章", { exact: true }).isVisible() &&
+    await page.getByText("1 / 8 章", { exact: true }).isVisible() &&
       (await page
         .getByRole("heading", {
           name: "座標・標高・高さの基準",
@@ -980,7 +988,7 @@ try {
           { exact: true },
         )
         .isVisible()) &&
-      (await page.getByText("1 / 7 章", { exact: true }).isVisible()),
+      (await page.getByText("1 / 8 章", { exact: true }).isVisible()),
     "第5章のタイトル、到達目標、注意事項、進捗分母が表示されていません。",
   );
 
@@ -1336,7 +1344,7 @@ try {
           { exact: true },
         )
         .isVisible()) &&
-      (await page.getByText("1 / 7 章", { exact: true }).isVisible()),
+      (await page.getByText("1 / 8 章", { exact: true }).isVisible()),
     "第6章のタイトル、到達目標、注意事項、進捗分母が表示されていません。",
   );
   assert(
@@ -1640,7 +1648,7 @@ try {
         )
         .isVisible()) &&
       (await page.getByText("標本標準偏差", { exact: true }).first().isVisible()) &&
-      (await page.getByText("1 / 7 章", { exact: true }).isVisible()),
+      (await page.getByText("1 / 8 章", { exact: true }).isVisible()),
     "第7章のタイトル、到達目標、用語、注意事項、進捗分母が表示されていません。",
   );
 
@@ -1981,6 +1989,242 @@ try {
     "教材を往復すると第7章の操作状態が失われます。",
   );
 
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page
+    .getByRole("button", {
+      name: /座標計算と閉合トラバースへの橋渡し/,
+    })
+    .click();
+  assert(
+    (await page
+      .getByRole("heading", {
+        name: "座標計算と閉合トラバースへの橋渡し",
+        exact: true,
+      })
+      .isVisible()) &&
+      (await page
+        .getByText(
+          "距離と方位角が、X・Y座標の変化へ分解されることを説明できる。",
+          { exact: true },
+        )
+        .isVisible()) &&
+      (await page
+        .getByText(
+          "同一点では距離は0ですが、方位角を一意に定義できません。",
+          { exact: true },
+        )
+        .isVisible()) &&
+      (await page.getByText("緯距", { exact: true }).first().isVisible()) &&
+      (await page.getByText("1 / 8 章", { exact: true }).isVisible()),
+    "第8章のタイトル、到達目標、用語、注意事項、進捗分母が表示されていません。",
+  );
+
+  const forwardStartXRange = page.getByRole("slider", {
+    name: "正計算 既知点AのX座標",
+  });
+  const forwardStartYRange = page.getByRole("slider", {
+    name: "正計算 既知点AのY座標",
+  });
+  const forwardDistanceRange = page.getByRole("slider", {
+    name: "正計算 距離",
+  });
+  const forwardAzimuthRange = page.getByRole("slider", {
+    name: "正計算 方位角",
+  });
+  await setRangeValue(forwardStartXRange, 1010);
+  await setRangeValue(forwardStartYRange, 520);
+  await setRangeValue(forwardDistanceRange, 60);
+  await setRangeValue(forwardAzimuthRange, 90);
+  assert(
+    (await page
+      .getByTestId("forward-delta-x")
+      .getByText("0.000 m", { exact: true })
+      .isVisible()) &&
+      (await page
+        .getByTestId("forward-delta-y")
+        .getByText("+60.000 m", { exact: true })
+        .isVisible()) &&
+      (await page
+        .getByTestId("forward-point-x")
+        .getByText("1010.000 m", { exact: true })
+        .isVisible()) &&
+      (await page
+        .getByTestId("forward-point-y")
+        .getByText("580.000 m", { exact: true })
+        .isVisible()) &&
+      (await page.getByText(/60\.000 × cos 90\.0°/).isVisible()) &&
+      (await page.getByText(/60\.000 × sin 90\.0°/).isVisible()) &&
+      (await page
+        .getByRole("img", { name: "正計算の座標増分図" })
+        .isVisible()),
+    "正計算の入力、ΔX・ΔY、新点座標、図、式が連動しません。",
+  );
+
+  const inverseDirectionSelector = page.locator(
+    ".basics-coordinate-direction-selector",
+  );
+  const inverseDirectionCases = [
+    { label: "北", azimuth: "0.000°" },
+    { label: "北東", azimuth: "53.130°" },
+    { label: "東", azimuth: "90.000°" },
+    { label: "南東", azimuth: "126.870°" },
+    { label: "南", azimuth: "180.000°" },
+    { label: "南西", azimuth: "233.130°" },
+    { label: "西", azimuth: "270.000°" },
+    { label: "北西", azimuth: "306.870°" },
+  ];
+  for (const directionCase of inverseDirectionCases) {
+    await inverseDirectionSelector
+      .getByRole("button", { name: directionCase.label, exact: true })
+      .click();
+    assert(
+      (await page
+        .getByTestId("inverse-direction")
+        .getByText(directionCase.label, { exact: true })
+        .isVisible()) &&
+        (await page
+          .getByTestId("inverse-azimuth")
+          .getByText(directionCase.azimuth, { exact: true })
+          .isVisible()),
+      `${directionCase.label}方向の逆計算方位角が正しく表示されません。`,
+    );
+  }
+  await inverseDirectionSelector
+    .getByRole("button", { name: "同一点", exact: true })
+    .click();
+  assert(
+    (await page
+      .getByTestId("inverse-distance")
+      .getByText("0.000 m", { exact: true })
+      .isVisible()) &&
+      (await page
+        .getByTestId("inverse-azimuth")
+        .getByText("定義できません（同一点）", { exact: true })
+        .isVisible()) &&
+      (await page
+        .getByTestId("inverse-direction")
+        .getByText("同一点（方向なし）", { exact: true })
+        .isVisible()),
+    "同一点の距離と方位角を安全に表示できません。",
+  );
+  await inverseDirectionSelector
+    .getByRole("button", { name: "北東", exact: true })
+    .click();
+
+  const comparisonModeSelector = page.locator(
+    ".basics-coordinate-mode-selector",
+  );
+  assert(
+    (await page
+      .getByTestId("comparison-inputs")
+      .getByRole("heading", {
+        name: "既知点A・距離・方位角",
+        exact: true,
+      })
+      .isVisible()) &&
+      (await page
+        .getByTestId("comparison-results")
+        .getByText(/B（1030\.000, 540\.000）m/)
+        .isVisible()),
+    "固定サンプルの正計算比較を表示できません。",
+  );
+  await comparisonModeSelector
+    .getByRole("button", { name: "逆計算", exact: true })
+    .click();
+  assert(
+    (await page
+      .getByTestId("comparison-inputs")
+      .getByRole("heading", { name: "点A・点Bの座標", exact: true })
+      .isVisible()) &&
+      (await page
+        .getByTestId("comparison-results")
+        .getByText(/S＝50\.000 m ／ α＝53\.130°/)
+        .isVisible()),
+    "固定サンプルを逆計算へ切り替えて入力値と求める値を比較できません。",
+  );
+
+  assert(
+    (await page
+      .getByTestId("closure-fx")
+      .getByText("+0.200 m", { exact: true })
+      .isVisible()) &&
+      (await page
+        .getByTestId("closure-fy")
+        .getByText("+0.400 m", { exact: true })
+        .isVisible()) &&
+      (await page
+        .getByTestId("closure-linear")
+        .getByText("0.447 m", { exact: true })
+        .isVisible()) &&
+      (await page
+        .getByRole("img", { name: "複数辺の座標増分と閉合差の概念図" })
+        .isVisible()) &&
+      (await page
+        .getByText(/角度補正・コンパス法・閉合比は、既存の閉合トラバースで確認/)
+        .isVisible()),
+    "複数辺の座標累積、fx・fy、閉合差、既存教材への役割分担を表示できません。",
+  );
+
+  const chapterEightDesktopMetrics = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  assert(
+    chapterEightDesktopMetrics.scrollWidth <=
+      chapterEightDesktopMetrics.clientWidth,
+    `第8章が1366px幅で横方向にはみ出しています: ${JSON.stringify(
+      chapterEightDesktopMetrics,
+    )}`,
+  );
+
+  await page.getByTestId("open-traverse-course").click();
+  assert(
+    (await page
+      .getByRole("heading", {
+        name: "閉合トラバース測量シミュレーター",
+      })
+      .isVisible()) &&
+      (await preservedTraverseDistanceInput.inputValue()) === "142.000",
+    "第8章の導線で閉合トラバースを開けないか、既存入力状態が失われます。",
+  );
+  await page.getByRole("button", { name: "測量の基礎" }).click();
+  assert(
+    (await page
+      .getByRole("heading", {
+        name: "座標計算と閉合トラバースへの橋渡し",
+        exact: true,
+      })
+      .isVisible()) &&
+      (await forwardStartXRange.inputValue()) === "1010" &&
+      (await forwardStartYRange.inputValue()) === "520" &&
+      (await forwardDistanceRange.inputValue()) === "60" &&
+      (await forwardAzimuthRange.inputValue()) === "90" &&
+      (await inverseDirectionSelector
+        .getByRole("button", { name: "北東", exact: true })
+        .getAttribute("aria-pressed")) === "true" &&
+      (await comparisonModeSelector
+        .getByRole("button", { name: "逆計算", exact: true })
+        .getAttribute("aria-pressed")) === "true",
+    "教材を往復すると第8章の正計算・逆計算・比較状態が失われます。",
+  );
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const chapterEightMobileMetrics = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  assert(
+    chapterEightMobileMetrics.scrollWidth <=
+      chapterEightMobileMetrics.clientWidth,
+    `第8章が390px幅で横方向にはみ出しています: ${JSON.stringify(
+      chapterEightMobileMetrics,
+    )}`,
+  );
+  assert(
+    await page.getByTestId("open-traverse-course").isVisible(),
+    "390px幅で閉合トラバースへの導線を操作できません。",
+  );
+
   assert(
     consoleErrors.length === 0,
     `コンソールエラー: ${consoleErrors.join(" | ")}`,
@@ -2005,7 +2249,7 @@ try {
       {
         initialTraversePreserved: true,
         lessonRegistrySlots: 9,
-        comingSoonLessons: 2,
+        comingSoonLessons: 1,
         surveyPurposeSelection: true,
         pointSelection: true,
         courseSwitchStatePreserved: true,
@@ -2058,6 +2302,15 @@ try {
         errorResidualClosureComparison: true,
         inspectionDecisionPractice: true,
         chapterSevenStatePreserved: true,
+        coordinateForwardCalculation: true,
+        coordinateInverseCalculation: true,
+        coordinateInverseCardinalAndQuadrants: true,
+        coordinateCoincidentPointSafety: true,
+        coordinateForwardInverseComparison: true,
+        coordinateClosureBridge: true,
+        traverseCourseLink: true,
+        traverseInputStatePreserved: true,
+        chapterEightStatePreserved: true,
         chapterOneDesktopHorizontalOverflow: false,
         chapterOneMobileHorizontalOverflow: false,
         chapterTwoDesktopHorizontalOverflow: false,
@@ -2072,6 +2325,8 @@ try {
         chapterSixMobileHorizontalOverflow: false,
         chapterSevenDesktopHorizontalOverflow: false,
         chapterSevenMobileHorizontalOverflow: false,
+        chapterEightDesktopHorizontalOverflow: false,
+        chapterEightMobileHorizontalOverflow: false,
         mobileNavigation: true,
         coordinateApiRequests,
         externalApiRequests,

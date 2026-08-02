@@ -45,7 +45,7 @@ function App() {
             </button>
           </nav>
           <section hidden={activeSection !== "basics"}>
-            <SurveyBasics />
+            <SurveyBasics onOpenTraverse={() => setActiveSection("traverse")} />
           </section>
           <section hidden={activeSection !== "traverse"}>
             <TraverseWorkspace />

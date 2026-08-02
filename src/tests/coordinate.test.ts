@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { TraverseLeg } from "../types/traverse";
 import {
+  calculateCoordinateInverse,
   calculateCoordinateIncrement,
   calculateCoordinateIncrements,
 } from "../calculations/coordinate";
@@ -81,9 +82,90 @@ describe("coordinate calculations", () => {
     );
   });
 
-  it("rejects a non-positive distance", () => {
+  it("calculates inverse azimuths for cardinal directions and every quadrant", () => {
+    const from = { x: 1_000, y: 500 };
+    const cases = [
+      { deltaX: 10, deltaY: 0, azimuth: 0 },
+      { deltaX: 10, deltaY: 10, azimuth: 45 },
+      { deltaX: 0, deltaY: 10, azimuth: 90 },
+      { deltaX: -10, deltaY: 10, azimuth: 135 },
+      { deltaX: -10, deltaY: 0, azimuth: 180 },
+      { deltaX: -10, deltaY: -10, azimuth: 225 },
+      { deltaX: 0, deltaY: -10, azimuth: 270 },
+      { deltaX: 10, deltaY: -10, azimuth: 315 },
+    ] as const;
+
+    for (const testCase of cases) {
+      const result = calculateCoordinateInverse(from, {
+        x: from.x + testCase.deltaX,
+        y: from.y + testCase.deltaY,
+      });
+
+      expect(result.deltaX).toBe(testCase.deltaX);
+      expect(result.deltaY).toBe(testCase.deltaY);
+      expect(result.distance).toBeCloseTo(
+        Math.hypot(testCase.deltaX, testCase.deltaY),
+        12,
+      );
+      expect(result.azimuthDegrees).toBeCloseTo(testCase.azimuth, 12);
+    }
+  });
+
+  it("round-trips forward coordinate increments through the inverse calculation", () => {
+    const start = { x: 2_000.25, y: -350.75 };
+
+    for (const azimuth of [0, 45, 123.456, 270, 315, -45, 725]) {
+      const increment = calculateCoordinateIncrement(
+        createLeg(0, 73.25),
+        azimuth,
+      );
+      const inverse = calculateCoordinateInverse(start, {
+        x: start.x + increment.deltaX,
+        y: start.y + increment.deltaY,
+      });
+
+      expect(inverse.distance).toBeCloseTo(73.25, 10);
+      expect(inverse.azimuthDegrees).toBeCloseTo(
+        increment.azimuthDegrees,
+        10,
+      );
+      expect(inverse.azimuthDegrees).toBeGreaterThanOrEqual(0);
+      expect(inverse.azimuthDegrees).toBeLessThan(360);
+    }
+  });
+
+  it("returns distance zero and no azimuth for coincident points", () => {
+    expect(
+      calculateCoordinateInverse(
+        { x: 1_000, y: 500 },
+        { x: 1_000, y: 500 },
+      ),
+    ).toEqual({
+      deltaX: 0,
+      deltaY: 0,
+      distance: 0,
+      azimuthDegrees: null,
+    });
+  });
+
+  it("rejects non-positive or non-finite distances and non-finite coordinates", () => {
     expect(() =>
       calculateCoordinateIncrement(createLeg(0, 0), 0),
     ).toThrow(RangeError);
+    expect(() =>
+      calculateCoordinateIncrement(createLeg(0, -1), 0),
+    ).toThrow(RangeError);
+    expect(() =>
+      calculateCoordinateIncrement(createLeg(0, Number.NaN), 0),
+    ).toThrow(RangeError);
+    expect(() =>
+      calculateCoordinateIncrement(createLeg(0), Number.POSITIVE_INFINITY),
+    ).toThrow(TypeError);
+    expect(() =>
+      calculateCoordinateInverse(
+        { x: Number.NaN, y: 0 },
+        { x: 1, y: 1 },
+      ),
+    ).toThrow(TypeError);
   });
 });
