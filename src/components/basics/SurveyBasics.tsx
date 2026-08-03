@@ -5,6 +5,13 @@ import {
   initialBasicsLessonId,
   type AvailableBasicsLessonId,
 } from "./basicsCourse";
+import {
+  evaluateBasicsQuizAnswer,
+  getBasicsQuizQuestionsForLesson,
+} from "./data/quizData";
+import BasicsQuizPanel, {
+  type BasicsQuizAnswerStateMap,
+} from "./ui/BasicsQuizPanel";
 import LessonFooter from "./ui/LessonFooter";
 import LessonHeader from "./ui/LessonHeader";
 import LessonNavigation from "./ui/LessonNavigation";
@@ -16,11 +23,16 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
   const [completedLessonIds, setCompletedLessonIds] = useState<
     readonly AvailableBasicsLessonId[]
   >([]);
+  const [quizAnswerStates, setQuizAnswerStates] =
+    useState<BasicsQuizAnswerStateMap>({});
   const activeLessonData =
     availableBasicsLessons.find(
       (lesson) => lesson.id === activeLessonId,
     ) ?? basicsLessons[0];
   const ActiveLessonComponent = activeLessonData.component;
+  const activeQuizQuestions = getBasicsQuizQuestionsForLesson(
+    activeLessonData.id,
+  );
   const progress =
     (completedLessonIds.length / availableBasicsLessons.length) * 100;
   const nextLesson = activeLessonData.nextLessonId
@@ -38,6 +50,50 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
     );
 
     setActiveLessonId(nextLesson?.id ?? initialBasicsLessonId);
+  };
+
+  const selectQuizOption = (
+    questionId: string,
+    optionId: string,
+  ): void => {
+    setQuizAnswerStates((current) => ({
+      ...current,
+      [questionId]: {
+        selectedOptionId: optionId,
+        isAnswered: false,
+        isCorrect: null,
+        isExplanationVisible: false,
+      },
+    }));
+  };
+
+  const submitQuizAnswer = (questionId: string): void => {
+    setQuizAnswerStates((current) => {
+      const answerState = current[questionId];
+
+      if (!answerState?.selectedOptionId) {
+        return current;
+      }
+
+      const evaluation = evaluateBasicsQuizAnswer(
+        questionId,
+        answerState.selectedOptionId,
+      );
+
+      if (!evaluation) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [questionId]: {
+          ...answerState,
+          isAnswered: true,
+          isCorrect: evaluation.isCorrect,
+          isExplanationVisible: true,
+        },
+      };
+    });
   };
 
   return (
@@ -179,6 +235,14 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
         <div className="basics-lesson-content">
           <ActiveLessonComponent onOpenTraverse={onOpenTraverse} />
         </div>
+
+        <BasicsQuizPanel
+          answerStates={quizAnswerStates}
+          lessonId={activeLessonData.id}
+          onSelectOption={selectQuizOption}
+          onSubmitAnswer={submitQuizAnswer}
+          questions={activeQuizQuestions}
+        />
 
         <LessonFooter
           isLastLesson={isLastLesson}

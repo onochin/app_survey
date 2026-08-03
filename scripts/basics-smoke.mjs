@@ -19,6 +19,27 @@ async function setRangeValue(locator, value) {
   }, String(value));
 }
 
+async function assertBasicsQuizPanel(
+  page,
+  lessonId,
+  expectedQuestionCount,
+) {
+  const panel = page.getByTestId("basics-quiz-panel");
+
+  assert(
+    (await panel.isVisible()) &&
+      (await panel.getAttribute("data-lesson-id")) === lessonId,
+    `${lessonId}の確認問題パネルが表示されていません。`,
+  );
+  assert(
+    (await panel.locator(".basics-quiz-question").count()) ===
+      expectedQuestionCount,
+    `${lessonId}の確認問題数が${expectedQuestionCount}問ではありません。`,
+  );
+
+  return panel;
+}
+
 const baseUrl = process.env.BASE_URL ?? "http://127.0.0.1:4173/";
 const baseOrigin = new URL(baseUrl).origin;
 const browser = await chromium.launch({ headless: true });
@@ -108,6 +129,83 @@ try {
         )
         .isVisible()),
     "第1章のタイトルまたは到達目標が表示されていません。",
+  );
+
+  const chapterOneQuizPanel = await assertBasicsQuizPanel(
+    page,
+    "point-and-position",
+    1,
+  );
+  const chapterOneQuestion = page.getByTestId(
+    "basics-quiz-question-basics-q01-survey-purpose",
+  );
+  assert(
+    (await chapterOneQuizPanel.getByText("正答理由", { exact: true }).count()) ===
+      0 &&
+      (await chapterOneQuizPanel.getByText("正解です", { exact: true }).count()) ===
+        0 &&
+      (await chapterOneQuizPanel.getByText("不正解です", { exact: true }).count()) ===
+        0,
+    "回答前に正答または理由が表示されています。",
+  );
+  await chapterOneQuestion
+    .getByRole("radio", {
+      name: "最も新しい機器を先に選び、成果は観測後に決める",
+      exact: true,
+    })
+    .check();
+  await chapterOneQuestion
+    .getByRole("button", { name: "回答を確認する", exact: true })
+    .click();
+  const chapterOneFeedback = page.getByTestId(
+    "basics-quiz-feedback-basics-q01-survey-purpose",
+  );
+  assert(
+    (await chapterOneFeedback
+      .getByText("不正解です", { exact: true })
+      .isVisible()) &&
+      (await chapterOneFeedback
+        .getByText("選択した回答", { exact: true })
+        .isVisible()) &&
+      (await chapterOneFeedback.getByText("正答", { exact: true }).isVisible()) &&
+      (await chapterOneFeedback
+        .getByText("選択した誤答が誤りである理由", { exact: true })
+        .isVisible()) &&
+      (await chapterOneFeedback
+        .getByText("正答理由", { exact: true })
+        .isVisible()) &&
+      (await chapterOneFeedback
+        .getByText("現場での確認事項", { exact: true })
+        .isVisible()) &&
+      (await chapterOneFeedback
+        .getByText(/機器は目的を達成する手段です/)
+        .isVisible()),
+    "誤答後に選択回答・正答・誤答理由・正答理由・現場確認が表示されません。",
+  );
+  await chapterOneQuestion
+    .locator(
+      "#basics-quiz-option-basics-q01-survey-purpose-select-from-result",
+    )
+    .check();
+  assert(
+    (await chapterOneQuestion.getByText("正答理由", { exact: true }).count()) ===
+      0,
+    "回答を選び直した後、再回答前に正答理由が残っています。",
+  );
+  await chapterOneQuestion
+    .getByRole("button", { name: "回答を確認する", exact: true })
+    .click();
+  assert(
+    (await chapterOneFeedback
+      .getByText("正解です", { exact: true })
+      .isVisible()) &&
+      (await chapterOneFeedback
+        .getByText("正答理由", { exact: true })
+        .isVisible()) &&
+      (await chapterOneFeedback
+        .getByText(/求める成果 → 必要な観測 → 測量方法と機器/)
+        .isVisible()),
+    "正答後に正解表示と正答理由が表示されません。",
   );
 
   const purposePanel = page.locator("#survey-purpose-panel");
@@ -225,6 +323,7 @@ try {
       .isVisible(),
     "第2章の到達目標が表示されていません。",
   );
+  await assertBasicsQuizPanel(page, "distance-and-direction", 1);
 
   const coordinatePanel = page.locator("#coordinate-representation-panel");
   assert(
@@ -425,6 +524,7 @@ try {
         .isVisible()),
     "第3章のタイトルまたは到達目標が表示されていません。",
   );
+  await assertBasicsQuizPanel(page, "height-difference", 1);
 
   const slopeDistanceRange = page.locator("#distance-slope-range");
   await slopeDistanceRange.evaluate((input) => {
@@ -645,6 +745,7 @@ try {
         .isVisible()),
     "第4章のタイトル、到達目標、教材内容が表示されていません。",
   );
+  await assertBasicsQuizPanel(page, "error-and-equipment", 1);
 
   const azimuthRange = page.getByRole("slider", {
     name: "方位角を連続操作",
@@ -987,6 +1088,41 @@ try {
         .isVisible()) &&
       (await page.getByText("1 / 9 章", { exact: true }).isVisible()),
     "第5章のタイトル、到達目標、注意事項、進捗分母が表示されていません。",
+  );
+
+  await assertBasicsQuizPanel(page, "total-station-observation", 2);
+  const chapterFiveFieldQuestion = page.getByTestId(
+    "basics-quiz-question-basics-q05-field-backsight-shift",
+  );
+  assert(
+    await chapterFiveFieldQuestion
+      .getByText("現場判断", { exact: true })
+      .isVisible(),
+    "第5章に現場判断問題が表示されていません。",
+  );
+  await chapterFiveFieldQuestion
+    .getByRole("radio", {
+      name: "条件を修正して再観測",
+      exact: true,
+    })
+    .check();
+  await chapterFiveFieldQuestion
+    .getByRole("button", { name: "回答を確認する", exact: true })
+    .click();
+  const chapterFiveFieldFeedback = page.getByTestId(
+    "basics-quiz-feedback-basics-q05-field-backsight-shift",
+  );
+  assert(
+    (await chapterFiveFieldFeedback
+      .getByText("正解です", { exact: true })
+      .isVisible()) &&
+      (await chapterFiveFieldFeedback
+        .getByText(/方向付けが変化した可能性/)
+        .isVisible()) &&
+      (await chapterFiveFieldFeedback
+        .getByText(/影響を受けた観測範囲を再観測/)
+        .isVisible()),
+    "第5章の後視方向ずれに対する再観測判断と理由を確認できません。",
   );
 
   const setupOrderCard = page.locator(".basics-ts-order-card");
@@ -1344,6 +1480,7 @@ try {
       (await page.getByText("1 / 9 章", { exact: true }).isVisible()),
     "第6章のタイトル、到達目標、注意事項、進捗分母が表示されていません。",
   );
+  await assertBasicsQuizPanel(page, "leveling-basics", 1);
   assert(
     (await page
       .getByRole("img", {
@@ -1647,6 +1784,41 @@ try {
       (await page.getByText("標本標準偏差", { exact: true }).first().isVisible()) &&
       (await page.getByText("1 / 9 章", { exact: true }).isVisible()),
     "第7章のタイトル、到達目標、用語、注意事項、進捗分母が表示されていません。",
+  );
+
+  await assertBasicsQuizPanel(page, "observation-error", 2);
+  const chapterSevenFieldQuestion = page.getByTestId(
+    "basics-quiz-question-basics-q07-field-large-residual",
+  );
+  assert(
+    await chapterSevenFieldQuestion
+      .getByText("現場判断", { exact: true })
+      .isVisible(),
+    "第7章に現場判断問題が表示されていません。",
+  );
+  await chapterSevenFieldQuestion
+    .getByRole("radio", {
+      name: "原因を確認して再観測する",
+      exact: true,
+    })
+    .check();
+  await chapterSevenFieldQuestion
+    .getByRole("button", { name: "回答を確認する", exact: true })
+    .click();
+  const chapterSevenFieldFeedback = page.getByTestId(
+    "basics-quiz-feedback-basics-q07-field-large-residual",
+  );
+  assert(
+    (await chapterSevenFieldFeedback
+      .getByText("正解です", { exact: true })
+      .isVisible()) &&
+      (await chapterSevenFieldFeedback
+        .getByText(/許容値以内だけで採用せず/)
+        .isVisible()) &&
+      (await chapterSevenFieldFeedback
+        .getByText(/粗大誤差の可能性/)
+        .isVisible()),
+    "第7章の閉合差・大残差に対する再観測判断と理由を確認できません。",
   );
 
   const accuracySelector = page.locator(".basics-error-accuracy-selector");
@@ -2015,6 +2187,7 @@ try {
       (await page.getByText("1 / 9 章", { exact: true }).isVisible()),
     "第8章のタイトル、到達目標、用語、注意事項、進捗分母が表示されていません。",
   );
+  await assertBasicsQuizPanel(page, "coordinate-calculation", 1);
 
   const forwardStartXRange = page.getByRole("slider", {
     name: "正計算 既知点AのX座標",
@@ -2250,6 +2423,38 @@ try {
     "第9章のタイトル、到達目標、用語、注意事項、進捗分母が表示されていません。",
   );
 
+  await assertBasicsQuizPanel(page, "field-workflow", 5);
+  const chapterNineFieldQuestion = page.getByTestId(
+    "basics-quiz-question-basics-q09-field-recalculate",
+  );
+  assert(
+    await chapterNineFieldQuestion
+      .getByText("現場判断", { exact: true })
+      .isVisible(),
+    "第9章に現場判断問題が表示されていません。",
+  );
+  await chapterNineFieldQuestion
+    .getByRole("radio", { name: "再計算する", exact: true })
+    .check();
+  await chapterNineFieldQuestion
+    .getByRole("button", { name: "回答を確認する", exact: true })
+    .click();
+  const chapterNineFieldFeedback = page.getByTestId(
+    "basics-quiz-feedback-basics-q09-field-recalculate",
+  );
+  assert(
+    (await chapterNineFieldFeedback
+      .getByText("正解です", { exact: true })
+      .isVisible()) &&
+      (await chapterNineFieldFeedback
+        .getByText(/正しい原記録から計算過程を修正/)
+        .isVisible()) &&
+      (await chapterNineFieldFeedback
+        .getByText(/影響する計算と成果を再計算・再点検/)
+        .isVisible()),
+    "第9章の転記・計算誤りに対する再計算判断と理由を確認できません。",
+  );
+
   const fieldOrderCard = page.locator(".basics-field-order-card");
   await fieldOrderCard.getByRole("button", { name: "順序を確認" }).click();
   assert(
@@ -2449,8 +2654,11 @@ try {
         .getAttribute("aria-pressed")) === "true" &&
       (await fieldResultFlow
         .getByRole("button", { name: /成果表/ })
-        .getAttribute("aria-pressed")) === "true",
-    "教材を往復すると第9章の主要操作状態が失われます。",
+        .getAttribute("aria-pressed")) === "true" &&
+      (await chapterNineFieldFeedback
+        .getByText("正解です", { exact: true })
+        .isVisible()),
+    "教材を往復すると第9章の主要操作または問題回答状態が失われます。",
   );
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -2473,6 +2681,59 @@ try {
         .getByRole("button", { name: /再計算する/ })
         .isVisible()),
     "390px幅で第9章の主要操作を利用できません。",
+  );
+
+  const expectedQuizCounts = [
+    ["point-and-position", 1],
+    ["distance-and-direction", 1],
+    ["height-difference", 1],
+    ["error-and-equipment", 1],
+    ["total-station-observation", 2],
+    ["leveling-basics", 1],
+    ["observation-error", 2],
+    ["coordinate-calculation", 1],
+    ["field-workflow", 5],
+  ];
+
+  for (const [lessonIndex, [lessonId, expectedQuestionCount]] of
+    expectedQuizCounts.entries()) {
+    await lessonNavigationButtons.nth(lessonIndex).click();
+    await assertBasicsQuizPanel(page, lessonId, expectedQuestionCount);
+    const quizMobileMetrics = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+
+    assert(
+      quizMobileMetrics.scrollWidth <= quizMobileMetrics.clientWidth,
+      `${lessonId}の確認問題が390px幅で横方向にはみ出しています: ${JSON.stringify(
+        quizMobileMetrics,
+      )}`,
+    );
+  }
+
+  assert(
+    (await chapterNineFieldFeedback
+      .getByText("正解です", { exact: true })
+      .isVisible()) &&
+      (await chapterNineFieldQuestion
+        .locator(
+          "#basics-quiz-option-basics-q09-field-recalculate-recalculate",
+        )
+        .isChecked()),
+    "章を切り替えて戻ると第9章の問題回答状態が失われます。",
+  );
+  await lessonNavigationButtons.nth(0).click();
+  assert(
+    (await chapterOneFeedback
+      .getByText("正解です", { exact: true })
+      .isVisible()) &&
+      (await chapterOneQuestion
+        .locator(
+          "#basics-quiz-option-basics-q01-survey-purpose-select-from-result",
+        )
+        .isChecked()),
+    "章を切り替えて戻ると第1章の問題回答状態が失われます。",
   );
 
   assert(
@@ -2568,6 +2829,13 @@ try {
         fieldObservedCalculatedResultValues: true,
         fieldBookToResultTableFlow: true,
         chapterNineStatePreserved: true,
+        basicsQuizAllLessonsVisible: true,
+        basicsQuizCorrectAnswerHiddenBeforeSubmit: true,
+        basicsQuizIncorrectReasonAndCorrectReason: true,
+        basicsQuizCorrectReason: true,
+        basicsQuizFieldJudgment: true,
+        basicsQuizLessonSwitchStatePreserved: true,
+        basicsQuizCourseSwitchStatePreserved: true,
         chapterOneDesktopHorizontalOverflow: false,
         chapterOneMobileHorizontalOverflow: false,
         chapterTwoDesktopHorizontalOverflow: false,
