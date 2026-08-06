@@ -19,6 +19,173 @@ async function setRangeValue(locator, value) {
   }, String(value));
 }
 
+async function collectPhase7DomAudit(page) {
+  return page.evaluate(() => {
+    const isVisible = (element) => {
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+
+      return (
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        rect.width > 0 &&
+        rect.height > 0
+      );
+    };
+    const referencedText = (element, attributeName) =>
+      (element.getAttribute(attributeName) ?? "")
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((id) => document.getElementById(id)?.textContent?.trim() ?? "")
+        .filter(Boolean)
+        .join(" ");
+    const accessibleName = (element) => {
+      const ariaLabel = element.getAttribute("aria-label")?.trim();
+
+      if (ariaLabel) {
+        return ariaLabel;
+      }
+
+      const labelledText = referencedText(element, "aria-labelledby");
+
+      if (labelledText) {
+        return labelledText;
+      }
+
+      if (
+        element instanceof HTMLInputElement ||
+        element instanceof HTMLTextAreaElement ||
+        element instanceof HTMLSelectElement
+      ) {
+        const labelText = Array.from(element.labels ?? [])
+          .map((label) => label.textContent?.trim() ?? "")
+          .filter(Boolean)
+          .join(" ");
+
+        if (labelText) {
+          return labelText;
+        }
+
+        if (
+          element instanceof HTMLInputElement &&
+          ["button", "reset", "submit"].includes(element.type)
+        ) {
+          return element.value.trim();
+        }
+      }
+
+      return (
+        element.textContent?.trim() ??
+        element.getAttribute("title")?.trim() ??
+        ""
+      );
+    };
+    const idCounts = new Map();
+
+    for (const element of document.querySelectorAll("[id]")) {
+      const id = element.id;
+      idCounts.set(id, (idCounts.get(id) ?? 0) + 1);
+    }
+
+    const duplicateIds = Array.from(idCounts.entries())
+      .filter(([, count]) => count > 1)
+      .map(([id, count]) => `${id} (${count})`);
+    const missingReferences = [];
+
+    for (const element of document.querySelectorAll(
+      "[aria-labelledby], [aria-describedby], [aria-controls]",
+    )) {
+      for (const attributeName of [
+        "aria-labelledby",
+        "aria-describedby",
+        "aria-controls",
+      ]) {
+        const ids = (element.getAttribute(attributeName) ?? "")
+          .split(/\s+/)
+          .filter(Boolean);
+
+        for (const id of ids) {
+          if (!document.getElementById(id)) {
+            missingReferences.push(`${attributeName}:${id}`);
+          }
+        }
+      }
+    }
+
+    const missingLabelTargets = Array.from(
+      document.querySelectorAll("label[for]"),
+    )
+      .map((label) => label.htmlFor)
+      .filter((id) => !document.getElementById(id));
+    const unnamedInteractiveElements = Array.from(
+      document.querySelectorAll(
+        'button, a[href], input:not([type="hidden"]), textarea, select, [role="button"], [role="tab"]',
+      ),
+    )
+      .filter((element) => isVisible(element))
+      .filter((element) => accessibleName(element).length === 0)
+      .map((element) => {
+        const tag = element.tagName.toLowerCase();
+        return `${tag}${element.id ? `#${element.id}` : ""}`;
+      });
+    const visibleText = document.body.innerText;
+    const invalidNumberTokens = ["NaN", "Infinity", "undefined"].filter(
+      (token) => visibleText.includes(token),
+    );
+    const unexpectedHorizontalClipping = Array.from(
+      document.querySelectorAll(
+        ".basics-page section, .basics-page article, .basics-page button, .basics-page input, .basics-page textarea, .basics-page svg, .basics-page table",
+      ),
+    )
+      .filter((element) => isVisible(element))
+      .filter((element) => {
+        const rect = element.getBoundingClientRect();
+
+        if (rect.left >= -1 && rect.right <= window.innerWidth + 1) {
+          return false;
+        }
+
+        let ancestor = element.parentElement;
+
+        while (ancestor && !ancestor.classList.contains("basics-page")) {
+          const overflowX = window.getComputedStyle(ancestor).overflowX;
+
+          if (["auto", "scroll", "hidden", "clip"].includes(overflowX)) {
+            return false;
+          }
+
+          ancestor = ancestor.parentElement;
+        }
+
+        return true;
+      })
+      .map((element) => {
+        const name = element.getAttribute("aria-label") ?? element.id;
+        return `${element.tagName.toLowerCase()}${name ? `:${name}` : ""}`;
+      });
+
+    return {
+      duplicateIds,
+      invalidNumberTokens,
+      missingLabelTargets,
+      missingReferences,
+      unnamedInteractiveElements,
+      unexpectedHorizontalClipping,
+    };
+  });
+}
+
+async function hasVisibleKeyboardFocus(locator) {
+  return locator.evaluate((element) => {
+    const style = window.getComputedStyle(element);
+    const hasOutline =
+      style.outlineStyle !== "none" && Number.parseFloat(style.outlineWidth) > 0;
+    const hasShadow = style.boxShadow !== "none";
+
+    return element.matches(":focus-visible") && (hasOutline || hasShadow);
+  });
+}
+
 async function assertBasicsQuizPanel(
   page,
   lessonId,
@@ -42,14 +209,24 @@ async function assertBasicsQuizPanel(
 
 const baseUrl = process.env.BASE_URL ?? "http://127.0.0.1:4173/";
 const baseOrigin = new URL(baseUrl).origin;
+const basicsLearningStorageKey =
+  "survey-learning-lab:basics-learning-records:v1";
+const traverseLearningStorageKey =
+  "survey-learning-lab:traverse-learning-records:v1";
+const learningStorageKeys = [
+  basicsLearningStorageKey,
+  traverseLearningStorageKey,
+];
 const browser = await chromium.launch({ headless: true });
 const consoleErrors = [];
 const pageErrors = [];
 const coordinateApiRequests = [];
 const externalApiRequests = [];
+const savePhase7Screenshots = process.env.PHASE7_SCREENSHOTS === "1";
+let page;
 
 try {
-  const page = await browser.newPage({
+  page = await browser.newPage({
     viewport: { width: 1366, height: 768 },
     deviceScaleFactor: 1,
   });
@@ -79,9 +256,52 @@ try {
   });
 
   await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.evaluate((storageKeys) => {
+    for (const storageKey of storageKeys) {
+      window.localStorage.removeItem(storageKey);
+    }
+  }, learningStorageKeys);
+  await page.reload({ waitUntil: "networkidle" });
   assert(
     await page.getByText("Phase 4", { exact: true }).isVisible(),
     "初期表示が既存の多角測量ではありません。",
+  );
+  const traverseLearningEditor = page.locator(".learning-record-card");
+  await traverseLearningEditor.getByLabel("あとで復習").check();
+  await traverseLearningEditor
+    .getByLabel("メモ")
+    .fill("基礎教材との保存分離を確認");
+  await traverseLearningEditor
+    .getByRole("button", { name: "今回の学習を記録", exact: true })
+    .click();
+  await page.waitForFunction(
+    (storageKey) => {
+      const serialized = window.localStorage.getItem(storageKey);
+
+      if (!serialized) {
+        return false;
+      }
+
+      const parsed = JSON.parse(serialized);
+      return (
+        parsed.records?.["step-1"]?.needsReview === true &&
+        parsed.records?.["step-1"]?.note ===
+          "基礎教材との保存分離を確認" &&
+        parsed.records?.["step-1"]?.practiceCount === 1
+      );
+    },
+    traverseLearningStorageKey,
+  );
+  const traverseStorageBeforeBasics = await page.evaluate(
+    (storageKey) => window.localStorage.getItem(storageKey),
+    traverseLearningStorageKey,
+  );
+  assert(
+    traverseStorageBeforeBasics !== null &&
+      (await traverseLearningEditor
+        .getByText("1回", { exact: true })
+        .isVisible()),
+    "閉合トラバース側の独立性確認用記録を保存できません。",
   );
   const preservedTraverseDistanceInput = page.getByLabel(
     "aからp1の観測距離",
@@ -129,6 +349,54 @@ try {
         )
         .isVisible()),
     "第1章のタイトルまたは到達目標が表示されていません。",
+  );
+
+  const chapterOneLearningEditor = page.getByTestId(
+    "basics-learning-editor-lesson-point-and-position",
+  );
+  await chapterOneLearningEditor.getByLabel("理解できた").check();
+  await chapterOneLearningEditor.getByLabel("あとで復習").check();
+  await chapterOneLearningEditor
+    .getByLabel("メモ")
+    .fill("既知点の座標系と保存状態を見直す");
+  await chapterOneLearningEditor
+    .getByRole("button", { name: "今回の学習を記録", exact: true })
+    .click();
+  await page.waitForFunction(
+    (storageKey) => {
+      const serialized = window.localStorage.getItem(storageKey);
+
+      if (!serialized) {
+        return false;
+      }
+
+      const parsed = JSON.parse(serialized);
+      const record = parsed.records?.["lesson:point-and-position"];
+
+      return (
+        parsed.version === 1 &&
+        record?.isUnderstood === true &&
+        record?.needsReview === true &&
+        record?.note === "既知点の座標系と保存状態を見直す" &&
+        record?.practiceCount === 1 &&
+        typeof record?.updatedAt === "string"
+      );
+    },
+    basicsLearningStorageKey,
+  );
+  assert(
+    (await chapterOneLearningEditor.getByLabel("理解できた").isChecked()) &&
+      (await chapterOneLearningEditor.getByLabel("あとで復習").isChecked()) &&
+      (await chapterOneLearningEditor.getByLabel("メモ").inputValue()) ===
+        "既知点の座標系と保存状態を見直す" &&
+      (await chapterOneLearningEditor
+        .getByText("1回", { exact: true })
+        .isVisible()) &&
+      (await chapterOneLearningEditor
+        .getByText("まだ記録されていません", { exact: true })
+        .count()) === 0 &&
+      (await page.getByText("1 / 9 章", { exact: true }).isVisible()),
+    "第1章の理解・復習・メモ・学習回数・日時または進捗を記録できません。",
   );
 
   const chapterOneQuizPanel = await assertBasicsQuizPanel(
@@ -182,6 +450,38 @@ try {
         .isVisible()),
     "誤答後に選択回答・正答・誤答理由・正答理由・現場確認が表示されません。",
   );
+  const chapterOneQuizLearningEditor = page.getByTestId(
+    "basics-learning-editor-quiz-basics-q01-survey-purpose",
+  );
+  await page.waitForFunction(
+    (storageKey) => {
+      const serialized = window.localStorage.getItem(storageKey);
+
+      if (!serialized) {
+        return false;
+      }
+
+      const parsed = JSON.parse(serialized);
+      const record =
+        parsed.records?.["quiz:basics-q01-survey-purpose"];
+
+      return (
+        record?.needsReview === true &&
+        record?.practiceCount === 0 &&
+        record?.updatedAt === null
+      );
+    },
+    basicsLearningStorageKey,
+  );
+  assert(
+    (await chapterOneQuizLearningEditor
+      .getByLabel("あとで復習")
+      .isChecked()) &&
+      (await chapterOneQuizLearningEditor
+        .getByText("0回", { exact: true })
+        .isVisible()),
+    "誤答した問題が学習回数を増やさず自動的に復習対象へ登録されません。",
+  );
   await chapterOneQuestion
     .locator(
       "#basics-quiz-option-basics-q01-survey-purpose-select-from-result",
@@ -206,6 +506,195 @@ try {
         .getByText(/求める成果 → 必要な観測 → 測量方法と機器/)
         .isVisible()),
     "正答後に正解表示と正答理由が表示されません。",
+  );
+
+  assert(
+    await chapterOneQuizLearningEditor
+      .getByLabel("あとで復習")
+      .isChecked(),
+    "誤答後に正答しても、問題の復習指定が維持されません。",
+  );
+
+  const basicsReviewPanel = page.getByTestId(
+    "basics-learning-review-panel",
+  );
+  const chapterOneReviewItem = page.getByTestId(
+    "basics-learning-review-item-lesson-point-and-position",
+  );
+  const chapterOneQuizReviewItem = page.getByTestId(
+    "basics-learning-review-item-quiz-basics-q01-survey-purpose",
+  );
+  const chapterOneReviewText =
+    (await chapterOneReviewItem.textContent()) ?? "";
+  const chapterOneQuizReviewText =
+    (await chapterOneQuizReviewItem.textContent()) ?? "";
+  assert(
+    (await chapterOneReviewItem.isVisible()) &&
+      (await chapterOneQuizReviewItem.isVisible()) &&
+      chapterOneReviewText.includes("第1章・章") &&
+      chapterOneReviewText.includes("理解済み") &&
+      chapterOneReviewText.includes("あとで復習") &&
+      chapterOneReviewText.includes("既知点の座標系と保存状態を見直す") &&
+      chapterOneReviewText.includes("1回") &&
+      chapterOneQuizReviewText.includes("要復習"),
+    `復習一覧へ所属章・状態・メモ・回数を含む章／問題記録が表示されません: ${JSON.stringify(
+      { chapterOneReviewText, chapterOneQuizReviewText },
+    )}`,
+  );
+
+  await chapterOneLearningEditor.getByLabel("あとで復習").uncheck();
+  await page.waitForFunction(
+    (storageKey) => {
+      const serialized = window.localStorage.getItem(storageKey);
+      return serialized
+        ? JSON.parse(serialized).records?.["lesson:point-and-position"]
+            ?.needsReview === false
+        : false;
+    },
+    basicsLearningStorageKey,
+  );
+  const recordedReviewItems = basicsReviewPanel.locator(
+    ".basics-learning-review-list > li",
+  );
+  assert(
+    (await recordedReviewItems.nth(0).getAttribute("data-item-id")) ===
+      "quiz:basics-q01-survey-purpose" &&
+      (await recordedReviewItems.nth(0).getAttribute("class"))?.includes(
+        "needs-review",
+      ) === true &&
+      (await recordedReviewItems.nth(1).getAttribute("data-item-id")) ===
+        "lesson:point-and-position",
+    "要復習の問題が復習一覧の上部へ移動しません。",
+  );
+
+  await lessonNavigationButtons.nth(1).click();
+  await chapterOneReviewItem
+    .getByRole("button", { name: "この章を開く", exact: true })
+    .click();
+  await page.waitForFunction(
+    (targetId) => document.activeElement?.id === targetId,
+    "basics-learning-editor-lesson-point-and-position",
+  );
+  assert(
+    await chapterOneLearningEditor.isVisible(),
+    "復習一覧から章と章の学習記録へ移動できません。",
+  );
+  await lessonNavigationButtons.nth(1).click();
+  await chapterOneQuizReviewItem
+    .getByRole("button", { name: "この問題を開く", exact: true })
+    .click();
+  await page.waitForFunction(
+    (targetId) => document.activeElement?.id === targetId,
+    "basics-quiz-card-basics-q01-survey-purpose",
+  );
+  assert(
+    (await page
+      .locator("#active-lesson-title")
+      .getByText("測量の全体像と測点", { exact: true })
+      .isVisible()) &&
+      (await chapterOneQuestion.isVisible()),
+    "復習一覧から問題の所属章と問題カードへ移動できません。",
+  );
+
+  const traverseStorageAfterBasics = await page.evaluate(
+    (storageKey) => window.localStorage.getItem(storageKey),
+    traverseLearningStorageKey,
+  );
+  const basicsStorageBeforeReload = await page.evaluate(
+    (storageKey) => window.localStorage.getItem(storageKey),
+    basicsLearningStorageKey,
+  );
+  assert(
+    traverseStorageAfterBasics === traverseStorageBeforeBasics,
+    "基礎教材の記録変更により閉合トラバースの保存データが変わりました。",
+  );
+  assert(
+    basicsStorageBeforeReload !== null,
+    "再読込前の基礎教材学習記録を取得できません。",
+  );
+
+  await page.reload({ waitUntil: "networkidle" });
+  assert(
+    await page.getByText("Phase 4", { exact: true }).isVisible(),
+    "再読込後の初期教材が閉合トラバースではありません。",
+  );
+  assert(
+    (await traverseLearningEditor.getByLabel("あとで復習").isChecked()) &&
+      (await traverseLearningEditor.getByLabel("メモ").inputValue()) ===
+        "基礎教材との保存分離を確認" &&
+      (await traverseLearningEditor
+        .getByText("1回", { exact: true })
+        .isVisible()),
+    "再読込後に閉合トラバースの学習記録が復元されません。",
+  );
+  const basicsStorageBeforeTraverseChange = await page.evaluate(
+    (storageKey) => window.localStorage.getItem(storageKey),
+    basicsLearningStorageKey,
+  );
+  await traverseLearningEditor
+    .getByLabel("メモ")
+    .fill("閉合トラバース側だけを更新");
+  await page.waitForFunction(
+    (storageKey) => {
+      const serialized = window.localStorage.getItem(storageKey);
+      return serialized
+        ? JSON.parse(serialized).records?.["step-1"]?.note ===
+            "閉合トラバース側だけを更新"
+        : false;
+    },
+    traverseLearningStorageKey,
+  );
+  const basicsStorageAfterTraverseChange = await page.evaluate(
+    (storageKey) => window.localStorage.getItem(storageKey),
+    basicsLearningStorageKey,
+  );
+  assert(
+    basicsStorageBeforeTraverseChange === basicsStorageAfterTraverseChange &&
+      basicsStorageAfterTraverseChange === basicsStorageBeforeReload,
+    "閉合トラバースの記録変更により基礎教材の保存データが変わりました。",
+  );
+
+  await preservedTraverseDistanceInput.fill("142.000");
+  await page.getByRole("button", { name: "測量の基礎" }).click();
+  assert(
+    (await chapterOneLearningEditor.getByLabel("理解できた").isChecked()) &&
+      !(await chapterOneLearningEditor.getByLabel("あとで復習").isChecked()) &&
+      (await chapterOneLearningEditor.getByLabel("メモ").inputValue()) ===
+        "既知点の座標系と保存状態を見直す" &&
+      (await chapterOneLearningEditor
+        .getByText("1回", { exact: true })
+        .isVisible()) &&
+      (await page.getByText("1 / 9 章", { exact: true }).isVisible()) &&
+      (await chapterOneQuizLearningEditor
+        .getByLabel("あとで復習")
+        .isChecked()),
+    "再読込後に章・問題の学習記録または章進捗が復元されません。",
+  );
+  assert(
+    (await chapterOneQuestion
+      .locator(".basics-quiz-options input[type='radio']:checked")
+      .count()) === 0 &&
+      (await page
+        .getByTestId("basics-quiz-feedback-basics-q01-survey-purpose")
+        .count()) === 0,
+    "再読込後に問題の選択回答または正誤表示まで永続化されています。",
+  );
+  await chapterOneQuestion
+    .locator(
+      "#basics-quiz-option-basics-q01-survey-purpose-select-from-result",
+    )
+    .check();
+  await chapterOneQuestion
+    .getByRole("button", { name: "回答を確認する", exact: true })
+    .click();
+  assert(
+    (await chapterOneFeedback
+      .getByText("正解です", { exact: true })
+      .isVisible()) &&
+      (await chapterOneQuizLearningEditor
+        .getByLabel("あとで復習")
+        .isChecked()),
+    "再読込後の再回答で正答表示または明示解除前の復習指定が失われます。",
   );
 
   const purposePanel = page.locator("#survey-purpose-panel");
@@ -2394,6 +2883,45 @@ try {
     await page.getByTestId("open-traverse-course").isVisible(),
     "390px幅で閉合トラバースへの導線を操作できません。",
   );
+  await page.getByTestId("open-traverse-course").click();
+  const traverseMobileMetrics = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  assert(
+    (await page
+      .getByRole("heading", {
+        name: "閉合トラバース測量シミュレーター",
+      })
+      .isVisible()) &&
+      (await preservedTraverseDistanceInput.inputValue()) === "142.000",
+    "390px幅で閉合トラバースを開けないか、既存入力状態が失われます。",
+  );
+  assert(
+    traverseMobileMetrics.scrollWidth <= traverseMobileMetrics.clientWidth,
+    `閉合トラバースが390px幅で横方向にはみ出しています: ${JSON.stringify(
+      traverseMobileMetrics,
+    )}`,
+  );
+  if (savePhase7Screenshots) {
+    await page.screenshot({
+      path: "/tmp/survey-phase7-final-traverse-390.png",
+    });
+  }
+  await page.getByRole("button", { name: "測量の基礎" }).click();
+  assert(
+    (await page
+      .getByRole("heading", {
+        name: "座標計算と閉合トラバースへの橋渡し",
+        exact: true,
+      })
+      .isVisible()) &&
+      (await forwardStartXRange.inputValue()) === "1010" &&
+      (await comparisonModeSelector
+        .getByRole("button", { name: "逆計算", exact: true })
+        .getAttribute("aria-pressed")) === "true",
+    "390px幅で教材を往復すると第8章の操作状態が失われます。",
+  );
 
   await page.setViewportSize({ width: 1366, height: 768 });
   await page
@@ -2736,6 +3264,172 @@ try {
     "章を切り替えて戻ると第1章の問題回答状態が失われます。",
   );
 
+  let phaseSevenDomAuditCount = 0;
+
+  for (const viewport of [
+    { width: 1366, height: 768 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+
+    for (const [lessonIndex, [lessonId]] of expectedQuizCounts.entries()) {
+      await lessonNavigationButtons.nth(lessonIndex).click();
+      const audit = await collectPhase7DomAudit(page);
+
+      for (const [auditName, findings] of Object.entries(audit)) {
+        assert(
+          findings.length === 0,
+          `${lessonId}の${viewport.width}px幅DOM監査（${auditName}）で問題を検出しました: ${JSON.stringify(
+            findings,
+          )}`,
+        );
+      }
+
+      phaseSevenDomAuditCount += 1;
+    }
+  }
+
+  const clearChecklistButton = fieldChecklistSection.getByRole("button", {
+    name: "確認を外す",
+    exact: true,
+  });
+  await clearChecklistButton.focus();
+  await page.keyboard.press("Tab");
+  const firstChecklistInput = fieldChecklistSection
+    .getByRole("checkbox")
+    .first();
+  assert(
+    await firstChecklistInput.evaluate(
+      (input) => document.activeElement === input,
+    ),
+    "第9章チェックリストのTab順序が操作の流れと一致しません。",
+  );
+  assert(
+    await firstChecklistInput.evaluate((input) => {
+      const label = input.closest("label");
+
+      if (!label) {
+        return false;
+      }
+
+      const style = window.getComputedStyle(label);
+      return (
+        style.outlineStyle !== "none" &&
+        Number.parseFloat(style.outlineWidth) > 0
+      );
+    }),
+    "第9章チェックリストのキーボードフォーカスを視認できません。",
+  );
+  const firstChecklistValue = await firstChecklistInput.isChecked();
+  await page.keyboard.press("Space");
+  assert(
+    (await firstChecklistInput.isChecked()) !== firstChecklistValue,
+    "第9章チェックリストをキーボードで切り替えられません。",
+  );
+
+  const chapterOneReviewButton = chapterOneReviewItem.getByRole("button", {
+    name: "この章を開く",
+    exact: true,
+  });
+  await chapterOneReviewButton.focus();
+  assert(
+    await hasVisibleKeyboardFocus(chapterOneReviewButton),
+    "復習一覧の移動ボタンでキーボードフォーカスを視認できません。",
+  );
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(
+    (targetId) => document.activeElement?.id === targetId,
+    "basics-learning-editor-lesson-point-and-position",
+  );
+  assert(
+    await chapterOneLearningEditor.isVisible(),
+    "復習一覧からキーボードで章と学習記録へ移動できません。",
+  );
+
+  const reviewLink = page.locator(".basics-course-progress-actions > a");
+  await reviewLink.focus();
+  assert(
+    await hasVisibleKeyboardFocus(reviewLink),
+    "復習一覧リンクでキーボードフォーカスを視認できません。",
+  );
+  await page.keyboard.press("Tab");
+  assert(
+    await lessonNavigationButtons.nth(0).evaluate(
+      (button) => document.activeElement === button,
+    ),
+    "復習一覧リンクから章ナビゲーションへのTab順序が不自然です。",
+  );
+  assert(
+    await hasVisibleKeyboardFocus(lessonNavigationButtons.nth(0)),
+    "章ナビゲーションでキーボードフォーカスを視認できません。",
+  );
+  await page.keyboard.press("Tab");
+  assert(
+    await lessonNavigationButtons.nth(1).evaluate(
+      (button) => document.activeElement === button,
+    ),
+    "章ナビゲーション内をTabキーで順に移動できません。",
+  );
+  await page.keyboard.press("Enter");
+  assert(
+    await page
+      .getByRole("heading", {
+        name: "座標・標高・高さの基準",
+        exact: true,
+      })
+      .isVisible(),
+    "章ナビゲーションからEnterキーで第2章を開けません。",
+  );
+
+  const chapterTwoKeyboardRadio = page
+    .getByTestId("basics-quiz-panel")
+    .getByRole("radio")
+    .first();
+  await chapterTwoKeyboardRadio.focus();
+  assert(
+    await hasVisibleKeyboardFocus(chapterTwoKeyboardRadio),
+    "確認問題の選択肢でキーボードフォーカスを視認できません。",
+  );
+  await page.keyboard.press("Space");
+  assert(
+    await chapterTwoKeyboardRadio.isChecked(),
+    "確認問題の選択肢をキーボードで選択できません。",
+  );
+
+  if (savePhase7Screenshots) {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await lessonNavigationButtons.nth(0).click();
+    await chapterOneLearningEditor.scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: "/tmp/survey-phase7-final-learning-1366.png",
+    });
+    await basicsReviewPanel.scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: "/tmp/survey-phase7-final-review-1366.png",
+    });
+    await lessonNavigationButtons.nth(8).click();
+    await fieldRecordSection.scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: "/tmp/survey-phase7-final-field-1366.png",
+    });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await lessonNavigationButtons.nth(0).click();
+    await chapterOneLearningEditor.scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: "/tmp/survey-phase7-final-learning-390.png",
+    });
+    await basicsReviewPanel.scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: "/tmp/survey-phase7-final-review-390.png",
+    });
+    await lessonNavigationButtons.nth(8).click();
+    await fieldRecordSection.scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: "/tmp/survey-phase7-final-field-390.png",
+    });
+  }
+
   assert(
     consoleErrors.length === 0,
     `コンソールエラー: ${consoleErrors.join(" | ")}`,
@@ -2836,6 +3530,25 @@ try {
         basicsQuizFieldJudgment: true,
         basicsQuizLessonSwitchStatePreserved: true,
         basicsQuizCourseSwitchStatePreserved: true,
+        basicsLearningLessonRecord: true,
+        basicsLearningQuizAutoReview: true,
+        basicsLearningReviewPersistsAfterCorrect: true,
+        basicsLearningReviewList: true,
+        basicsLearningReviewNavigation: true,
+        basicsLearningReloadRestoration: true,
+        basicsQuizAnswerNotPersisted: true,
+        basicsTraverseStorageIsolation: true,
+        phaseSevenDomAudits: phaseSevenDomAuditCount,
+        phaseSevenDuplicateDomIds: 0,
+        phaseSevenMissingDomReferences: 0,
+        phaseSevenUnnamedInteractiveElements: 0,
+        phaseSevenInvalidNumberTokens: 0,
+        phaseSevenKeyboardLessonNavigation: true,
+        phaseSevenKeyboardChecklistOperation: true,
+        phaseSevenKeyboardReviewNavigation: true,
+        phaseSevenKeyboardQuizOperation: true,
+        phaseSevenFocusIndicatorsVisible: true,
+        phaseSevenScreenshotsSaved: savePhase7Screenshots,
         chapterOneDesktopHorizontalOverflow: false,
         chapterOneMobileHorizontalOverflow: false,
         chapterTwoDesktopHorizontalOverflow: false,
@@ -2854,6 +3567,7 @@ try {
         chapterEightMobileHorizontalOverflow: false,
         chapterNineDesktopHorizontalOverflow: false,
         chapterNineMobileHorizontalOverflow: false,
+        traverseMobileHorizontalOverflow: false,
         mobileNavigation: true,
         coordinateApiRequests,
         externalApiRequests,
@@ -2865,5 +3579,16 @@ try {
     ),
   );
 } finally {
+  if (page) {
+    try {
+      await page.evaluate((storageKeys) => {
+        for (const storageKey of storageKeys) {
+          window.localStorage.removeItem(storageKey);
+        }
+      }, learningStorageKeys);
+    } catch {
+      // ページが既に閉じている場合も、分離されたブラウザコンテキストを閉じる。
+    }
+  }
   await browser.close();
 }

@@ -2,6 +2,16 @@ import {
   evaluateBasicsQuizAnswer,
   type BasicsQuizQuestion,
 } from "../data/quizData";
+import type {
+  BasicsLearningItemId,
+  BasicsLearningRecordMap,
+  BasicsLearningRecordUpdate,
+} from "../learningRecordTypes";
+import {
+  createEmptyBasicsLearningRecord,
+  getBasicsQuizLearningItemId,
+} from "../utils/learningRecords";
+import BasicsLearningRecordEditor from "./BasicsLearningRecordEditor";
 
 export interface BasicsQuizAnswerState {
   readonly selectedOptionId: string | null;
@@ -18,16 +28,27 @@ interface BasicsQuizPanelProps {
   readonly lessonId: string;
   readonly questions: readonly BasicsQuizQuestion[];
   readonly answerStates: BasicsQuizAnswerStateMap;
+  readonly learningRecords: BasicsLearningRecordMap;
+  readonly storageError: string | null;
+  readonly onRecordLearning: (itemId: BasicsLearningItemId) => void;
   readonly onSelectOption: (questionId: string, optionId: string) => void;
   readonly onSubmitAnswer: (questionId: string) => void;
+  readonly onUpdateLearningRecord: (
+    itemId: BasicsLearningItemId,
+    update: BasicsLearningRecordUpdate,
+  ) => void;
 }
 
 function BasicsQuizPanel({
   lessonId,
   questions,
   answerStates,
+  learningRecords,
+  storageError,
+  onRecordLearning,
   onSelectOption,
   onSubmitAnswer,
+  onUpdateLearningRecord,
 }: BasicsQuizPanelProps) {
   const answeredCount = questions.filter(
     (question) => answerStates[question.id]?.isAnswered,
@@ -57,6 +78,10 @@ function BasicsQuizPanel({
       <div className="basics-quiz-question-list">
         {questions.map((question, questionIndex) => {
           const answerState = answerStates[question.id];
+          const learningItemId = getBasicsQuizLearningItemId(question.id);
+          const learningRecord =
+            learningRecords[learningItemId] ??
+            createEmptyBasicsLearningRecord();
           const evaluation =
             answerState?.isAnswered && answerState.selectedOptionId
               ? evaluateBasicsQuizAnswer(
@@ -76,6 +101,7 @@ function BasicsQuizPanel({
               data-testid={`basics-quiz-question-${question.id}`}
               id={`basics-quiz-card-${question.id}`}
               key={question.id}
+              tabIndex={-1}
             >
               <div className="basics-quiz-question-meta">
                 <span>問 {questionIndex + 1}</span>
@@ -193,6 +219,18 @@ function BasicsQuizPanel({
                   回答を選んで「回答を確認する」を押すまで、正答と理由は表示されません。
                 </p>
               )}
+
+              <BasicsLearningRecordEditor
+                heading="この問題の学習記録"
+                itemId={learningItemId}
+                onPractice={() => onRecordLearning(learningItemId)}
+                onUpdate={(update) =>
+                  onUpdateLearningRecord(learningItemId, update)
+                }
+                record={learningRecord}
+                storageError={storageError}
+                targetLabel={`問 ${questionIndex + 1}・${question.questionType}`}
+              />
             </article>
           );
         })}

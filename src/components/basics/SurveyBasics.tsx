@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   availableBasicsLessons,
   basicsLessons,
@@ -9,32 +9,91 @@ import {
   evaluateBasicsQuizAnswer,
   getBasicsQuizQuestionsForLesson,
 } from "./data/quizData";
+import type {
+  BasicsLearningItemId,
+  BasicsLearningRecordMap,
+  BasicsLearningRecordUpdate,
+} from "./learningRecordTypes";
+import BasicsLearningRecordEditor from "./ui/BasicsLearningRecordEditor";
 import BasicsQuizPanel, {
   type BasicsQuizAnswerStateMap,
 } from "./ui/BasicsQuizPanel";
+import BasicsReviewPanel from "./ui/BasicsReviewPanel";
 import LessonFooter from "./ui/LessonFooter";
 import LessonHeader from "./ui/LessonHeader";
 import LessonNavigation from "./ui/LessonNavigation";
 import type { BasicsLessonComponentProps } from "./types";
+import {
+  applyBasicsQuizResultToLearningRecords,
+  basicsLearningItems,
+  createBasicsLearningRecords,
+  createEmptyBasicsLearningRecord,
+  getBasicsLearningItem,
+  getBasicsLessonLearningItemId,
+  getUnderstoodBasicsLessonIds,
+  loadBasicsLearningRecords,
+  recordBasicsLearningPractice,
+  saveBasicsLearningRecords,
+  updateBasicsLearningRecord,
+} from "./utils/learningRecords";
+
+function createInitialBasicsLearningState(): {
+  readonly records: BasicsLearningRecordMap;
+  readonly error: string | null;
+} {
+  if (typeof window === "undefined") {
+    return {
+      records: createBasicsLearningRecords(),
+      error: null,
+    };
+  }
+
+  try {
+    return loadBasicsLearningRecords(window.localStorage);
+  } catch {
+    return {
+      records: createBasicsLearningRecords(),
+      error:
+        "ブラウザの保存機能を利用できないため、基礎教材の学習記録を読み込めませんでした。この画面を開いている間は操作を続けられます。",
+    };
+  }
+}
 
 function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
   const [activeLessonId, setActiveLessonId] =
     useState<AvailableBasicsLessonId>(initialBasicsLessonId);
-  const [completedLessonIds, setCompletedLessonIds] = useState<
-    readonly AvailableBasicsLessonId[]
-  >([]);
   const [quizAnswerStates, setQuizAnswerStates] =
     useState<BasicsQuizAnswerStateMap>({});
+  const [initialLearningState] = useState(
+    createInitialBasicsLearningState,
+  );
+  const [learningRecords, setLearningRecords] =
+    useState<BasicsLearningRecordMap>(initialLearningState.records);
+  const [learningStorageError, setLearningStorageError] = useState<
+    string | null
+  >(initialLearningState.error);
+  const [pendingReviewItemId, setPendingReviewItemId] =
+    useState<BasicsLearningItemId | null>(null);
   const activeLessonData =
     availableBasicsLessons.find(
       (lesson) => lesson.id === activeLessonId,
     ) ?? basicsLessons[0];
   const ActiveLessonComponent = activeLessonData.component;
+  const activeLessonLearningItemId = getBasicsLessonLearningItemId(
+    activeLessonData.id,
+  );
+  const activeLessonLearningRecord =
+    learningRecords[activeLessonLearningItemId] ??
+    createEmptyBasicsLearningRecord();
   const activeQuizQuestions = getBasicsQuizQuestionsForLesson(
     activeLessonData.id,
   );
+  const completedLessonIds = getUnderstoodBasicsLessonIds(learningRecords);
   const progress =
     (completedLessonIds.length / availableBasicsLessons.length) * 100;
+  const reviewCount = basicsLearningItems.filter(
+    (item) => learningRecords[item.id]?.needsReview,
+  ).length;
   const nextLesson = activeLessonData.nextLessonId
     ? availableBasicsLessons.find(
         (lesson) => lesson.id === activeLessonData.nextLessonId,
@@ -42,11 +101,51 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
     : undefined;
   const isLastLesson = nextLesson === undefined;
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      setLearningStorageError(
+        saveBasicsLearningRecords(window.localStorage, learningRecords),
+      );
+    } catch {
+      setLearningStorageError(
+        "ブラウザの保存機能を利用できないため、基礎教材の学習記録を保存できませんでした。この画面を開いている間は操作を続けられます。",
+      );
+    }
+  }, [learningRecords]);
+
+  useEffect(() => {
+    if (pendingReviewItemId === null) {
+      return;
+    }
+
+    const item = getBasicsLearningItem(pendingReviewItemId);
+
+    if (!item || item.lessonId !== activeLessonId) {
+      return;
+    }
+
+    const target = document.getElementById(item.targetDomId);
+
+    if (!target) {
+      return;
+    }
+
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    setPendingReviewItemId(null);
+  }, [activeLessonId, pendingReviewItemId]);
+
   const completeLesson = (): void => {
-    setCompletedLessonIds((current) =>
-      current.includes(activeLessonId)
-        ? current
-        : [...current, activeLessonId],
+    setLearningRecords((current) =>
+      updateBasicsLearningRecord(
+        current,
+        activeLessonLearningItemId,
+        { isUnderstood: true },
+      ),
     );
 
     setActiveLessonId(nextLesson?.id ?? initialBasicsLessonId);
@@ -68,22 +167,22 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
   };
 
   const submitQuizAnswer = (questionId: string): void => {
+    const answerState = quizAnswerStates[questionId];
+
+    if (!answerState?.selectedOptionId) {
+      return;
+    }
+
+    const evaluation = evaluateBasicsQuizAnswer(
+      questionId,
+      answerState.selectedOptionId,
+    );
+
+    if (!evaluation) {
+      return;
+    }
+
     setQuizAnswerStates((current) => {
-      const answerState = current[questionId];
-
-      if (!answerState?.selectedOptionId) {
-        return current;
-      }
-
-      const evaluation = evaluateBasicsQuizAnswer(
-        questionId,
-        answerState.selectedOptionId,
-      );
-
-      if (!evaluation) {
-        return current;
-      }
-
       return {
         ...current,
         [questionId]: {
@@ -94,6 +193,42 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
         },
       };
     });
+
+    setLearningRecords((current) =>
+      applyBasicsQuizResultToLearningRecords(
+        current,
+        questionId,
+        evaluation.isCorrect,
+      ),
+    );
+  };
+
+  const updateLearningRecord = (
+    itemId: BasicsLearningItemId,
+    update: BasicsLearningRecordUpdate,
+  ): void => {
+    setLearningRecords((current) =>
+      updateBasicsLearningRecord(current, itemId, update),
+    );
+  };
+
+  const recordLearningPractice = (
+    itemId: BasicsLearningItemId,
+  ): void => {
+    setLearningRecords((current) =>
+      recordBasicsLearningPractice(current, itemId),
+    );
+  };
+
+  const openReviewItem = (itemId: string): void => {
+    const item = getBasicsLearningItem(itemId);
+
+    if (!item) {
+      return;
+    }
+
+    setActiveLessonId(item.lessonId);
+    setPendingReviewItemId(item.id);
   };
 
   return (
@@ -111,20 +246,20 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
           </h1>
           <p>
             専門用語を暗記する前に、図を動かして「何を測っているのか」を
-            つかみましょう。4つのミニラボで、測量の共通言語を学びます。
+            つかみましょう。全9章の図とミニ操作で、測量の共通言語を学びます。
           </p>
           <div className="basics-hero-meta" aria-label="教材の概要">
             <span>
-              <strong>11</strong>
-              基本キーワード
+              <strong>9</strong>
+              章
             </span>
             <span>
-              <strong>4</strong>
-              ミニラボ
+              <strong>15</strong>
+              確認問題
             </span>
             <span>
-              <strong>約15</strong>
-              分
+              <strong>24</strong>
+              学習記録
             </span>
           </div>
         </div>
@@ -216,8 +351,19 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
         >
           <span style={{ width: `${progress}%` }} />
         </div>
-        <p>好きな章から始められます</p>
+        <div className="basics-course-progress-actions">
+          <span>好きな章から始められます</span>
+          <a href="#basics-learning-review-panel">
+            復習一覧（{reviewCount}件）
+          </a>
+        </div>
       </section>
+
+      {learningStorageError === null ? null : (
+        <p className="basics-learning-storage-error" role="alert">
+          {learningStorageError}
+        </p>
+      )}
 
       <LessonNavigation
         activeLessonId={activeLessonId}
@@ -236,12 +382,30 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
           <ActiveLessonComponent onOpenTraverse={onOpenTraverse} />
         </div>
 
+        <BasicsLearningRecordEditor
+          heading="この章の学習記録"
+          itemId={activeLessonLearningItemId}
+          onPractice={() =>
+            recordLearningPractice(activeLessonLearningItemId)
+          }
+          onUpdate={(update) =>
+            updateLearningRecord(activeLessonLearningItemId, update)
+          }
+          record={activeLessonLearningRecord}
+          storageError={learningStorageError}
+          targetLabel={`第${Number(activeLessonData.number)}章「${activeLessonData.title}」`}
+        />
+
         <BasicsQuizPanel
           answerStates={quizAnswerStates}
+          learningRecords={learningRecords}
           lessonId={activeLessonData.id}
+          onRecordLearning={recordLearningPractice}
           onSelectOption={selectQuizOption}
           onSubmitAnswer={submitQuizAnswer}
+          onUpdateLearningRecord={updateLearningRecord}
           questions={activeQuizQuestions}
+          storageError={learningStorageError}
         />
 
         <LessonFooter
@@ -249,6 +413,11 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
           onCompleteLesson={completeLesson}
         />
       </section>
+
+      <BasicsReviewPanel
+        onOpenItem={openReviewItem}
+        records={learningRecords}
+      />
 
       <p className="basics-course-note">
         本教材の数値と図は学習用の例です。実務の成果作成や精度判定には使用しないでください。

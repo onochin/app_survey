@@ -193,14 +193,17 @@ try {
   );
 
   await page.getByRole("tab", { name: "計算簿", exact: true }).click();
-  await page.getByLabel("理解できた").check();
-  await page.getByLabel("あとで復習").check();
-  await page
+  const traverseLearningRecordEditor = page.locator(
+    ".learning-record-card",
+  );
+  await traverseLearningRecordEditor.getByLabel("理解できた").check();
+  await traverseLearningRecordEditor.getByLabel("あとで復習").check();
+  await traverseLearningRecordEditor
     .getByPlaceholder(
       "分からなかった点、覚え方、次回確認することを入力",
     )
     .fill("補正後の成分を座標へ加算する順番を復習する");
-  await page
+  await traverseLearningRecordEditor
     .getByRole("button", { name: "今回の学習を記録" })
     .click();
 
