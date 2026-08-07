@@ -4064,3 +4064,27 @@ workflowの成功後、
 GitHub Actions上の実デプロイはpush前のため未実行である。GitHub Pagesと
 localhostは別オリジンなので、localhostのlocalStorage学習記録は公開URLへ
 引き継がれない。次回開始地点は「ユーザーpush後のActions結果と公開URL確認」である。
+
+### 33.5 GitHub Pages公開確認と今後の更新手順（2026-08-07）
+
+ユーザーがPages設定を反映して`main`へpushし、次の公開URLでアプリが
+正常に表示されることを確認した。
+
+```text
+https://onochin.github.io/app_survey/
+```
+
+33.4に記載したPages初回公開の残作業は完了した。今後のリポジトリ更新は
+通常どおり、対象ファイルを確認してstage、commit、`main`へpushする。
+`main`へのpushを契機に`.github/workflows/deploy.yml`が自動実行され、
+Pages用ビルドと公開更新を行う。
+
+- `dist/`をコミットしない
+- `gh-pages`ブランチを手動操作しない
+- 別ブランチへのpushだけでは公開更新されず、`main`への反映時に更新される
+- 公開反映には数分かかる場合がある
+- 失敗時はGitHubの`Actions`タブでworkflow結果を確認する
+- localhostとGitHub PagesのlocalStorageは引き続き別領域である
+
+GitHub Pages公開確認後の次回開始地点は、引き続き
+「GNSS第1章のユーザー確認」である。ユーザー確認前に第2章以降を先行実装しない。
