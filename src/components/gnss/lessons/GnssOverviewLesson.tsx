@@ -20,8 +20,10 @@ import type {
 } from "../types";
 
 interface GnssOverviewLessonProps {
+  readonly completedLessonCount: number;
   readonly isUnderstood: boolean;
   readonly onToggleUnderstood: () => void;
+  readonly totalLessonCount: number;
 }
 
 interface GnssQuizAnswerState {
@@ -182,8 +184,10 @@ function GnssSiteDiagram({ methodId }: { readonly methodId: GnssMethodId }) {
 }
 
 function GnssOverviewLesson({
+  completedLessonCount,
   isUnderstood,
   onToggleUnderstood,
+  totalLessonCount,
 }: GnssOverviewLessonProps) {
   const [selectedWorkflowStepId, setSelectedWorkflowStepId] = useState<string>(
     gnssWorkflowSteps[0].id,
@@ -217,7 +221,9 @@ function GnssOverviewLesson({
   const isFix = positioningState.id === "fix";
   const areQualityChecksComplete =
     checkedQualityIds.length === gnssQualityChecks.length;
-  const progressPercent = isUnderstood ? 100 : 0;
+  const progressPercent = Math.round(
+    (completedLessonCount / totalLessonCount) * 100,
+  );
 
   const setPositioningStateByIndex = (nextIndex: number): void => {
     const nextState = gnssPositioningStates[nextIndex];
@@ -285,7 +291,9 @@ function GnssOverviewLesson({
           <div className="gnss-chapter-progress">
             <div>
               <span>利用可能な章の進捗</span>
-              <strong>{isUnderstood ? "1 / 1 章" : "0 / 1 章"}</strong>
+              <strong>
+                {completedLessonCount} / {totalLessonCount} 章
+              </strong>
             </div>
             <div
               aria-label={`GNSS教材の進捗 ${progressPercent}%`}

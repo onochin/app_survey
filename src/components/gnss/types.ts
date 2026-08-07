@@ -1,8 +1,8 @@
-export type GnssLessonId = "gnss-overview";
+export type GnssLessonId = "gnss-overview" | "gnss-observations";
 
 export interface GnssLessonMetadata {
   readonly id: GnssLessonId;
-  readonly number: 1;
+  readonly number: 1 | 2;
   readonly title: string;
   readonly description: string;
   readonly learningGoal: string;
@@ -67,7 +67,9 @@ export interface GnssQualityCheck {
 export type GnssQuizQuestionType =
   | "仕組み理解"
   | "品質管理"
-  | "方式選択";
+  | "方式選択"
+  | "用語整理"
+  | "総合問題";
 
 export interface GnssQuizOption {
   readonly id: string;
@@ -107,4 +109,55 @@ export interface GnssPointDifference {
   readonly north: number;
   readonly east: number;
   readonly height: number;
+}
+
+export type GnssObservationWorldId = "ideal" | "real";
+
+export type GnssObservationKindId = "code" | "carrier";
+
+export type GnssFrequencyId = "l1" | "l2" | "l5";
+
+export type GnssFrequencySelectionId =
+  | "l1-only"
+  | "l1-l2"
+  | "l1-l5"
+  | "l1-l2-l5";
+
+export interface GnssFrequencyBand {
+  readonly id: GnssFrequencyId;
+  readonly label: "L1" | "L2" | "L5";
+  readonly megahertz: number;
+}
+
+export interface GnssFrequencySelection {
+  readonly id: GnssFrequencySelectionId;
+  readonly label: string;
+  readonly frequencyIds: readonly GnssFrequencyId[];
+}
+
+export type GnssSystemId = "gps" | "qzss" | "galileo" | "beidou";
+
+export type GnssObservationEnvironmentId = "open" | "mountain-forest";
+
+export type GnssSatelliteGeometryId = "biased" | "distributed";
+
+export interface GnssSystemDefinition {
+  readonly id: GnssSystemId;
+  readonly label: string;
+  readonly shortLabel: string;
+  readonly openSatelliteCount: number;
+  readonly obstructedSatelliteCount: number;
+  readonly note: string;
+}
+
+export interface GnssSystemSelectionSummary {
+  readonly systemCount: number;
+  readonly satelliteCount: number;
+  readonly mode: "GNSS未選択" | "single GNSS" | "multi GNSS";
+}
+
+export interface GnssCarrierPhaseExample {
+  readonly integerWavelengths: number;
+  readonly fractionalWavelengths: number;
+  readonly totalWavelengths: number;
 }

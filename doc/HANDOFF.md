@@ -4246,3 +4246,202 @@ GNSS目視用画像はプロジェクト外の`/tmp`へ保存した。
 - 第2章以降は先行実装しない
 
 次回開始地点は「GNSS第1章のユーザー実機再確認」である。
+
+## 35. 依頼03 GNSS測量教材 Phase 2完了（2026-08-08）
+
+### 35.1 完了範囲と教材メタデータ
+
+依頼03 GNSS測量教材 Phase 2として、第2章だけを実装した。
+
+- 安定章ID：`gnss-observations`
+- 章番号：2
+- タイトル：`GNSSは何を観測しているのか`
+- 到達目標：GNSS受信機が衛星から座標そのものを受け取るのではなく、電波を
+  観測して衛星までの距離に関係する情報を求め、その観測から位置を計算している
+  ことを説明できる
+- 用語：コード、擬似距離、搬送波、搬送波位相、波長、周波数、L1 / L2 / L5、
+  複数周波数、複数GNSS、整数波長数、整数値バイアス、整数アンビギュイティ
+
+GNSS教材レジストリは、第1章`gnss-overview`と第2章`gnss-observations`の
+2章だけを利用可能にした。第3章以降は登録していない。章ナビゲーションと理解済み
+進捗を`0 / 2章`、`1 / 2章`、`2 / 2章`として表示する。
+
+第1章の文章、カード構成、用途説明、9工程、情報フロー、3方式、測位状態、
+品質管理、固定成果、3問の問題内容と回答後UIは変更していない。第1章側の変更は、
+親から受け取った全2章の進捗を表示するための必要最小限に限定した。
+
+### 35.2 第2章の9カードと固定教材値
+
+第2章は次の9カードで構成した。
+
+1. 章見出し、到達目標、用語、注意事項、要点、7段階の概念フロー
+2. `衛星から何が届く？`：コード、搬送波、軌道・時刻等に関係する情報と受信機
+3. `電波が届くまでの時間から距離を考える`：65～85 msの到達時間操作
+4. `なぜ「擬似距離」なのか？`：理想・現実と受信機時計0 / 1 μsの比較
+5. `搬送波位相とは？`：0～19 cmの移動とL1約19 cmの位相表示
+6. `なぜ整数波長数が分からない？`：10～13波長＋0.35波長とFLOAT / FIX
+7. `擬似距離と搬送波位相を比べる`：コード・搬送波切替と相対解析への接続
+8. `なぜ複数周波数を使う？`：L1、L1＋L2、L1＋L5、L1＋L2＋L5と電離層
+9. `なぜ複数GNSSを使う？`：GPS、QZSS、Galileo、BeiDou、環境、衛星配置
+
+固定教材値として、電波速度300,000 km/s、初期到達時間70 ms、幾何学的距離
+21,000 km、受信機時計ずれ1 μs＝約300 m、L1教材波長約19 cm、整数候補
+10 / 11 / 12 / 13、小数位相0.35を使用した。補助周波数値はL1 1575.42 MHz、
+L2 1227.60 MHz、L5 1176.45 MHzである。
+
+カード8では同一周波数でコード観測と搬送波観測の両方を扱い、L1＝擬似距離、
+L2＝搬送波位相という誤解を避ける構成にした。CLASのL6系信号は補足説明だけとし、
+追加方式や外部通信は実装していない。カード9の衛星数と天空図は固定教材例で、
+DOPは衛星配置との関係を定性的に説明する範囲にした。
+
+### 35.3 教材データ、純粋関数、確認問題
+
+`src/components/gnss/data/gnssObservations.ts`へ次を追加した。
+
+- 衛星から位置計算までの7段階
+- 擬似距離へ影響する7要因
+- コード観測と搬送波観測の比較表
+- L1 / L2 / L5と4種類の周波数組合せ
+- 整数波長候補と小数位相0.35
+- GPS / QZSS / Galileo / BeiDouの固定教材定義
+- 開けた場所と山地・森林における固定利用候補数
+- 第2章確認問題7問と全誤答固有理由
+
+追加したUI非依存純粋関数:
+
+- `calculateSignalDistanceKm`
+- `calculateClockOffsetDistanceMeters`
+- `calculateWavelengthRatio`
+- `createCarrierPhaseExample`
+- `getGnssFrequencySelection`
+- `countGnssFrequencies`
+- `getGnssFrequencyBand`
+- `getGnssSystemDefinition`
+- `summarizeGnssSystemSelection`
+- `getGnssObservationsQuizQuestion`
+- `getGnssObservationsQuizOptionLetter`
+- `evaluateGnssObservationsQuizAnswer`
+- `isGnssSystemId`
+- `isGnssFrequencyId`
+
+確認問題の安定IDは次の7件で、正答文字はいずれも問題データから導出したBである。
+
+- `gnss-observations-q01-receiver-observation`
+- `gnss-observations-q02-pseudorange`
+- `gnss-observations-q03-carrier-phase`
+- `gnss-observations-q04-integer-ambiguity`
+- `gnss-observations-q05-multi-frequency`
+- `gnss-observations-q06-multi-gnss`
+- `gnss-observations-q07-signal-combination`
+
+回答後UIは第1章の実機確認後仕様と同じく、正解・不正解、`正解：B`、誤答時だけ
+選択肢固有理由、正答の解説、現場確認事項の順とした。正答時は誤答用説明を表示せず、
+同じ説明を重複させない。
+
+### 35.4 状態管理、作成・変更ファイル、維持事項
+
+`SurveyGnss.tsx`で利用中の章IDと2章分の理解済み状態を管理する。第1章と第2章は
+GNSS教材内でも常時マウントし、非表示パネルへ切り替えるため、章を往復しても各章の
+操作・問題回答を保持する。既存`App.tsx`の全教材常時マウント方式は変更しておらず、
+GNSS → 測量の基礎 → 閉合トラバース → GNSSでも状態を保持する。ページ再読込み後は
+初期化する。GNSS学習記録、復習一覧、保存キー、localStorage保存は追加していない。
+
+作成ファイル:
+
+- `src/components/gnss/data/gnssObservations.ts`
+- `src/components/gnss/lessons/GnssObservationsLesson.tsx`
+- `src/tests/gnssObservations.test.ts`
+
+変更ファイル:
+
+- `src/components/gnss/types.ts`
+- `src/components/gnss/gnssCourse.ts`
+- `src/components/gnss/SurveyGnss.tsx`
+- `src/components/gnss/lessons/GnssOverviewLesson.tsx`
+- `src/styles.css`
+- `scripts/gnss-smoke.mjs`
+- `README.md`
+- `doc/HANDOFF.md`
+
+`src/styles.css`の追加は`.gnss-*`名前空間内に限定した。カード8・9の大きな図表は
+カード内で扱い、390pxでは主要レイアウトを1列化した。接頭辞なしのグローバルCSS、
+新規依存、外部API、リアルタイム衛星データ、RTK詳細解析、第3章UIは追加していない。
+
+次を維持した。
+
+- 測量の基礎全9章、15問、24項目の学習記録、復習一覧、進捗、保存形式
+- 閉合トラバースの計算、操作、確認問題、学習記録、保存形式
+- 基礎教材保存キー`survey-learning-lab:basics-learning-records:v1`
+- 閉合トラバース保存キー`survey-learning-lab:traverse-learning-records:v1`
+- 第1章`gnss-overview`の表示、文章、操作、3問、React状態保持
+- `App.tsx`の全教材常時マウントと教材切替時の状態保持
+- Playwrightのhermeticブラウザ構成と既存スクリーンショット
+- GitHub Pages用Vite baseと`.github/workflows/deploy.yml`
+
+### 35.5 検証結果
+
+- `npm run typecheck -- --pretty false`：成功、エラー0件
+- 単体テスト：13ファイル、160テスト成功、失敗0件
+- GNSS対象テスト：2ファイル、26テスト成功
+- 第2章テスト：1ファイル、15テスト成功
+- 第1章既存テスト：1ファイル、11テスト成功
+- Vite通常本番ビルド：成功、79 modules transformed
+- HTML：0.59 kB（gzip 0.40 kB）
+- Pages用Vite本番ビルド：成功、79 modules transformed
+- Pages用HTML：0.61 kB（gzip 0.41 kB）
+- CSS：257.60 kB（gzip 39.58 kB）
+- JS：679.81 kB（gzip 185.10 kB）
+- 500 kBを超えたJSチャンク警告：あり。ビルドは成功
+- Pages用HTMLのscript・stylesheet参照：`/app_survey/assets/`配下
+- Pages用previewの`/app_survey/`でGNSS Playwrightスモーク：成功
+- `node --check scripts/basics-smoke.mjs`：成功
+- `node --check scripts/phase4-smoke.mjs`：成功
+- `node --check scripts/gnss-smoke.mjs`：成功
+- GNSS Playwrightスモーク：通常URL・Pages previewとも成功
+- 第1章の9工程、3方式、3状態、8品質確認、3問の既存操作：成功
+- 第2章9カード、70→85 ms、1 μs、位相、整数波長、コード・搬送波、
+  1 / 2 / 3周波、複数GNSSの各操作：成功
+- 第2章7問の回答、誤答固有理由、正答理由、解説重複なし：成功
+- 第1章・第2章往復と他教材往復時のReact状態保持：成功
+- ページ再読込み後の第2章初期化：成功
+- 第1章・第2章のキーボード操作と可視フォーカス：成功
+- GNSS操作前後と再読込み後のlocalStorageキー不変、新しいGNSSキーなし：成功
+- 基礎教材Playwright回帰スモーク：成功
+- 全9章、15問、24項目、保存・再読込み、復習一覧、進捗、DOM監査18件：成功
+- 閉合トラバースPhase 4回帰スモーク：成功
+- 交差辺の計算停止、閉合差、確認問題、学習記録保存・再読込み：成功
+- 1366px：`clientWidth` 1366、`scrollWidth` 1366、横方向はみ出しなし
+- 390px：`clientWidth` 390、`scrollWidth` 390、横方向はみ出しなし
+- 1366px・390px画像を目視し、全9カード、特にカード8・9の図・比較表、7問に
+  文字重なり、文字切れ、ページ全体の横はみ出し、操作不能なし
+- コンソールエラー：0件
+- ページ例外：0件
+- 実行時の外部API通信：0件
+- `git diff --check`：成功
+- `git diff -- package.json package-lock.json`：差分なし
+- `package.json`、`package-lock.json`、既存依存関係：変更なし
+- `git diff -- vite.config.ts .github/workflows/deploy.yml`：差分なし
+- GitHub Pages公開構成：変更なし
+- 既存スクリーンショット：差分・上書きなし
+
+GNSS目視用画像はプロジェクト外の`/tmp`へ保存した。
+
+- `/tmp/gnss-phase2-1366.png`
+- `/tmp/gnss-phase2-390.png`
+
+### 35.6 残る注意点と次回開始地点
+
+- GNSS第1章・第2章の操作、問題回答、理解済み状態はReact状態だけであり、
+  ページ再読込み後は初期化する
+- GNSS教材の学習記録、復習一覧、localStorage保存キーは未実装
+- 衛星数、天空図、距離、波長、周波数値は概念理解用の固定教材例であり、
+  リアルタイム値や実務成果には使用しない
+- JSチャンクは500 kBを超える警告が出るが、警告だけを理由としたコード分割、
+  Vite警告値変更、依存変更は行っていない
+- 第3章「GNSSの座標と高さ」以降は先行実装していない
+- 正式指示文`prompt/依頼03_GNSS測量教材Phase2_第2章の実装.md`は未追跡のまま
+  内容を変更していない
+- 最終Git状態には、過去の依頼03文書2件について内容同一の旧名削除・別名未追跡が
+  ある。今回の実装対象外のため、復元・削除・内容変更を行っていない
+
+次回開始地点は「GNSS第2章のユーザー実機確認」である。

@@ -87,6 +87,12 @@ try {
     (await page.locator('[data-lesson-id="gnss-overview"]').count()) === 1,
     "安定した章ID gnss-overview が画面へ反映されていません。",
   );
+  const overviewLesson = page.locator('[data-lesson-id="gnss-overview"]');
+  const lessonNavigation = page.locator(".gnss-lesson-navigation");
+  assert(
+    (await lessonNavigation.getByRole("button").count()) === 2,
+    "GNSS教材の利用可能な章が2章ではありません。",
+  );
 
   const storageKeysBeforeGnssOperations = await page.evaluate(() =>
     Object.keys(window.localStorage).sort(),
@@ -98,17 +104,17 @@ try {
     "GNSS教材用localStorageキーが追加されています。",
   );
 
-  const understoodButton = page.getByRole("button", {
+  const understoodButton = overviewLesson.getByRole("button", {
     name: "この章を理解できた",
   });
   assert(
-    await page.getByText("0 / 1 章", { exact: true }).isVisible(),
-    "GNSS第1章の初期進捗が0 / 1章ではありません。",
+    await overviewLesson.getByText("0 / 2 章", { exact: true }).isVisible(),
+    "GNSS教材の初期進捗が0 / 2章ではありません。",
   );
   await understoodButton.click();
   assert(
-    await page.getByText("1 / 1 章", { exact: true }).isVisible(),
-    "GNSS第1章の理解済み進捗が1 / 1章になりません。",
+    await overviewLesson.getByText("1 / 2 章", { exact: true }).isVisible(),
+    "GNSS第1章の理解済み進捗が1 / 2章になりません。",
   );
 
   const representativeCaseCard = page.getByTestId("gnss-purpose-card");
@@ -303,6 +309,321 @@ try {
     "問3の正解文字と解説が表示されません。",
   );
 
+  const chapterTwoNavigationButton = lessonNavigation.getByRole("button", {
+    name: /第2章.*GNSSは何を観測しているのか/,
+  });
+  await chapterTwoNavigationButton.click();
+  const observationsLesson = page.locator(
+    '[data-lesson-id="gnss-observations"]',
+  );
+  assert(
+    (await observationsLesson.isVisible()) &&
+      (await observationsLesson
+        .getByRole("heading", {
+          name: "GNSSは何を観測しているのか",
+          exact: true,
+        })
+        .isVisible()) &&
+      (await observationsLesson
+        .getByText(/衛星から自分の座標そのものを受け取っているわけではない/)
+        .isVisible()),
+    "GNSS第2章または最重要メッセージを表示できません。",
+  );
+  assert(
+    (await observationsLesson.locator(".gnss-card").count()) === 9,
+    "GNSS第2章が9カードではありません。",
+  );
+
+  const observationsUnderstoodButton = observationsLesson.getByRole("button", {
+    name: "この章を理解できた",
+  });
+  await observationsUnderstoodButton.click();
+  assert(
+    await observationsLesson.getByText("2 / 2 章", { exact: true }).isVisible(),
+    "GNSS第2章の理解済み操作で進捗が2 / 2章になりません。",
+  );
+
+  const travelTimeCard = page.getByTestId("gnss-observations-travel-time-card");
+  const travelTimeSlider = travelTimeCard.getByTestId(
+    "gnss-travel-time-slider",
+  );
+  assert(
+    (await travelTimeSlider.inputValue()) === "70" &&
+      (await travelTimeCard.getByText(/≈ 21,000 km/).isVisible()) &&
+      (await travelTimeCard.getByText(/1 msの違い ≈ 300 km/).isVisible()) &&
+      (await travelTimeCard.getByText(/1 μs.*約300 m/).isVisible()),
+    "70ms、1ms、1μsの初期換算表示が正しくありません。",
+  );
+  await travelTimeSlider.fill("85");
+  assert(
+    await travelTimeCard.getByText(/≈ 25,500 km/).isVisible(),
+    "到達時間85msが約25,500kmへ反映されません。",
+  );
+
+  const pseudorangeCard = page.getByTestId(
+    "gnss-observations-pseudorange-card",
+  );
+  await pseudorangeCard
+    .getByRole("button", { name: "現実のGNSS", exact: true })
+    .click();
+  await pseudorangeCard
+    .getByRole("button", { name: "1 μs", exact: true })
+    .click();
+  assert(
+    (await pseudorangeCard
+      .getByText("21,000.000 km", { exact: true })
+      .isVisible()) &&
+      (await pseudorangeCard.getByText(/約 \+0\.300 km/).isVisible()) &&
+      (await pseudorangeCard
+        .getByText("約21,000.300 km", { exact: true })
+        .isVisible()) &&
+      (await pseudorangeCard
+        .getByText(/本当の距離そのものが300m伸びたわけではない/)
+        .isVisible()) &&
+      (await pseudorangeCard
+        .getByText(/少なくとも4機の衛星を利用/)
+        .isVisible()),
+    "現実のGNSSと1μs時計ずれの擬似距離表示が正しくありません。",
+  );
+
+  const carrierCard = page.getByTestId("gnss-observations-carrier-card");
+  const carrierSlider = carrierCard.getByTestId(
+    "gnss-carrier-movement-slider",
+  );
+  await carrierSlider.fill("9.5");
+  assert(
+    (await carrierCard.getByText("9.5 cm", { exact: true }).isVisible()) &&
+      (await carrierCard.getByText("0.50波長", { exact: true }).isVisible()) &&
+      (await carrierCard.getByText(/1波長 ≈ 19 cm/).isVisible()),
+    "搬送波位相の9.5cm・0.50波長表示が連動しません。",
+  );
+
+  const ambiguityCard = page.getByTestId(
+    "gnss-observations-ambiguity-card",
+  );
+  await ambiguityCard
+    .getByRole("button", { name: "13 + 0.35波長", exact: true })
+    .click();
+  assert(
+    (await ambiguityCard
+      .getByTestId("gnss-fractional-phase-13")
+      .getByText("0.35波長", { exact: true })
+      .isVisible()) &&
+      (await ambiguityCard.getByText(/？波長 \+ 0\.35波長/).isVisible()),
+    "整数部分を変えたときに小数位相0.35が維持されません。",
+  );
+  await ambiguityCard
+    .getByRole("button", {
+      name: "整数部分を12波長として確定する",
+      exact: true,
+    })
+    .click();
+  assert(
+    (await ambiguityCard
+      .getByText("12波長 + 0.35波長", { exact: true })
+      .isVisible()) &&
+      (await ambiguityCard.getByText("FIX", { exact: true }).isVisible()) &&
+      (await ambiguityCard
+        .getByText(/ボタン1つで単純に決まるわけではありません/)
+        .isVisible()),
+    "整数波長数の模式確定とFLOAT・FIXへの接続が表示されません。",
+  );
+
+  const comparisonCard = page.getByTestId(
+    "gnss-observations-comparison-card",
+  );
+  await comparisonCard
+    .getByRole("button", { name: "搬送波位相", exact: true })
+    .click();
+  await comparisonCard
+    .getByTestId("gnss-comparison-movement-slider")
+    .fill("5");
+  assert(
+    (await comparisonCard.getByText(/約0\.26波長の変化/).isVisible()) &&
+      (await comparisonCard.getByText(/擬似距離が不要.*ではありません/).isVisible()) &&
+      (await comparisonCard.getByText("FLOAT → FIX", { exact: true }).isVisible()),
+    "擬似距離・搬送波位相の比較操作または相対解析への接続が表示されません。",
+  );
+
+  const frequencyCard = page.getByTestId(
+    "gnss-observations-frequency-card",
+  );
+  const frequencySelector = frequencyCard.getByTestId("gnss-frequency-selector");
+  const l1OnlyFrequencyButton = frequencySelector.getByRole("button", {
+    name: "L1のみ",
+    exact: true,
+  });
+  const l1L2FrequencyButton = frequencySelector.getByRole("button", {
+    name: "L1 + L2",
+    exact: true,
+  });
+  await l1OnlyFrequencyButton.focus();
+  await page.keyboard.press("Tab");
+  assert(
+    await l1L2FrequencyButton.evaluate(
+      (element) => element === document.activeElement,
+    ),
+    "第2章の周波数ボタン間をTabキーで移動できません。",
+  );
+  const observationsVisibleFocus = await hasVisibleKeyboardFocus(
+    l1L2FrequencyButton,
+  );
+  await page.keyboard.press("Enter");
+  const observationsKeyboardOperation =
+    (await l1L2FrequencyButton.getAttribute("aria-pressed")) === "true";
+  assert(
+    observationsVisibleFocus && observationsKeyboardOperation,
+    "第2章の周波数ボタンを可視フォーカス付きでキーボード操作できません。",
+  );
+  const frequencyCases = [
+    ["L1のみ", "L1のみ → 1周波"],
+    ["L1 + L2", "L1 + L2 → 2周波"],
+    ["L1 + L5", "L1 + L5 → 2周波"],
+    ["L1 + L2 + L5", "L1 + L2 + L5 → 3周波"],
+  ];
+  for (const [buttonName, expectedSummary] of frequencyCases) {
+    await frequencySelector
+      .getByRole("button", { name: buttonName, exact: true })
+      .click();
+    assert(
+      await frequencyCard.getByText(expectedSummary, { exact: true }).isVisible(),
+      `${buttonName}の周波数数が正しく表示されません。`,
+    );
+  }
+  await frequencyCard
+    .getByRole("button", { name: "影響あり", exact: true })
+    .click();
+  assert(
+    (await frequencyCard
+      .getByText(/周波数ごとの差を利用し、電離層の影響を推定・低減/)
+      .isVisible()) &&
+      (await frequencyCard
+        .getByText(/L1＝擬似距離、L2＝搬送波位相/)
+        .isVisible()) &&
+      (await frequencyCard.getByText(/CLASではL6系の信号/).isVisible()),
+    "複数周波数、電離層、コード・搬送波、CLAS L6の説明が不足しています。",
+  );
+
+  const multiGnssCard = page.getByTestId(
+    "gnss-observations-multi-gnss-card",
+  );
+  for (const systemLabel of ["QZSS", "Galileo", "BeiDou"]) {
+    await multiGnssCard
+      .getByLabel(new RegExp(`^${systemLabel}`))
+      .check();
+  }
+  await multiGnssCard
+    .getByRole("button", { name: "山地・森林", exact: true })
+    .click();
+  await multiGnssCard
+    .getByRole("button", {
+      name: "空全体へ分散した衛星配置",
+      exact: true,
+    })
+    .click();
+  assert(
+    (await multiGnssCard.getByText("multi GNSS", { exact: true }).isVisible()) &&
+      (await multiGnssCard.getByText("8機", { exact: true }).isVisible()) &&
+      (await multiGnssCard
+        .getByText(/衛星数だけでなく衛星配置も重要/)
+        .isVisible()) &&
+      (await multiGnssCard
+        .getByText(/マルチGNSSなら山林でも必ずFIXするわけではありません/)
+        .isVisible()),
+    "複数GNSS、山地・森林、衛星配置の固定教材例が反映されません。",
+  );
+
+  const observationQuestionIds = [
+    "gnss-observations-q01-receiver-observation",
+    "gnss-observations-q02-pseudorange",
+    "gnss-observations-q03-carrier-phase",
+    "gnss-observations-q04-integer-ambiguity",
+    "gnss-observations-q05-multi-frequency",
+    "gnss-observations-q06-multi-gnss",
+    "gnss-observations-q07-signal-combination",
+  ];
+  const observationQuestionOne = page.getByTestId(
+    `gnss-quiz-question-${observationQuestionIds[0]}`,
+  );
+  await observationQuestionOne.locator('input[type="radio"]').nth(0).check();
+  await observationQuestionOne
+    .getByRole("button", { name: "回答を確認する", exact: true })
+    .click();
+  const observationQuestionOneFeedback = observationQuestionOne.locator(
+    ".gnss-quiz-feedback",
+  );
+  assert(
+    (await observationQuestionOneFeedback
+      .getByText("不正解", { exact: true })
+      .isVisible()) &&
+      (await observationQuestionOneFeedback
+        .getByText("正解：B", { exact: true })
+        .isVisible()) &&
+      (await observationQuestionOneFeedback
+        .getByRole("heading", { name: "Aを選んだ場合の解説", exact: true })
+        .isVisible()) &&
+      (await observationQuestionOneFeedback
+        .getByText(/完成した座標が届くのではありません/)
+        .isVisible()) &&
+      (await observationQuestionOneFeedback
+        .getByRole("heading", { name: "解説", exact: true })
+        .isVisible()) &&
+      !(await observationQuestionOneFeedback.innerText()).includes("正答"),
+    "第2章問1の誤答固有理由と正解理由が最新形式で表示されません。",
+  );
+
+  for (const questionId of observationQuestionIds) {
+    const question = page.getByTestId(`gnss-quiz-question-${questionId}`);
+    await question.locator('input[type="radio"]').nth(1).check();
+    await question
+      .getByRole("button", { name: "回答を確認する", exact: true })
+      .click();
+    const feedback = question.locator(".gnss-quiz-feedback");
+    assert(
+      (await feedback.getByText("正解", { exact: true }).isVisible()) &&
+        (await feedback.getByText("正解：B", { exact: true }).isVisible()) &&
+        (await feedback.locator(".gnss-quiz-selected-explanation").count()) === 0 &&
+        !(await feedback.innerText()).includes("正答"),
+      `${questionId}の正答表示または重複のない解説が正しくありません。`,
+    );
+  }
+  assert(
+    (await page
+      .getByTestId("gnss-observations-quiz-panel")
+      .locator(".gnss-quiz-question")
+      .count()) === 7,
+    "GNSS第2章の確認問題が7問ではありません。",
+  );
+
+  await lessonNavigation
+    .getByRole("button", { name: /第1章.*GNSS測量の全体像/ })
+    .click();
+  assert(
+    (await overviewLesson.isVisible()) &&
+      (await workflowButtons.nth(8).getAttribute("aria-current")) === "step" &&
+      (await methodSelector
+        .getByRole("button", { name: "CLAS", exact: true })
+        .getAttribute("aria-pressed")) === "true" &&
+      (await p1Result.isVisible()) &&
+      (await questionThree.getByText("正解", { exact: true }).isVisible()) &&
+      (await overviewLesson.getByText("2 / 2 章", { exact: true }).isVisible()),
+    "第2章から戻ったときにGNSS第1章の状態が保持されません。",
+  );
+  await chapterTwoNavigationButton.click();
+  assert(
+    (await observationsLesson.isVisible()) &&
+      (await travelTimeSlider.inputValue()) === "85" &&
+      (await carrierSlider.inputValue()) === "9.5" &&
+      (await frequencyCard
+        .getByText("L1 + L2 + L5 → 3周波", { exact: true })
+        .isVisible()) &&
+      (await page
+        .getByTestId(`gnss-quiz-question-${observationQuestionIds[6]}`)
+        .getByText("正解", { exact: true })
+        .isVisible()),
+    "GNSS章往復後に第2章の操作・問題状態が保持されません。",
+  );
+
   const desktopMetrics = await getPageMetrics(page);
   assert(
     desktopMetrics.scrollWidth <= desktopMetrics.clientWidth,
@@ -312,10 +633,17 @@ try {
   if (saveScreenshots) {
     await page.screenshot({
       fullPage: true,
-      path: "/tmp/gnss-phase1-1366.png",
+      path: "/tmp/gnss-phase2-1366.png",
     });
   }
 
+  await page.getByRole("button", { name: "測量の基礎", exact: true }).click();
+  assert(
+    await page
+      .getByRole("heading", { name: /測量は、.*点と点の関係/ })
+      .isVisible(),
+    "GNSSから測量の基礎へ移動できません。",
+  );
   await page.getByRole("button", { name: "多角測量", exact: true }).click();
   assert(
     await page
@@ -328,15 +656,23 @@ try {
   await page.getByRole("button", { name: "GNSS / Drogger", exact: true }).click();
 
   assert(
-    (await workflowButtons.nth(8).getAttribute("aria-current")) === "step" &&
-      (await methodSelector
-        .getByRole("button", { name: "CLAS", exact: true })
+    (await observationsLesson.isVisible()) &&
+      (await travelTimeSlider.inputValue()) === "85" &&
+      (await pseudorangeCard
+        .getByRole("button", { name: "現実のGNSS", exact: true })
         .getAttribute("aria-pressed")) === "true" &&
-      (await p1Result.isVisible()) &&
-      (await qualityCard.getByText("P1の成果を使用する準備ができました", { exact: true }).isVisible()) &&
-      (await questionThree.getByText("正解", { exact: true }).isVisible()) &&
-      (await page.getByText("1 / 1 章", { exact: true }).isVisible()),
-    "教材往復後にGNSS第1章の操作・問題・理解状態が保持されません。",
+      (await carrierSlider.inputValue()) === "9.5" &&
+      (await ambiguityCard.getByText("FIX", { exact: true }).isVisible()) &&
+      (await frequencyCard
+        .getByText("L1 + L2 + L5 → 3周波", { exact: true })
+        .isVisible()) &&
+      (await multiGnssCard.getByText("multi GNSS", { exact: true }).isVisible()) &&
+      (await page
+        .getByTestId(`gnss-quiz-question-${observationQuestionIds[6]}`)
+        .getByText("正解", { exact: true })
+        .isVisible()) &&
+      (await observationsLesson.getByText("2 / 2 章", { exact: true }).isVisible()),
+    "教材往復後にGNSS第2章の操作・問題・理解状態が保持されません。",
   );
 
   const storageKeysAfterGnssOperations = await page.evaluate(() =>
@@ -400,9 +736,16 @@ try {
     `GNSS教材が390px幅で横方向にはみ出しています: ${JSON.stringify({ mobileMetrics, mobileOverflowElements })}`,
   );
   assert(
-    (await p1Result.isVisible()) &&
-      (await questionThree.getByText("正解", { exact: true }).isVisible()),
-    "390px幅でFIX成果または確認問題結果を表示できません。",
+    (await observationsLesson.isVisible()) &&
+      (await frequencyCard
+        .getByText("L1 + L2 + L5 → 3周波", { exact: true })
+        .isVisible()) &&
+      (await multiGnssCard.getByText("multi GNSS", { exact: true }).isVisible()) &&
+      (await page
+        .getByTestId(`gnss-quiz-question-${observationQuestionIds[6]}`)
+        .getByText("正解", { exact: true })
+        .isVisible()),
+    "390px幅で第2章のカード8・9または確認問題結果を表示できません。",
   );
 
   const invalidNumberTokens = await page.evaluate(() =>
@@ -418,9 +761,81 @@ try {
   if (saveScreenshots) {
     await page.screenshot({
       fullPage: true,
-      path: "/tmp/gnss-phase1-390.png",
+      path: "/tmp/gnss-phase2-390.png",
     });
   }
+
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "GNSS / Drogger", exact: true }).click();
+  const reloadedOverviewLesson = page.locator(
+    '[data-lesson-id="gnss-overview"]',
+  );
+  assert(
+    (await reloadedOverviewLesson.isVisible()) &&
+      (await reloadedOverviewLesson
+        .getByText("0 / 2 章", { exact: true })
+        .isVisible()),
+    "再読込み後にGNSS第1章と0 / 2章の初期進捗へ戻りません。",
+  );
+  await page
+    .locator(".gnss-lesson-navigation")
+    .getByRole("button", { name: /第2章.*GNSSは何を観測しているのか/ })
+    .click();
+  const reloadedObservationsLesson = page.locator(
+    '[data-lesson-id="gnss-observations"]',
+  );
+  const reloadedTravelTimeCard = page.getByTestId(
+    "gnss-observations-travel-time-card",
+  );
+  const reloadedPseudorangeCard = page.getByTestId(
+    "gnss-observations-pseudorange-card",
+  );
+  const reloadedCarrierCard = page.getByTestId(
+    "gnss-observations-carrier-card",
+  );
+  const reloadedFrequencyCard = page.getByTestId(
+    "gnss-observations-frequency-card",
+  );
+  const reloadedMultiGnssCard = page.getByTestId(
+    "gnss-observations-multi-gnss-card",
+  );
+  assert(
+    (await reloadedObservationsLesson.isVisible()) &&
+      (await reloadedTravelTimeCard
+        .getByTestId("gnss-travel-time-slider")
+        .inputValue()) === "70" &&
+      (await reloadedPseudorangeCard
+        .getByRole("button", { name: "理想的な場合", exact: true })
+        .getAttribute("aria-pressed")) === "true" &&
+      (await reloadedCarrierCard
+        .getByTestId("gnss-carrier-movement-slider")
+        .inputValue()) === "5" &&
+      (await reloadedFrequencyCard
+        .getByRole("button", { name: "L1のみ", exact: true })
+        .getAttribute("aria-pressed")) === "true" &&
+      (await reloadedMultiGnssCard.getByLabel(/^GPS/).isChecked()) &&
+      !(await reloadedMultiGnssCard.getByLabel(/QZSS/).isChecked()) &&
+      (await page
+        .getByTestId("gnss-observations-quiz-panel")
+        .locator(".gnss-quiz-feedback")
+        .count()) === 0 &&
+      (await reloadedObservationsLesson
+        .getByRole("button", { name: "この章を理解できた" })
+        .isVisible()),
+    "再読込み後にGNSS第2章のReact状態が初期化されません。",
+  );
+
+  const storageKeysAfterReload = await page.evaluate(() =>
+    Object.keys(window.localStorage).sort(),
+  );
+  assert(
+    JSON.stringify(storageKeysAfterReload) ===
+      JSON.stringify(storageKeysBeforeGnssOperations) &&
+      storageKeysAfterReload.every(
+        (storageKey) => !storageKey.toLowerCase().includes("gnss"),
+      ),
+    "再読込み後にGNSS用localStorageキーが追加されています。",
+  );
 
   assert(
     consoleErrors.length === 0,
@@ -438,16 +853,21 @@ try {
   console.log(
     JSON.stringify(
       {
-        lessonId: "gnss-overview",
+        lessonIds: ["gnss-overview", "gnss-observations"],
         representativeCase: "一般の調査・測量",
         workflowSteps: 9,
         methods: 3,
         positioningStates: ["SINGLE", "FLOAT", "FIX"],
         qualityChecks: 8,
-        quizQuestionsAnswered: 3,
+        overviewQuizQuestionsAnswered: 3,
+        observationsCards: 9,
+        observationsQuizQuestionsAnswered: 7,
         statePreservedAcrossCourses: true,
+        stateResetAfterReload: true,
         keyboardOperation: true,
         visibleFocus: true,
+        observationsKeyboardOperation,
+        observationsVisibleFocus,
         localStorageKeysUnchanged: true,
         desktopMetrics,
         mobileMetrics,
