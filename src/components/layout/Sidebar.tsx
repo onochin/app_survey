@@ -15,7 +15,7 @@ interface SidebarIconProps {
   readonly name: SidebarIconName;
 }
 
-export type LearningSection = "basics" | "traverse";
+export type LearningSection = "basics" | "gnss" | "traverse";
 
 interface SidebarProps {
   readonly activeSection: LearningSection;
@@ -133,7 +133,7 @@ const navigationItems = [
   { label: "測量の基礎", icon: "book", section: "basics" },
   { label: "多角測量", icon: "traverse", section: "traverse" },
   { label: "水準測量", icon: "level", section: null },
-  { label: "GNSS / Drogger", icon: "satellite", section: null },
+  { label: "GNSS / Drogger", icon: "satellite", section: "gnss" },
   { label: "座標系", icon: "globe", section: null },
   { label: "地形測量", icon: "terrain", section: null },
   { label: "写真測量", icon: "camera", section: null },

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import SurveyBasics from "./components/basics/SurveyBasics";
+import SurveyGnss from "./components/gnss/SurveyGnss";
 import Header from "./components/layout/Header";
 import Sidebar from "./components/layout/Sidebar";
 import type { LearningSection } from "./components/layout/Sidebar";
@@ -36,6 +37,14 @@ function App() {
               測量の基礎
             </button>
             <button
+              aria-current={activeSection === "gnss" ? "page" : undefined}
+              className={activeSection === "gnss" ? "is-selected" : ""}
+              onClick={() => setActiveSection("gnss")}
+              type="button"
+            >
+              GNSS / Drogger
+            </button>
+            <button
               aria-current={activeSection === "traverse" ? "page" : undefined}
               className={activeSection === "traverse" ? "is-selected" : ""}
               onClick={() => setActiveSection("traverse")}
@@ -46,6 +55,9 @@ function App() {
           </nav>
           <section hidden={activeSection !== "basics"}>
             <SurveyBasics onOpenTraverse={() => setActiveSection("traverse")} />
+          </section>
+          <section hidden={activeSection !== "gnss"}>
+            <SurveyGnss />
           </section>
           <section hidden={activeSection !== "traverse"}>
             <TraverseWorkspace />
