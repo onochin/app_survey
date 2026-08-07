@@ -3,21 +3,20 @@ import {
   evaluateGnssQuizAnswer,
   fixedGnssScenario,
   getGnssMethod,
-  getGnssPurpose,
+  getGnssQuizOptionLetter,
   getGnssWorkflowStep,
   gnssInformationFlowSteps,
   gnssMethods,
   gnssPositioningStates,
-  gnssPurposes,
   gnssQualityChecks,
   gnssQuizQuestions,
+  gnssRepresentativeCase,
   gnssWorkflowSteps,
 } from "../data/gnssOverview";
 import { gnssOverviewLesson } from "../gnssCourse";
 import type {
   GnssMethodId,
   GnssPositioningStateId,
-  GnssPurposeId,
 } from "../types";
 
 interface GnssOverviewLessonProps {
@@ -186,8 +185,6 @@ function GnssOverviewLesson({
   isUnderstood,
   onToggleUnderstood,
 }: GnssOverviewLessonProps) {
-  const [selectedPurposeId, setSelectedPurposeId] =
-    useState<GnssPurposeId>("auris-survey-position");
   const [selectedWorkflowStepId, setSelectedWorkflowStepId] = useState<string>(
     gnssWorkflowSteps[0].id,
   );
@@ -202,8 +199,6 @@ function GnssOverviewLesson({
   const [quizAnswerStates, setQuizAnswerStates] =
     useState<GnssQuizAnswerStateMap>({});
 
-  const selectedPurpose =
-    getGnssPurpose(selectedPurposeId) ?? gnssPurposes[0];
   const selectedWorkflowStep =
     getGnssWorkflowStep(selectedWorkflowStepId) ?? gnssWorkflowSteps[0];
   const selectedMethod =
@@ -343,53 +338,31 @@ function GnssOverviewLesson({
       >
         <header className="gnss-card-heading">
           <div>
-            <span>カード 2 / 8 · 操作</span>
+            <span>カード 2 / 8 · 代表ケース</span>
             <h2 id="gnss-purpose-title">何のためにGNSSで測る？</h2>
           </div>
-          <p>用途を切り替えて、P1に必要な成果を確認します。</p>
+          <p>この章で扱う代表ケースと、P1に必要な成果を確認します。</p>
         </header>
 
-        <div
-          aria-label="P1の用途"
-          className="gnss-segmented-control gnss-purpose-selector"
-          data-testid="gnss-purpose-selector"
-        >
-          {gnssPurposes.map((purpose) => (
-            <button
-              aria-pressed={purpose.id === selectedPurpose.id}
-              data-purpose-id={purpose.id}
-              key={purpose.id}
-              onClick={() => setSelectedPurposeId(purpose.id)}
-              type="button"
-            >
-              {purpose.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="gnss-purpose-result" aria-live="polite">
-          <h3>{selectedPurpose.label}</h3>
+        <div className="gnss-purpose-result">
+          <h3>今回の代表ケース</h3>
           <dl>
             <div>
-              <dt>目的</dt>
-              <dd>{selectedPurpose.objective}</dd>
+              <dt>対象</dt>
+              <dd>{gnssRepresentativeCase.target}</dd>
             </div>
             <div>
               <dt>今回求める点</dt>
-              <dd>{selectedPurpose.targetPoint}</dd>
+              <dd>{gnssRepresentativeCase.targetPoint}</dd>
             </div>
             <div>
               <dt>求める成果</dt>
-              <dd>{selectedPurpose.expectedResult}</dd>
-            </div>
-            <div>
-              <dt>この点を何に利用するか</dt>
-              <dd>{selectedPurpose.resultUsage}</dd>
+              <dd>{gnssRepresentativeCase.expectedResult}</dd>
             </div>
           </dl>
         </div>
         <p className="gnss-key-message">
-          用途は異なっても、GNSSで位置を求める基本的な流れは共通です。
+          {gnssRepresentativeCase.practicalExamples}
         </p>
       </section>
 
@@ -791,7 +764,7 @@ function GnssOverviewLesson({
               </div>
               <div>
                 <dt>用途</dt>
-                <dd>{selectedPurpose.resultUsageLabel}</dd>
+                <dd>{gnssRepresentativeCase.resultUsageLabel}</dd>
               </div>
             </dl>
             <p>この固定値は実在点の成果ではなく、教材用仮想値です。</p>
@@ -918,6 +891,16 @@ function GnssOverviewLesson({
                     answerState.selectedOptionId,
                   )
                 : null;
+              const correctOptionLetter = getGnssQuizOptionLetter(
+                question.id,
+                question.correctOptionId,
+              );
+              const selectedOptionLetter = evaluation
+                ? getGnssQuizOptionLetter(
+                    question.id,
+                    evaluation.selectedOptionId,
+                  )
+                : null;
 
               return (
                 <article
@@ -970,33 +953,25 @@ function GnssOverviewLesson({
                       className={`gnss-quiz-feedback ${evaluation.isCorrect ? "is-correct" : "is-incorrect"}`}
                       role="status"
                     >
-                      <strong>
-                        {evaluation.isCorrect
-                          ? "正解です"
-                          : "もう一度確認しましょう"}
-                      </strong>
-                      <dl>
-                        <div>
-                          <dt>選択した回答</dt>
-                          <dd>{evaluation.selectedOptionLabel}</dd>
-                        </div>
-                        <div>
-                          <dt>正答</dt>
-                          <dd>{evaluation.correctOptionLabel}</dd>
-                        </div>
-                      </dl>
-                      {!evaluation.isCorrect &&
-                      evaluation.selectedAnswerReason ? (
-                        <p>
-                          <b>この選択肢の確認：</b>
-                          {evaluation.selectedAnswerReason}
+                      <strong>{evaluation.isCorrect ? "正解" : "不正解"}</strong>
+                      {correctOptionLetter ? (
+                        <p className="gnss-quiz-correct-answer">
+                          正解：{correctOptionLetter}
                         </p>
                       ) : null}
-                      <p>
-                        <b>正答理由：</b>
-                        {evaluation.correctReason}
-                      </p>
-                      <p>
+                      {!evaluation.isCorrect &&
+                      evaluation.selectedAnswerReason &&
+                      selectedOptionLetter ? (
+                        <section className="gnss-quiz-explanation gnss-quiz-selected-explanation">
+                          <h5>{selectedOptionLetter}を選んだ場合の解説</h5>
+                          <p>{evaluation.selectedAnswerReason}</p>
+                        </section>
+                      ) : null}
+                      <section className="gnss-quiz-explanation">
+                        <h5>解説</h5>
+                        <p>{evaluation.correctReason}</p>
+                      </section>
+                      <p className="gnss-quiz-field-check">
                         <b>現場で確認：</b>
                         {evaluation.fieldCheck}
                       </p>

@@ -10,20 +10,11 @@ export interface GnssLessonMetadata {
   readonly cautions: readonly string[];
 }
 
-export type GnssPurposeId =
-  | "electromagnetic-survey-point"
-  | "auris-survey-position"
-  | "bathymetric-survey-point"
-  | "drone-control-point"
-  | "general-survey-point";
-
-export interface GnssPurpose {
-  readonly id: GnssPurposeId;
-  readonly label: string;
-  readonly objective: string;
+export interface GnssRepresentativeCase {
+  readonly target: string;
   readonly targetPoint: string;
   readonly expectedResult: string;
-  readonly resultUsage: string;
+  readonly practicalExamples: string;
   readonly resultUsageLabel: string;
 }
 

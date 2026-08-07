@@ -4,60 +4,21 @@ import type {
   GnssMethod,
   GnssPointDifference,
   GnssPositioningState,
-  GnssPurpose,
   GnssQualityCheck,
   GnssQuizAnswerEvaluation,
   GnssQuizQuestion,
+  GnssRepresentativeCase,
   GnssWorkflowStep,
 } from "../types";
 
-export const gnssPurposes = [
-  {
-    id: "electromagnetic-survey-point",
-    label: "電探の測点位置",
-    objective: "電探を実施する測点の位置を座標として記録する",
-    targetPoint: "P1",
-    expectedResult: "平面位置 + 高さ",
-    resultUsage: "測線や探査結果を測点座標と対応付ける",
-    resultUsageLabel: "電探測点位置",
-  },
-  {
-    id: "auris-survey-position",
-    label: "オーリスの探査位置",
-    objective: "探査を実施した位置を座標として記録する",
-    targetPoint: "P1",
-    expectedResult: "平面位置 + 高さ",
-    resultUsage: "オーリスの探査記録を現地位置と対応付ける",
-    resultUsageLabel: "オーリス探査位置",
-  },
-  {
-    id: "bathymetric-survey-point",
-    label: "深浅測量の基準点・測量点",
-    objective: "深浅測量で位置の基準または観測位置となる点を求める",
-    targetPoint: "P1",
-    expectedResult: "平面位置 + 高さ",
-    resultUsage: "測深位置や後続作業を共通の位置基準へつなぐ",
-    resultUsageLabel: "深浅測量点",
-  },
-  {
-    id: "drone-control-point",
-    label: "ドローンの基準点・検証点",
-    objective: "空中写真測量で使用する基準点または検証点の位置を求める",
-    targetPoint: "P1",
-    expectedResult: "平面位置 + 高さ",
-    resultUsage: "写真測量の位置合わせや成果の検証に使用する",
-    resultUsageLabel: "ドローン基準点・検証点",
-  },
-  {
-    id: "general-survey-point",
-    label: "一般の調査・測量点",
-    objective: "調査や測量で必要となる現地の点の位置を求める",
-    targetPoint: "P1",
-    expectedResult: "平面位置 + 高さ",
-    resultUsage: "調査記録、図面、後続の測量作業へ位置を引き継ぐ",
-    resultUsageLabel: "一般調査・測量点",
-  },
-] as const satisfies readonly GnssPurpose[];
+export const gnssRepresentativeCase = {
+  target: "一般の調査・測量",
+  targetPoint: "P1",
+  expectedResult: "平面位置 ＋ 高さ",
+  practicalExamples:
+    "GNSSは、電探やオーリスの探査位置、深浅測量の基準点・測量点、ドローンの基準点・検証点など、さまざまな現場で位置を記録・設定するために利用されます。この章では、それらを代表して一般の調査・測量で使用する新点P1の平面位置と高さを求めます。",
+  resultUsageLabel: "一般の調査・測量点",
+} as const satisfies GnssRepresentativeCase;
 
 export const gnssWorkflowSteps = [
   {
@@ -441,10 +402,6 @@ export function calculateGnssPointDifference(
   };
 }
 
-export function getGnssPurpose(purposeId: string): GnssPurpose | null {
-  return gnssPurposes.find((purpose) => purpose.id === purposeId) ?? null;
-}
-
 export function getGnssWorkflowStep(
   stepId: string,
 ): GnssWorkflowStep | null {
@@ -459,6 +416,22 @@ export function getGnssQuizQuestion(
   questionId: string,
 ): GnssQuizQuestion | null {
   return gnssQuizQuestions.find((question) => question.id === questionId) ?? null;
+}
+
+export function getGnssQuizOptionLetter(
+  questionId: string,
+  optionId: string,
+): string | null {
+  const question = getGnssQuizQuestion(questionId);
+  const optionIndex = question?.options.findIndex(
+    (option) => option.id === optionId,
+  );
+
+  if (optionIndex === undefined || optionIndex < 0) {
+    return null;
+  }
+
+  return String.fromCharCode(65 + optionIndex);
 }
 
 export function evaluateGnssQuizAnswer(

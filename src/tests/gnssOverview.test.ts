@@ -5,15 +5,15 @@ import {
   evaluateGnssQuizAnswer,
   fixedGnssScenario,
   getGnssMethod,
-  getGnssPurpose,
+  getGnssQuizOptionLetter,
   getGnssQuizQuestion,
   getGnssWorkflowStep,
   gnssInformationFlowSteps,
   gnssMethods,
   gnssPositioningStates,
-  gnssPurposes,
   gnssQualityChecks,
   gnssQuizQuestions,
+  gnssRepresentativeCase,
   gnssWorkflowSteps,
 } from "../components/gnss/data/gnssOverview";
 
@@ -86,16 +86,21 @@ describe("GNSS測量 Phase 1 第1章", () => {
     });
   });
 
-  it("5用途を一意な安定IDで持つ", () => {
-    const purposeIds = gnssPurposes.map((purpose) => purpose.id);
-
-    expect(gnssPurposes).toHaveLength(5);
-    expect(new Set(purposeIds).size).toBe(purposeIds.length);
-    for (const purpose of gnssPurposes) {
-      expect(purpose.objective).not.toBe("");
-      expect(purpose.targetPoint).toBe("P1");
-      expect(purpose.expectedResult).not.toBe("");
-      expect(purpose.resultUsage).not.toBe("");
+  it("一般の調査・測量を代表ケースとし、実務例と求める成果を持つ", () => {
+    expect(gnssRepresentativeCase).toMatchObject({
+      target: "一般の調査・測量",
+      targetPoint: "P1",
+      expectedResult: "平面位置 ＋ 高さ",
+      resultUsageLabel: "一般の調査・測量点",
+    });
+    for (const example of [
+      "電探",
+      "オーリス",
+      "深浅測量",
+      "ドローン",
+      "一般の調査・測量",
+    ]) {
+      expect(gnssRepresentativeCase.practicalExamples).toContain(example);
     }
   });
 
@@ -148,7 +153,37 @@ describe("GNSS測量 Phase 1 第1章", () => {
     const questionIds = gnssQuizQuestions.map((question) => question.id);
 
     expect(gnssQuizQuestions).toHaveLength(3);
+    expect(questionIds).toEqual([
+      "gnss-q01-base-coordinate",
+      "gnss-q02-fix-quality",
+      "gnss-q03-field-method",
+    ]);
     expect(new Set(questionIds).size).toBe(questionIds.length);
+    expect(gnssQuizQuestions.map((question) => question.correctOptionId)).toEqual([
+      "result-inherits-base-error",
+      "verify-settings-and-observation",
+      "consider-clas-and-conditions",
+    ]);
+    expect(gnssQuizQuestions.map((question) => question.options.map((option) => option.id))).toEqual([
+      [
+        "fix-auto-corrects-base",
+        "result-inherits-base-error",
+        "elevation-only",
+        "wrong-base-never-fixes",
+      ],
+      [
+        "use-immediately",
+        "record-coordinate-only",
+        "verify-settings-and-observation",
+        "satellite-count-only",
+      ],
+      [
+        "network-only-no-communication-check",
+        "consider-clas-and-conditions",
+        "single-equals-rtk",
+        "fix-ignores-method",
+      ],
+    ]);
 
     for (const question of gnssQuizQuestions) {
       const optionIds = question.options.map((option) => option.id);
@@ -167,6 +202,14 @@ describe("GNSS測量 Phase 1 第1章", () => {
         }
       }
     }
+  });
+
+  it("正答文字を問題データからB・C・Bとして導出する", () => {
+    expect(
+      gnssQuizQuestions.map((question) =>
+        getGnssQuizOptionLetter(question.id, question.correctOptionId),
+      ),
+    ).toEqual(["B", "C", "B"]);
   });
 
   it("正答と誤答をUIに依存せず個別理由付きで判定する", () => {
@@ -195,10 +238,18 @@ describe("GNSS測量 Phase 1 第1章", () => {
   });
 
   it("未知IDと非有限座標を安全に扱う", () => {
-    expect(getGnssPurpose("unknown-purpose")).toBeNull();
     expect(getGnssWorkflowStep("unknown-step")).toBeNull();
     expect(getGnssMethod("unknown-method")).toBeNull();
     expect(getGnssQuizQuestion("unknown-question")).toBeNull();
+    expect(
+      getGnssQuizOptionLetter("unknown-question", "unknown-option"),
+    ).toBeNull();
+    expect(
+      getGnssQuizOptionLetter(
+        "gnss-q01-base-coordinate",
+        "unknown-option",
+      ),
+    ).toBeNull();
     expect(
       evaluateGnssQuizAnswer(
         "gnss-q01-base-coordinate",

@@ -111,39 +111,21 @@ try {
     "GNSS第1章の理解済み進捗が1 / 1章になりません。",
   );
 
-  const purposeSelector = page.getByTestId("gnss-purpose-selector");
-  const purposeButtons = purposeSelector.getByRole("button");
+  const representativeCaseCard = page.getByTestId("gnss-purpose-card");
+  const representativeCaseText = await representativeCaseCard.textContent();
   assert(
-    (await purposeButtons.count()) === 5,
-    "GNSSの用途が5件ではありません。",
-  );
-
-  await purposeButtons.nth(0).focus();
-  await page.keyboard.press("Tab");
-  assert(
-    await hasVisibleKeyboardFocus(purposeButtons.nth(1)),
-    "GNSS用途ボタンのキーボードフォーカスが視認できません。",
-  );
-  await page.keyboard.press("Enter");
-  assert(
-    (await purposeButtons.nth(1).getAttribute("aria-pressed")) === "true",
-    "GNSS用途をキーボードで切り替えられません。",
-  );
-
-  for (let index = 0; index < 5; index += 1) {
-    await purposeButtons.nth(index).click();
-    assert(
-      (await purposeButtons.nth(index).getAttribute("aria-pressed")) === "true",
-      `GNSS用途${index + 1}を切り替えられません。`,
-    );
-  }
-  await purposeSelector
-    .getByRole("button", { name: "オーリスの探査位置", exact: true })
-    .click();
-  assert(
-    (await page.getByText("探査を実施した位置を座標として記録する", { exact: true }).isVisible()) &&
-      (await page.getByText("平面位置 + 高さ", { exact: true }).isVisible()),
-    "用途切替に目的と成果が連動しません。",
+    (await representativeCaseCard.getByRole("button").count()) === 0 &&
+      (await representativeCaseCard
+        .getByText("一般の調査・測量", { exact: true })
+        .isVisible()) &&
+      (await representativeCaseCard.getByText("P1", { exact: true }).isVisible()) &&
+      (await representativeCaseCard
+        .getByText("平面位置 ＋ 高さ", { exact: true })
+        .isVisible()) &&
+      ["電探", "オーリス", "深浅測量", "ドローン"].every((example) =>
+        representativeCaseText?.includes(example),
+      ),
+    "一般の調査・測量の代表ケース、P1、成果、実務例が表示されません。",
   );
 
   const workflowCard = page.getByTestId("gnss-workflow-card");
@@ -151,6 +133,17 @@ try {
   assert(
     (await workflowButtons.count()) === 9,
     "GNSS現場フローが9工程ではありません。",
+  );
+  await workflowButtons.nth(0).focus();
+  await page.keyboard.press("Tab");
+  assert(
+    await hasVisibleKeyboardFocus(workflowButtons.nth(1)),
+    "GNSS工程ボタンのキーボードフォーカスが視認できません。",
+  );
+  await page.keyboard.press("Enter");
+  assert(
+    (await workflowButtons.nth(1).getAttribute("aria-current")) === "step",
+    "GNSS工程をキーボードで切り替えられません。",
   );
   for (let index = 0; index < 9; index += 1) {
     await workflowButtons.nth(index).click();
@@ -225,7 +218,7 @@ try {
       (await p1Result.getByText("1012.345 m", { exact: true }).isVisible()) &&
       (await p1Result.getByText("1008.765 m", { exact: true }).isVisible()) &&
       (await p1Result.getByText("49.832 m", { exact: true }).isVisible()) &&
-      (await p1Result.getByText("オーリス探査位置", { exact: true }).isVisible()),
+      (await p1Result.getByText("一般の調査・測量点", { exact: true }).isVisible()),
     "FIX後のP1固定成果または用途が表示されません。",
   );
 
@@ -251,18 +244,39 @@ try {
   await questionOne
     .getByRole("button", { name: "回答を確認する" })
     .click();
+  const questionOneFeedback = questionOne.locator(".gnss-quiz-feedback");
   assert(
-    (await questionOne.getByText("もう一度確認しましょう", { exact: true }).isVisible()) &&
-      (await questionOne.getByText(/絶対座標が正しいことまでは確認しません/).isVisible()),
-    "問1の誤答理由が表示されません。",
+    (await questionOneFeedback.getByText("不正解", { exact: true }).isVisible()) &&
+      (await questionOneFeedback.getByText("正解：B", { exact: true }).isVisible()) &&
+      (await questionOneFeedback
+        .getByRole("heading", { name: "Aを選んだ場合の解説", exact: true })
+        .isVisible()) &&
+      (await questionOneFeedback
+        .getByText(/絶対座標が正しいことまでは確認しません/)
+        .isVisible()) &&
+      (await questionOneFeedback
+        .getByRole("heading", { name: "解説", exact: true })
+        .isVisible()) &&
+      (await questionOneFeedback
+        .getByText(/FIXは基準局へ入力した絶対座標の正しさを保証しない/)
+        .isVisible()) &&
+      (await questionOneFeedback.locator("dl").count()) === 0 &&
+      !(await questionOneFeedback.innerText()).includes("正答"),
+    "問1の不正解状態、正解文字、誤答固有理由、正解の解説が正しく表示されません。",
   );
   await questionOne.getByLabel(/相対関係を高精度に求めても/).check();
   await questionOne
     .getByRole("button", { name: "回答を確認する" })
     .click();
   assert(
-    await questionOne.getByText("正解です", { exact: true }).isVisible(),
-    "問1の正答理由を表示できません。",
+    (await questionOneFeedback.getByText("正解", { exact: true }).isVisible()) &&
+      (await questionOneFeedback.getByText("正解：B", { exact: true }).isVisible()) &&
+      (await questionOneFeedback.locator(".gnss-quiz-selected-explanation").count()) === 0 &&
+      (await questionOneFeedback
+        .getByText(/FIXは基準局へ入力した絶対座標の正しさを保証しない/)
+        .isVisible()) &&
+      !(await questionOneFeedback.innerText()).includes("正答"),
+    "問1の正解状態、正解文字、重複のない解説を表示できません。",
   );
 
   const questionTwo = page.getByTestId("gnss-quiz-question-gnss-q02-fix-quality");
@@ -271,9 +285,10 @@ try {
     .getByRole("button", { name: "回答を確認する" })
     .click();
   assert(
-    (await questionTwo.getByText("正解です", { exact: true }).isVisible()) &&
+    (await questionTwo.getByText("正解", { exact: true }).isVisible()) &&
+      (await questionTwo.getByText("正解：C", { exact: true }).isVisible()) &&
       (await questionTwo.getByText(/FIXは重要な測位状態だが/).isVisible()),
-    "問2の正答と正答理由が表示されません。",
+    "問2の正解文字と解説が表示されません。",
   );
 
   const questionThree = page.getByTestId("gnss-quiz-question-gnss-q03-field-method");
@@ -282,9 +297,10 @@ try {
     .getByRole("button", { name: "回答を確認する" })
     .click();
   assert(
-    (await questionThree.getByText("正解です", { exact: true }).isVisible()) &&
+    (await questionThree.getByText("正解", { exact: true }).isVisible()) &&
+      (await questionThree.getByText("正解：B", { exact: true }).isVisible()) &&
       (await questionThree.getByText(/携帯通信に依存しない高精度GNSS測位/).isVisible()),
-    "問3の正答と正答理由が表示されません。",
+    "問3の正解文字と解説が表示されません。",
   );
 
   const desktopMetrics = await getPageMetrics(page);
@@ -312,16 +328,13 @@ try {
   await page.getByRole("button", { name: "GNSS / Drogger", exact: true }).click();
 
   assert(
-    (await purposeSelector
-      .getByRole("button", { name: "オーリスの探査位置", exact: true })
-      .getAttribute("aria-pressed")) === "true" &&
-      (await workflowButtons.nth(8).getAttribute("aria-current")) === "step" &&
+    (await workflowButtons.nth(8).getAttribute("aria-current")) === "step" &&
       (await methodSelector
         .getByRole("button", { name: "CLAS", exact: true })
         .getAttribute("aria-pressed")) === "true" &&
       (await p1Result.isVisible()) &&
       (await qualityCard.getByText("P1の成果を使用する準備ができました", { exact: true }).isVisible()) &&
-      (await questionThree.getByText("正解です", { exact: true }).isVisible()) &&
+      (await questionThree.getByText("正解", { exact: true }).isVisible()) &&
       (await page.getByText("1 / 1 章", { exact: true }).isVisible()),
     "教材往復後にGNSS第1章の操作・問題・理解状態が保持されません。",
   );
@@ -388,7 +401,7 @@ try {
   );
   assert(
     (await p1Result.isVisible()) &&
-      (await questionThree.getByText("正解です", { exact: true }).isVisible()),
+      (await questionThree.getByText("正解", { exact: true }).isVisible()),
     "390px幅でFIX成果または確認問題結果を表示できません。",
   );
 
@@ -426,7 +439,7 @@ try {
     JSON.stringify(
       {
         lessonId: "gnss-overview",
-        purposes: 5,
+        representativeCase: "一般の調査・測量",
         workflowSteps: 9,
         methods: 3,
         positioningStates: ["SINGLE", "FLOAT", "FIX"],

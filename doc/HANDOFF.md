@@ -1,6 +1,6 @@
 # 測量理解ラボ 引継ぎ資料
 
-最終更新日: 2026-08-07
+最終更新日: 2026-08-08
 作業ディレクトリ: `/home/newono/ai_proj/app_simulation/survey-learning-lab`
 
 ## 1. 現在の状態
@@ -4088,3 +4088,161 @@ Pages用ビルドと公開更新を行う。
 
 GitHub Pages公開確認後の次回開始地点は、引き続き
 「GNSS第1章のユーザー確認」である。ユーザー確認前に第2章以降を先行実装しない。
+
+## 34. GNSS第1章 実機確認後修正完了（2026-08-08）
+
+### 34.1 完了状況と対象範囲
+
+依頼03-2として、GNSS第1章「GNSS測量の全体像」の実機確認後修正を完了した。
+安定した章メタデータは次のとおりで変更していない。
+
+- 章ID：`gnss-overview`
+- 章番号：1
+- 章名：`GNSS測量の全体像`
+
+今回変更したのは、カード2「何のためにGNSSで測る？」の簡略化と、
+第1章確認問題3問の回答後解説UIだけである。第2章以降、GNSS学習記録、
+GNSS用localStorage保存は実装していない。
+
+### 34.2 カード2とP1成果
+
+カード2の5用途切替を廃止し、「一般の調査・測量」の単一代表ケースへ変更した。
+利用者が用途を選ぶボタン、用途選択イベント、React状態を削除し、次を固定表示する。
+
+- 対象：一般の調査・測量
+- 今回求める点：P1
+- 求める成果：平面位置 ＋ 高さ
+
+電探、オーリス、深浅測量、ドローンは削除せず、さまざまな現場でGNSSを使う
+実務例として短い文章内へ移した。その他の一般的な調査・測量を代表して、
+新点P1の平面位置と高さを求めるシナリオとしている。
+
+カード7のP1固定成果にある用途は`一般の調査・測量点`へ固定した。
+過去の選択用途や存在しないstateを参照せず、固定座標、標高、SINGLE・FLOAT・FIX、
+品質管理8項目は変更していない。
+
+### 34.3 確認問題、データ、純粋関数
+
+問題文、選択肢、問題ID、選択肢ID、正答、正答理由、全誤答の個別理由、
+現場確認事項は変更していない。正答は問1がB、問2がC、問3がBである。
+
+回答後UIは次の順序へ変更した。
+
+1. `正解`または`不正解`
+2. 問題データから導出した`正解：B`などの正解文字
+3. 誤答時だけ、`Aを選んだ場合の解説`など選択した誤答固有の理由
+4. `解説`見出しと正答理由
+5. 現場での確認事項
+
+旧表示の`正答`欄と選択回答・正答の2列表示は削除した。正答時は誤答用の解説を
+表示せず、同じ選択肢について説明を二重表示しない。見出し、枠線、余白を使って
+情報階層を示し、色だけに依存しない構造とした。
+
+`src/components/gnss/data/gnssOverview.ts`では、5用途データを
+`gnssRepresentativeCase`へ置換した。対応して`GnssPurposeId`、`GnssPurpose`、
+`gnssPurposes`、`getGnssPurpose`を削除した。
+
+追加したUI非依存純粋関数:
+
+- `getGnssQuizOptionLetter`：問題IDと選択肢IDからA～Dを導出し、未知IDは`null`
+
+確認問題の回答と理解済み状態は引き続きReact状態だけで管理する。
+教材往復時は保持し、ページ再読込み後は初期化し、localStorageへ保存しない。
+
+### 34.4 作成・変更ファイルと維持事項
+
+作成ファイルなし。
+
+変更ファイル:
+
+- `src/components/gnss/types.ts`
+- `src/components/gnss/data/gnssOverview.ts`
+- `src/components/gnss/lessons/GnssOverviewLesson.tsx`
+- `src/tests/gnssOverview.test.ts`
+- `scripts/gnss-smoke.mjs`
+- `src/styles.css`
+- `README.md`
+- `doc/HANDOFF.md`
+
+`src/styles.css`は`.gnss-*`名前空間内の用途カードと確認問題に必要な指定だけを
+変更した。基礎教材CSS、閉合トラバースCSS、`App.tsx`の常時マウント構造、
+教材切替構造は変更していない。
+
+次を維持した。
+
+- 測量の基礎全9章、15問、24項目の学習記録、復習一覧、進捗、保存形式
+- 閉合トラバースの計算、操作、確認問題、学習記録、保存形式
+- 基礎教材保存キー`survey-learning-lab:basics-learning-records:v1`
+- 閉合トラバース保存キー`survey-learning-lab:traverse-learning-records:v1`
+- GNSSの9工程、仮想現場図、7情報段階、3方式比較、3測位状態
+- P1固定成果、8品質管理項目、3問の内容と安定ID、教材往復時の状態保持
+- Playwrightのhermeticブラウザ構成と既存スクリーンショット
+- GitHub Pages用Vite baseと`.github/workflows/deploy.yml`
+
+作業開始時から未追跡の正式指示文
+`prompt/依頼03-2_GNSS教材_第1章_実機確認後の修正.md`は削除・変更していない。
+
+### 34.5 検証結果
+
+- `npm run typecheck -- --pretty false`：成功、エラー0件
+- 単体テスト：12ファイル、145テスト成功、失敗0件
+- GNSS第1章テスト：1ファイル、11テスト成功
+- 一般の調査・測量、P1、平面位置 ＋ 高さ、4分野の実務例：成功
+- 3問題ID、全選択肢ID、全誤答理由、正答B・C・B、未知ID安全処理：成功
+- Vite通常本番ビルド：成功、77 modules transformed
+- HTML：0.59 kB（gzip 0.40 kB）
+- Pages用Vite本番ビルド：成功、77 modules transformed
+- Pages用HTML：0.61 kB（gzip 0.41 kB）
+- Pages用HTMLのscript・stylesheet参照：`/app_survey/assets/`配下
+- Pages用previewの`/app_survey/`でGNSS Playwrightスモーク：成功
+- CSS：229.30 kB（gzip 35.32 kB）
+- JS：623.33 kB（gzip 170.86 kB）
+- 500 kBを超えたJSチャンク警告：あり。ビルドは成功
+- `node --check scripts/basics-smoke.mjs`：成功
+- `node --check scripts/phase4-smoke.mjs`：成功
+- `node --check scripts/gnss-smoke.mjs`：成功
+- GNSS Playwrightスモーク：成功
+- カード2の単一代表ケース、用途ボタン0件、P1、成果、実務例：成功
+- 問1誤答時の`不正解`、`正解：B`、A固有理由、正解の解説：成功
+- 問1正答時の`正解`、`正解：B`、誤答解説重複なし：成功
+- 問2の`正解：C`、問3の`正解：B`と各正解解説：成功
+- 旧`正答`欄と回答後2列`dl`がないこと：成功
+- 9工程、仮想現場図、7情報段階、3方式、SINGLE・FLOAT・FIX、P1成果、
+  8品質確認、3問、キーボード操作、フォーカス表示：成功
+- 教材往復時の工程、方式、情報フロー、測位状態、品質確認、問題回答、
+  理解済み状態の保持：成功
+- GNSS操作前後のlocalStorageキー不変、新しいGNSSキーなし：成功
+- 基礎教材Playwright回帰スモーク：成功
+- 全9章、15問、24項目、保存・再読込み、復習一覧、進捗、DOM監査18件：成功
+- 閉合トラバースPhase 4回帰スモーク：成功
+- 交差辺の計算停止、閉合差、確認問題、学習記録保存・再読込み：成功
+- 1366px：`clientWidth` 1366、`scrollWidth` 1366、横方向はみ出しなし
+- 390px：`clientWidth` 390、`scrollWidth` 390、横方向はみ出しなし
+- 1366px・390px画像を目視し、カード2の文章、3項目、確認問題の解説欄に
+  文字重なり、文字切れ、操作不能なし
+- コンソールエラー：0件
+- ページ例外：0件
+- 実行時の外部API通信：0件
+- `git diff --check`：成功
+- `git diff -- package.json package-lock.json`：差分なし
+- `package.json`、`package-lock.json`、既存依存関係：変更なし
+- `git diff -- vite.config.ts .github/workflows/deploy.yml`：差分なし
+- GitHub Pages公開構成：変更なし
+- 既存スクリーンショット：差分・上書きなし
+
+GNSS目視用画像はプロジェクト外の`/tmp`へ保存した。
+
+- `/tmp/gnss-phase1-1366.png`
+- `/tmp/gnss-phase1-390.png`
+
+### 34.6 残る注意点と次回開始地点
+
+- GNSSの工程、方式、情報フロー、測位状態、品質確認、問題回答、理解済み状態は
+  React状態だけであり、ページ再読込み後は初期化する
+- GNSS教材の学習記録、復習一覧、localStorage保存キーは未実装
+- P1固定値と図は教材用仮想例で、実務成果には使用しない
+- JSチャンクは500 kBを超える警告が出るが、警告だけを理由としたコード分割、
+  Vite警告値変更、依存変更は行っていない
+- 第2章以降は先行実装しない
+
+次回開始地点は「GNSS第1章のユーザー実機再確認」である。
