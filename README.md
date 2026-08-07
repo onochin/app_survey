@@ -162,6 +162,21 @@ npm run preview
 
 サーバーを終了するときは、起動したターミナルで`Ctrl+C`を押します。
 
+## GitHub Pagesでの公開
+
+公開先は`https://onochin.github.io/app_survey/`です。
+GitHubのリポジトリで`Settings → Pages`を開き、`Build and deployment`の
+`Source`を`GitHub Actions`に設定してください。
+
+`.github/workflows/deploy.yml`は、`main`へのpushまたは手動実行を契機に、
+依存関係の導入、本番ビルド、`dist`のGitHub Pagesへのデプロイを行います。
+Pages用ビルドでは`github-pages` modeを指定し、Viteのアセット参照先だけを
+`/app_survey/`に切り替えます。通常のローカル開発と本番ビルドは従来どおり
+ルートパス`/`を使用します。
+
+GitHub Pagesとlocalhostは別オリジンのため、localhostに保存済みの学習記録は
+GitHub Pagesへ自動的には引き継がれません。
+
 ## 型検査・テスト・ビルド
 
 ```bash
@@ -189,6 +204,9 @@ env PLAYWRIGHT_BROWSERS_PATH=0 node scripts/gnss-smoke.mjs
 ## 主なファイル構成
 
 ```text
+.github/
+└─ workflows/
+   └─ deploy.yml        # GitHub Pages用のビルド・デプロイ
 src/
 ├─ calculations/       # UIに依存しない測量計算・図形判定
 ├─ components/

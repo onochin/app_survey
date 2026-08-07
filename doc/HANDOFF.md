@@ -3981,3 +3981,86 @@ GNSS目視用画像はプロジェクト外の`/tmp`へ新規保存した。
 
 次回開始地点は「第1章のユーザー確認」である。ユーザー確認前に第2章へ進まず、
 第2章以降の教材、学習記録、永続保存を先行実装しない。
+
+## 33. GitHub Pages公開設定の追加（2026-08-07）
+
+### 33.1 原因と対応範囲
+
+`https://onochin.github.io/app_survey/`はHTTP 200を返していたが、GitHub Pagesが
+`main`直下のビルド前`index.html`をそのまま配信していた。配信HTMLは
+`/src/main.tsx`を参照しており、ViteによるTypeScript・Reactの変換と
+`dist`生成を経ていないため、画面が空になっていた。
+
+GitHub Pages公開に必要な次の設定だけを追加した。
+
+- `vite.config.ts`：`github-pages` modeのときだけViteの`base`を
+  `/app_survey/`へ切り替える
+- `.github/workflows/deploy.yml`：`main`へのpushまたは手動実行で、Node.js 22、
+  `npm ci`、Pages専用modeのビルド、`dist`のアップロード、Pagesデプロイを行う
+- GitHub Actionsは公式Viteテンプレートの現行commit SHAで固定した
+- READMEへ公開URL、GitHub側の設定、デプロイ契機、localStorageの注意を追記した
+
+通常の`npm run dev`、`npm run build`、`npm run preview`は従来どおり
+ルートパス`/`を使用する。Pages用ビルドだけ、次のコマンドでサブパスを使用する。
+
+```bash
+npm run build -- --mode github-pages
+```
+
+### 33.2 作成・変更ファイル
+
+作成ファイル:
+
+- `.github/workflows/deploy.yml`
+
+変更ファイル:
+
+- `vite.config.ts`
+- `README.md`
+- `doc/HANDOFF.md`
+
+`package.json`、`package-lock.json`、既存依存関係、教材実装、保存キー、
+既存スクリーンショットは変更していない。コミットとpushも実施していない。
+
+### 33.3 検証結果
+
+- `npm run typecheck -- --pretty false`：成功、エラー0件
+- 単体テスト：12ファイル、144テスト成功、失敗0件
+- 通常のVite本番ビルド：成功、77 modules transformed
+- 通常ビルドHTML：0.59 kB（gzip 0.40 kB）
+- Pages用Vite本番ビルド：成功、77 modules transformed
+- Pages用HTML：0.61 kB（gzip 0.41 kB）
+- CSS：229.17 kB（gzip 35.27 kB）
+- JS：624.87 kB（gzip 171.15 kB）
+- 500 kBを超えたJSチャンク警告：あり。両ビルドは成功
+- Pages用`dist/index.html`のscript・stylesheet参照：
+  `/app_survey/assets/`配下であることを確認
+- `node --check scripts/basics-smoke.mjs`：成功
+- `node --check scripts/phase4-smoke.mjs`：成功
+- `node --check scripts/gnss-smoke.mjs`：成功
+- 基礎教材Playwrightスモーク：成功
+- 全9章、15問、24項目、保存・復元、教材往復、DOM監査18件：成功
+- 閉合トラバースPhase 4回帰スモーク：成功
+- GNSS Playwrightスモーク：通常の開発URLで成功
+- Pages用previewの`/app_survey/`でGNSS Playwrightスモーク：成功
+- 1366px・390px：ページ全体の横方向はみ出しなし
+- 教材往復時の状態保持：成功
+- コンソールエラー：0件
+- ページ例外：0件
+- 実行時の外部API通信：0件
+- `git diff --check`：成功
+- `git diff -- package.json package-lock.json`：差分なし
+- 既存スクリーンショット：上書きなし
+
+### 33.4 残る操作と次回開始地点
+
+ユーザーはpush前に、GitHubの
+`Settings → Pages → Build and deployment → Source`を`GitHub Actions`へ
+変更する。その後、今回の変更をコミットして`main`へpushする。
+先にpushした場合は、Source変更後にActions画面からworkflowを手動実行できる。
+workflowの成功後、
+`https://onochin.github.io/app_survey/`を再確認する。
+
+GitHub Actions上の実デプロイはpush前のため未実行である。GitHub Pagesと
+localhostは別オリジンなので、localhostのlocalStorage学習記録は公開URLへ
+引き継がれない。次回開始地点は「ユーザーpush後のActions結果と公開URL確認」である。
