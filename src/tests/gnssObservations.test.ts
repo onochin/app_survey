@@ -42,7 +42,7 @@ import {
 } from "../components/gnss/data/gnssObservations";
 
 describe("GNSS測量 Phase 2 第2章", () => {
-  it("第1章IDを維持し、第2章だけを利用可能な章として追加する", () => {
+  it("第1章と第2章のID・メタデータを維持する", () => {
     expect(gnssOverviewLesson.id).toBe("gnss-overview");
     expect(gnssObservationsLesson).toMatchObject({
       id: "gnss-observations",
@@ -54,8 +54,9 @@ describe("GNSS測量 Phase 2 第2章", () => {
     expect(gnssLessons.map((lesson) => lesson.id)).toEqual([
       "gnss-overview",
       "gnss-observations",
+      "gnss-coordinate-height",
     ]);
-    expect(gnssLessons).toHaveLength(2);
+    expect(gnssLessons).toHaveLength(3);
   });
 
   it("衛星から位置計算までの7段階を指定順で持つ", () => {

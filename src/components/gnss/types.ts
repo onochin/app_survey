@@ -1,8 +1,11 @@
-export type GnssLessonId = "gnss-overview" | "gnss-observations";
+export type GnssLessonId =
+  | "gnss-overview"
+  | "gnss-observations"
+  | "gnss-coordinate-height";
 
 export interface GnssLessonMetadata {
   readonly id: GnssLessonId;
-  readonly number: 1 | 2;
+  readonly number: 1 | 2 | 3;
   readonly title: string;
   readonly description: string;
   readonly learningGoal: string;

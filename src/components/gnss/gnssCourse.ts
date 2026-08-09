@@ -65,7 +65,37 @@ export const gnssObservationsLesson = {
   ],
 } as const satisfies GnssLessonMetadata;
 
+export const gnssCoordinateHeightLesson = {
+  id: "gnss-coordinate-height",
+  number: 3,
+  title: "GNSSの座標と高さ",
+  description:
+    "GNSSで得た3次元位置を、地心直交座標、緯度・経度・楕円体高、平面直角座標、標高へつなげて学ぶ。",
+  learningGoal:
+    "GNSSで求めた3次元位置が、緯度・経度・楕円体高、平面直角座標、標高へどのようにつながるかを説明し、成果を使用するときに確認すべき測地系・系番号・座標の時点・高さ基準を判断できる。",
+  terms: [
+    "地心直交座標",
+    "緯度・経度",
+    "楕円体高",
+    "平面直角座標",
+    "JGD2024",
+    "GRS80",
+    "WGS84",
+    "元期・今期",
+    "ジオイド",
+    "標高",
+    "アンテナ高",
+  ],
+  cautions: [
+    "地心直交座標Xc・Yc・Zcと平面直角座標X・Yを混同しません。",
+    "JGD2024という名称だけで、すべての座標の元期が2024年とは判断できません。",
+    "楕円体高と標高は基準面が異なります。",
+    "FIXは測地系・系番号・座標の時点・高さ基準・アンテナ高の正しさまで保証しません。",
+  ],
+} as const satisfies GnssLessonMetadata;
+
 export const gnssLessons = [
   gnssOverviewLesson,
   gnssObservationsLesson,
+  gnssCoordinateHeightLesson,
 ] as const;
