@@ -4814,3 +4814,140 @@ GNSS目視用画像はプロジェクト外の`/tmp`へ新しい名前で保存�
 
 次回開始地点は「GNSS第3章のユーザー実機確認」である。利用者が10カードを操作し、
 確認問題8問を解いた後、理解しにくい箇所があれば別依頼で修正する。
+
+## 38. 左サイドバー章サブメニュー追加完了（2026-08-10）
+
+### 38.1 実装範囲と表示仕様
+
+デスクトップ表示の左サイドバーへ、実装済み教材の章サブメニューを追加した。
+
+- `測量の基礎`を選ぶと、親項目の直下へ第1章～第9章を表示する
+- `GNSS / Drogger`を選ぶと、親項目の直下へ第1章～第3章を表示する
+- 各サブメニューは、章番号と教材レジストリ上の章名を表示する
+- サブメニューの章を選ぶと、該当教材を開いて対象章へ直接移動する
+- 選択中の教材だけを展開し、他方の章サブメニューは閉じる
+- 選択中の章は背景、文字の太さ、`aria-current="step"`で区別する
+- 教材親項目は`aria-expanded`と`aria-controls`を持ち、閉じたサブメニューも
+  DOMへ保持してARIA参照切れを防ぐ
+- サイドバーの高さへ収まらない場合は、教材メニュー領域だけを縦スクロールする
+- 1020px以下の狭いサイドバーでは章番号を表示し、章名は視覚上省略する
+- 760px以下では従来どおり左サイドバーを非表示にし、上部3教材切替と
+  各教材内の既存章ナビゲーションを使用する
+
+`多角測量`には章レジストリがないため、今回サブメニューを追加していない。
+未実装教材のメニュー項目も従来どおり選択不可のままである。
+
+### 38.2 章状態と既存ナビゲーションの接続
+
+左サブメニューと教材内の既存章ナビゲーションで同じ選択章を共有するため、
+基礎教材とGNSS教材の選択章IDを`App.tsx`のReact状態へ持ち上げた。
+
+- 基礎教材：既存`AvailableBasicsLessonId`と`initialBasicsLessonId`を再利用
+- GNSS教材：既存`GnssLessonId`と`gnssLessons[0].id`を再利用
+- 左サブメニュー、基礎教材内章ナビ、章末の次章移動、復習一覧からの移動、
+  GNSS教材内章ナビは同じ状態更新関数へ接続
+- 教材を切り替えても、それぞれ最後に選んでいた章を保持する
+- `App.tsx`の全教材常時マウントは維持し、教材往復時の操作状態を保持する
+
+章IDや章名をサイドバーへ重複定義せず、`availableBasicsLessons`と
+`gnssLessons`から表示を生成する。基礎9章、GNSS3章より先の章は追加していない。
+
+### 38.3 作成・変更ファイルと維持事項
+
+新規ファイルなし。
+
+変更ファイル:
+
+- `src/App.tsx`
+- `src/components/layout/Sidebar.tsx`
+- `src/components/basics/SurveyBasics.tsx`
+- `src/components/gnss/SurveyGnss.tsx`
+- `src/styles.css`
+- `scripts/basics-smoke.mjs`
+- `scripts/gnss-smoke.mjs`
+- `README.md`
+- `doc/HANDOFF.md`
+
+`scripts/gnss-smoke.mjs`へ、初期の閉じ状態、基礎9章・GNSS3章の展開、
+各サブメニューから第2章への直接移動、選択教材だけを展開する状態を追加した。
+`scripts/basics-smoke.mjs`は、同名の章ボタンが増えても既存の教材内章ナビを
+一意に操作できるよう、章切替セレクタの範囲だけを既存ナビ内へ限定した。
+
+次を維持した。
+
+- 測量の基礎全9章、15問、24項目の学習記録、復習一覧、進捗、保存形式
+- 基礎教材保存キー`survey-learning-lab:basics-learning-records:v1`
+- 閉合トラバースの計算、操作、確認問題、学習記録、保存形式
+- 閉合トラバース保存キー`survey-learning-lab:traverse-learning-records:v1`
+- GNSS第1章～第3章の文章、操作、3問・7問・8問、React状態保持
+- GNSS用localStorageキーを追加しない方針
+- `App.tsx`の全教材常時マウントと教材往復時の状態保持
+- 1366px・390px表示、Playwrightのhermeticブラウザ構成
+- GitHub Pages用Vite baseと`.github/workflows/deploy.yml`
+- 既存スクリーンショット
+
+新規依存、外部API、localStorage保存形式、章ID、問題IDは追加・変更していない。
+`package.json`、`package-lock.json`、`vite.config.ts`、Pages workflowも変更していない。
+コミットとpushは実施していない。
+
+### 38.4 検証結果
+
+- `npm run typecheck -- --pretty false`：成功、エラー0件
+- 単体テスト：14ファイル、179テスト成功、失敗0件
+- Vite通常本番ビルド：成功、81 modules transformed
+- 通常HTML：0.59 kB（gzip 0.40 kB）
+- Vite Pages用本番ビルド：成功、81 modules transformed
+- Pages用HTML：0.61 kB（gzip 0.41 kB）
+- CSS：283.60 kB（gzip 43.48 kB）
+- JS：750.13 kB（gzip 201.91 kB）
+- 500 kBを超えたJSチャンク警告：あり。通常・Pages用ビルドとも成功
+- Pages用HTMLのscript・stylesheet参照：`/app_survey/assets/`配下
+- `node --check scripts/basics-smoke.mjs`：成功
+- `node --check scripts/phase4-smoke.mjs`：成功
+- `node --check scripts/gnss-smoke.mjs`：成功
+- GNSS Playwrightスモーク：通常URLとPages用`/app_survey/`で成功
+- 左メニュー初期状態：基礎・GNSSサブメニューとも閉じた状態を確認
+- 測量の基礎：左サブメニュー9章、サブメニューから第2章への移動を確認
+- GNSS / Drogger：左サブメニュー3章、サブメニューから第2章への移動を確認
+- 教材切替時：選択教材だけが展開され、章選択状態を保持することを確認
+- 基礎教材Playwright回帰：成功。全9章、15問、24項目、保存・再読込み、
+  復習一覧、進捗、DOM監査18件を確認
+- DOM監査：重複ID、ARIA参照切れ、名前のない操作、不正数値文字列は各0件
+- 閉合トラバースPhase 4回帰：成功。交差辺の計算停止、閉合差、確認問題、
+  学習記録保存・再読込みを確認
+- 1366px：`clientWidth` 1366、`scrollWidth` 1366、横方向はみ出しなし
+- 390px：`clientWidth` 390、`scrollWidth` 390、横方向はみ出しなし
+- 1366pxの基礎9章・GNSS3章サブメニューと390px表示を目視確認し、
+  文字重なり、ページ全体の横切れ、操作不能なし
+- 教材往復時の基礎・GNSS・閉合トラバース操作状態保持：成功
+- GNSS操作前後と再読込み後のlocalStorageキー不変：成功
+- コンソールエラー：0件
+- ページ例外：0件
+- 実行時の外部API通信：0件
+- `git diff --check`：成功
+- `git diff -- package.json package-lock.json`：差分なし
+- `git diff -- vite.config.ts .github/workflows/deploy.yml`：差分なし
+- 既存スクリーンショット：差分・上書きなし
+
+目視確認用画像はプロジェクト外の`/tmp`へ新しい名前で保存した。
+
+- `/tmp/sidebar-basics-1366.png`
+- `/tmp/sidebar-gnss-1366.png`
+- `/tmp/survey-phase7-final-learning-1366.png`
+- `/tmp/survey-phase7-final-learning-390.png`
+- `/tmp/gnss-phase3-1366.png`
+- `/tmp/gnss-phase3-390.png`
+
+### 38.5 残る注意点と次回開始地点
+
+- 1366pxで基礎9章を展開すると左メニューが長くなるため、左メニュー領域を
+  縦スクロールして後続教材を選ぶ
+- 390pxでは左サイドバーが存在しないため、今回の章サブメニューではなく、
+  既存の上部教材切替と教材内章ナビゲーションを使用する
+- GNSS教材の学習記録、復習一覧、localStorage保存キーは未実装
+- JSチャンクは500 kBを超える警告が出るが、警告だけを理由としたコード分割、
+  Vite警告値変更、依存変更は行っていない
+
+次回開始地点は「左サイドバー章サブメニューのユーザー実機確認」である。
+表示順、章名の見え方、サイドバー内スクロールに修正希望がある場合は、
+今回の構造を維持して必要箇所だけ調整する。

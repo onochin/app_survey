@@ -1,3 +1,10 @@
+import {
+  availableBasicsLessons,
+  type AvailableBasicsLessonId,
+} from "../basics/basicsCourse";
+import { gnssLessons } from "../gnss/gnssCourse";
+import type { GnssLessonId } from "../gnss/types";
+
 type SidebarIconName =
   | "home"
   | "book"
@@ -18,7 +25,13 @@ interface SidebarIconProps {
 export type LearningSection = "basics" | "gnss" | "traverse";
 
 interface SidebarProps {
+  readonly activeBasicsLessonId: AvailableBasicsLessonId;
+  readonly activeGnssLessonId: GnssLessonId;
   readonly activeSection: LearningSection;
+  readonly onBasicsLessonChange: (
+    lessonId: AvailableBasicsLessonId,
+  ) => void;
+  readonly onGnssLessonChange: (lessonId: GnssLessonId) => void;
   readonly onSectionChange: (section: LearningSection) => void;
 }
 
@@ -146,13 +159,25 @@ const navigationItems = [
   readonly section: LearningSection | null;
 }[];
 
-function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
+function Sidebar({
+  activeBasicsLessonId,
+  activeGnssLessonId,
+  activeSection,
+  onBasicsLessonChange,
+  onGnssLessonChange,
+  onSectionChange,
+}: SidebarProps) {
   return (
     <aside className="sidebar">
       <nav aria-label="教材メニュー">
         <ul className="sidebar-navigation">
           {navigationItems.map((item) => {
             const isSelected = item.section === activeSection;
+            const hasLessonNavigation =
+              item.section === "basics" || item.section === "gnss";
+            const lessonNavigationId = hasLessonNavigation
+              ? `sidebar-${item.section}-lessons`
+              : undefined;
 
             return (
               <li key={item.label}>
@@ -167,7 +192,11 @@ function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
                   </span>
                 ) : (
                   <button
+                    aria-controls={lessonNavigationId}
                     aria-current={isSelected ? "page" : undefined}
+                    aria-expanded={
+                      hasLessonNavigation ? isSelected : undefined
+                    }
                     className={`sidebar-link ${
                       isSelected ? "is-selected" : ""
                     }`}
@@ -180,9 +209,89 @@ function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
                     type="button"
                   >
                     <SidebarIcon name={item.icon} />
-                    <span>{item.label}</span>
+                    <span className="sidebar-link-label">{item.label}</span>
+                    {hasLessonNavigation ? (
+                      <span
+                        aria-hidden="true"
+                        className="sidebar-expand-indicator"
+                      >
+                        {isSelected ? "−" : "+"}
+                      </span>
+                    ) : null}
                   </button>
                 )}
+
+                {item.section === "basics" ? (
+                  <ul
+                    className="sidebar-subnavigation"
+                    hidden={!isSelected}
+                    id="sidebar-basics-lessons"
+                  >
+                    {availableBasicsLessons.map((lesson) => {
+                      const isActive = lesson.id === activeBasicsLessonId;
+
+                      return (
+                        <li key={lesson.id}>
+                          <button
+                            aria-label={`左メニューの第${Number(lesson.number)}章「${lesson.title}」を開く`}
+                            aria-current={isActive ? "step" : undefined}
+                            className={isActive ? "is-active" : ""}
+                            data-sidebar-lesson-id={lesson.id}
+                            onClick={() => {
+                              onSectionChange("basics");
+                              onBasicsLessonChange(lesson.id);
+                            }}
+                            title={`第${Number(lesson.number)}章「${lesson.title}」を開く`}
+                            type="button"
+                          >
+                            <span className="sidebar-subchapter-number">
+                              第{Number(lesson.number)}章
+                            </span>
+                            <span className="sidebar-subchapter-title">
+                              {lesson.title}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : null}
+
+                {item.section === "gnss" ? (
+                  <ul
+                    className="sidebar-subnavigation"
+                    hidden={!isSelected}
+                    id="sidebar-gnss-lessons"
+                  >
+                    {gnssLessons.map((lesson) => {
+                      const isActive = lesson.id === activeGnssLessonId;
+
+                      return (
+                        <li key={lesson.id}>
+                          <button
+                            aria-label={`左メニューの第${lesson.number}章「${lesson.title}」を開く`}
+                            aria-current={isActive ? "step" : undefined}
+                            className={isActive ? "is-active" : ""}
+                            data-sidebar-lesson-id={lesson.id}
+                            onClick={() => {
+                              onSectionChange("gnss");
+                              onGnssLessonChange(lesson.id);
+                            }}
+                            title={`第${lesson.number}章「${lesson.title}」を開く`}
+                            type="button"
+                          >
+                            <span className="sidebar-subchapter-number">
+                              第{lesson.number}章
+                            </span>
+                            <span className="sidebar-subchapter-title">
+                              {lesson.title}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : null}
               </li>
             );
           })}

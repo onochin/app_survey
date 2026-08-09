@@ -317,9 +317,8 @@ try {
     await page.locator(".basics-hero").isVisible(),
     "「測量の基礎」教材が表示されていません。",
   );
-  const lessonNavigationButtons = page.locator(
-    ".basics-lesson-navigation > button",
-  );
+  const lessonNavigation = page.locator(".basics-lesson-navigation");
+  const lessonNavigationButtons = lessonNavigation.locator(":scope > button");
   const comingSoonLessonButtons = lessonNavigationButtons.filter({
     has: page.getByText("準備中", { exact: true }),
   });
@@ -1000,7 +999,7 @@ try {
     "教材を往復すると第2章の操作状態が失われます。",
   );
 
-  await page.getByRole("button", { name: /距離測量/ }).click();
+  await lessonNavigation.getByRole("button", { name: /距離測量/ }).click();
   assert(
     (await page
       .getByRole("heading", { name: "距離測量", exact: true })
@@ -1210,7 +1209,7 @@ try {
     "教材を往復すると第3章の操作状態が失われます。",
   );
 
-  await page
+  await lessonNavigation
     .getByRole("button", { name: /角度・方位角・度分秒/ })
     .click();
   assert(
@@ -1556,7 +1555,7 @@ try {
   );
 
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page
+  await lessonNavigation
     .getByRole("button", { name: /TSの据付と観測/ })
     .click();
   assert(
@@ -1947,7 +1946,7 @@ try {
   );
 
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page
+  await lessonNavigation
     .getByRole("button", { name: /レベルと水準測量/ })
     .click();
   assert(
@@ -2251,7 +2250,7 @@ try {
   );
 
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page
+  await lessonNavigation
     .getByRole("button", { name: /観測誤差・精度・検査/ })
     .click();
   assert(
@@ -2648,7 +2647,7 @@ try {
   );
 
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page
+  await lessonNavigation
     .getByRole("button", {
       name: /座標計算と閉合トラバースへの橋渡し/,
     })
@@ -2924,7 +2923,7 @@ try {
   );
 
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page
+  await lessonNavigation
     .getByRole("button", { name: /現場計画・記録・機器管理/ })
     .click();
   assert(

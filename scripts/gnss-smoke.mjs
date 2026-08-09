@@ -67,15 +67,52 @@ try {
     "既存の初期表示が閉合トラバースではありません。",
   );
 
-  await page.getByRole("button", { name: "測量の基礎", exact: true }).click();
+  const sidebar = page.locator(".sidebar");
+  const basicsSidebarButton = sidebar.getByRole("button", {
+    name: "測量の基礎",
+    exact: true,
+  });
+  const gnssSidebarButton = sidebar.getByRole("button", {
+    name: "GNSS / Drogger",
+    exact: true,
+  });
+
+  assert(
+    (await basicsSidebarButton.getAttribute("aria-expanded")) === "false" &&
+      (await gnssSidebarButton.getAttribute("aria-expanded")) === "false",
+    "初期表示で章サブメニューが閉じていません。",
+  );
+
+  await basicsSidebarButton.click();
   assert(
     await page
       .getByRole("heading", { name: /測量は、.*点と点の関係/ })
       .isVisible(),
     "測量の基礎を開けません。",
   );
+  const basicsSidebarLessons = sidebar.locator("#sidebar-basics-lessons");
+  assert(
+    (await basicsSidebarButton.getAttribute("aria-expanded")) === "true" &&
+      (await basicsSidebarLessons.getByRole("button").count()) === 9,
+    "測量の基礎の左サブメニューに9章が表示されません。",
+  );
+  await basicsSidebarLessons
+    .locator('[data-sidebar-lesson-id="distance-and-direction"]')
+    .click();
+  assert(
+    await page
+      .getByRole("heading", {
+        name: "座標・標高・高さの基準",
+        exact: true,
+      })
+      .isVisible(),
+    "測量の基礎の左サブメニューから第2章を開けません。",
+  );
+  await basicsSidebarLessons
+    .locator('[data-sidebar-lesson-id="point-and-position"]')
+    .click();
 
-  await page.getByRole("button", { name: "GNSS / Drogger", exact: true }).click();
+  await gnssSidebarButton.click();
   assert(
     (await page.getByRole("heading", { name: "GNSS測量", exact: true }).isVisible()) &&
       (await page
@@ -83,6 +120,28 @@ try {
         .isVisible()),
     "GNSS教材または第1章を開けません。",
   );
+  const gnssSidebarLessons = sidebar.locator("#sidebar-gnss-lessons");
+  assert(
+    (await gnssSidebarButton.getAttribute("aria-expanded")) === "true" &&
+      (await gnssSidebarLessons.getByRole("button").count()) === 3 &&
+      !(await sidebar.locator("#sidebar-basics-lessons").isVisible()),
+    "GNSS / Droggerの左サブメニュー3章または教材ごとの開閉が正しくありません。",
+  );
+  await gnssSidebarLessons
+    .locator('[data-sidebar-lesson-id="gnss-observations"]')
+    .click();
+  assert(
+    await page
+      .getByRole("heading", {
+        name: "GNSSは何を観測しているのか",
+        exact: true,
+      })
+      .isVisible(),
+    "GNSSの左サブメニューから第2章を開けません。",
+  );
+  await gnssSidebarLessons
+    .locator('[data-sidebar-lesson-id="gnss-overview"]')
+    .click();
   assert(
     (await page.locator('[data-lesson-id="gnss-overview"]').count()) === 1,
     "安定した章ID gnss-overview が画面へ反映されていません。",

@@ -59,9 +59,18 @@ function createInitialBasicsLearningState(): {
   }
 }
 
-function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
-  const [activeLessonId, setActiveLessonId] =
-    useState<AvailableBasicsLessonId>(initialBasicsLessonId);
+interface SurveyBasicsProps extends BasicsLessonComponentProps {
+  readonly activeLessonId: AvailableBasicsLessonId;
+  readonly onActiveLessonChange: (
+    lessonId: AvailableBasicsLessonId,
+  ) => void;
+}
+
+function SurveyBasics({
+  activeLessonId,
+  onActiveLessonChange,
+  onOpenTraverse,
+}: SurveyBasicsProps) {
   const [quizAnswerStates, setQuizAnswerStates] =
     useState<BasicsQuizAnswerStateMap>({});
   const [initialLearningState] = useState(
@@ -148,7 +157,7 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
       ),
     );
 
-    setActiveLessonId(nextLesson?.id ?? initialBasicsLessonId);
+    onActiveLessonChange(nextLesson?.id ?? initialBasicsLessonId);
   };
 
   const selectQuizOption = (
@@ -227,7 +236,7 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
       return;
     }
 
-    setActiveLessonId(item.lessonId);
+    onActiveLessonChange(item.lessonId);
     setPendingReviewItemId(item.id);
   };
 
@@ -369,7 +378,7 @@ function SurveyBasics({ onOpenTraverse }: BasicsLessonComponentProps) {
         activeLessonId={activeLessonId}
         completedLessonIds={completedLessonIds}
         lessons={basicsLessons}
-        onSelectLesson={setActiveLessonId}
+        onSelectLesson={onActiveLessonChange}
       />
 
       <section

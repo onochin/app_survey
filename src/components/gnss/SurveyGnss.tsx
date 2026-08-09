@@ -5,9 +5,15 @@ import GnssOverviewLesson from "./lessons/GnssOverviewLesson";
 import GnssObservationsLesson from "./lessons/GnssObservationsLesson";
 import type { GnssLessonId } from "./types";
 
-function SurveyGnss() {
-  const [activeLessonId, setActiveLessonId] =
-    useState<GnssLessonId>("gnss-overview");
+interface SurveyGnssProps {
+  readonly activeLessonId: GnssLessonId;
+  readonly onActiveLessonChange: (lessonId: GnssLessonId) => void;
+}
+
+function SurveyGnss({
+  activeLessonId,
+  onActiveLessonChange,
+}: SurveyGnssProps) {
   const [understoodLessonIds, setUnderstoodLessonIds] = useState<
     readonly GnssLessonId[]
   >([]);
@@ -33,7 +39,7 @@ function SurveyGnss() {
                 aria-current={lesson.id === activeLessonId ? "page" : undefined}
                 className={lesson.id === activeLessonId ? "is-selected" : ""}
                 data-lesson-navigation-id={lesson.id}
-                onClick={() => setActiveLessonId(lesson.id)}
+                onClick={() => onActiveLessonChange(lesson.id)}
                 type="button"
               >
                 <span>第{lesson.number}章</span>

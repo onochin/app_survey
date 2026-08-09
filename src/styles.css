@@ -1387,6 +1387,15 @@ a:focus-visible {
   border-right: 1px solid var(--slate-200);
 }
 
+.sidebar > nav {
+  min-height: 0;
+  flex: 1 1 auto;
+  padding-right: 3px;
+  overflow-y: auto;
+  scrollbar-color: var(--slate-300) transparent;
+  scrollbar-width: thin;
+}
+
 .sidebar-navigation {
   display: grid;
   gap: 4px;
@@ -1456,9 +1465,82 @@ button.sidebar-link:not(.is-selected):hover {
   stroke: var(--blue-700);
 }
 
+.sidebar-link-label {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.sidebar-expand-indicator {
+  flex: 0 0 auto;
+  color: var(--blue-700);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.sidebar-subnavigation {
+  display: grid;
+  gap: 2px;
+  padding: 2px 0 5px 12px;
+  margin: 0 0 2px 23px;
+  border-left: 1px solid #cbdcf0;
+  list-style: none;
+}
+
+.sidebar-subnavigation[hidden] {
+  display: none;
+}
+
+.sidebar-subnavigation button {
+  display: flex;
+  width: 100%;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  overflow: hidden;
+  color: var(--slate-600);
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.sidebar-subnavigation button:hover {
+  color: var(--blue-700);
+  background: var(--blue-50);
+}
+
+.sidebar-subnavigation button.is-active {
+  color: var(--blue-800);
+  background: #e8f2ff;
+  font-weight: 800;
+}
+
+.sidebar-subnavigation button:focus-visible {
+  outline: 3px solid rgba(29, 119, 222, 0.28);
+  outline-offset: 1px;
+}
+
+.sidebar-subchapter-number {
+  flex: 0 0 auto;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.sidebar-subchapter-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .progress-card {
   padding: 16px;
-  margin-top: auto;
+  margin-top: 12px;
   background: linear-gradient(145deg, #ffffff, #f7fbff);
   border: 1px solid var(--slate-200);
   border-radius: 12px;
@@ -3658,6 +3740,23 @@ input[aria-invalid="true"] {
 
   .sidebar-link.is-selected::before {
     left: -9px;
+  }
+
+  .sidebar-subnavigation {
+    justify-items: center;
+    padding: 2px 0 5px;
+    margin-left: 0;
+    border-left: 0;
+  }
+
+  .sidebar-subnavigation button {
+    width: 48px;
+    justify-content: center;
+    padding: 4px;
+  }
+
+  .sidebar-subchapter-title {
+    display: none;
   }
 
   .dashboard-grid {

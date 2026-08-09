@@ -1,6 +1,12 @@
 import { useState } from "react";
 import SurveyBasics from "./components/basics/SurveyBasics";
+import {
+  initialBasicsLessonId,
+  type AvailableBasicsLessonId,
+} from "./components/basics/basicsCourse";
 import SurveyGnss from "./components/gnss/SurveyGnss";
+import { gnssLessons } from "./components/gnss/gnssCourse";
+import type { GnssLessonId } from "./components/gnss/types";
 import Header from "./components/layout/Header";
 import Sidebar from "./components/layout/Sidebar";
 import type { LearningSection } from "./components/layout/Sidebar";
@@ -9,6 +15,10 @@ import TraverseWorkspace from "./components/traverse/TraverseWorkspace";
 function App() {
   const [activeSection, setActiveSection] =
     useState<LearningSection>("traverse");
+  const [activeBasicsLessonId, setActiveBasicsLessonId] =
+    useState<AvailableBasicsLessonId>(initialBasicsLessonId);
+  const [activeGnssLessonId, setActiveGnssLessonId] =
+    useState<GnssLessonId>(gnssLessons[0].id);
 
   return (
     <div className="app-shell">
@@ -19,7 +29,11 @@ function App() {
 
       <div className="app-body">
         <Sidebar
+          activeBasicsLessonId={activeBasicsLessonId}
+          activeGnssLessonId={activeGnssLessonId}
           activeSection={activeSection}
+          onBasicsLessonChange={setActiveBasicsLessonId}
+          onGnssLessonChange={setActiveGnssLessonId}
           onSectionChange={setActiveSection}
         />
 
@@ -54,10 +68,17 @@ function App() {
             </button>
           </nav>
           <section hidden={activeSection !== "basics"}>
-            <SurveyBasics onOpenTraverse={() => setActiveSection("traverse")} />
+            <SurveyBasics
+              activeLessonId={activeBasicsLessonId}
+              onActiveLessonChange={setActiveBasicsLessonId}
+              onOpenTraverse={() => setActiveSection("traverse")}
+            />
           </section>
           <section hidden={activeSection !== "gnss"}>
-            <SurveyGnss />
+            <SurveyGnss
+              activeLessonId={activeGnssLessonId}
+              onActiveLessonChange={setActiveGnssLessonId}
+            />
           </section>
           <section hidden={activeSection !== "traverse"}>
             <TraverseWorkspace />
