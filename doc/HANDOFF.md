@@ -1,6 +1,6 @@
 # 測量理解ラボ 引継ぎ資料
 
-最終更新日: 2026-08-08
+最終更新日: 2026-08-10
 作業ディレクトリ: `/home/newono/ai_proj/app_simulation/survey-learning-lab`
 
 ## 1. 現在の状態
@@ -4445,3 +4445,152 @@ GNSS目視用画像はプロジェクト外の`/tmp`へ保存した。
   ある。今回の実装対象外のため、復元・削除・内容変更を行っていない
 
 次回開始地点は「GNSS第2章のユーザー実機確認」である。
+
+## 36. GNSS第2章 実機確認後修正完了（2026-08-10）
+
+`prompt/依頼03_GNSS測量教材Phase2_第2章の実装_修正.md`に従い、
+GNSS第2章「GNSS受信機は何を観測しているのか」の実機確認後修正を完了した。
+利用者は初回の確認問題7問に全問正解しており、章の基本的な理解は成立している。
+今回は9カード、7問、安定ID、React状態だけの保持方式を維持しながら、誤解しやすい
+説明を具体化し、確認問題の表示上の正答位置を分散した。第3章以降は実装していない。
+
+### 36.1 実装内容
+
+- カード2：GNSS衛星が測位信号を継続送信し、受信機が一方向に受信する流れを追加。
+  受信機の要求への応答や、電波の往復時間を測る仕組みではないことを明記
+- カード4：真の幾何学的距離21,000.000 km、時計ずれ等の影響+0.300 km、
+  観測値21,000.300 kmの固定例を追加。擬似距離は0.300 kmだけでなく、影響を含む
+  距離相当の観測値全体であることを明記
+- カード6：整数波長数の候補を絞る7段階、FLOAT・FIXの定義、模式値12、実際は
+  約1億波長規模であることを追加。3次元単独測位で4機以上を使う主な理由と、
+  4機あれば整数アンビギュイティが決定できるという意味ではないことを区別。
+  FIX後も監視し、条件悪化等でFLOATへ戻る場合があることを明記
+- カード8：周波数组合せの選択ボタンを廃止し、`L1のみ → 1周波`、
+  `L1 + L2 → 2周波`、`L1 + L5 → 2周波`、`L1 + L2 + L5 → 3周波`を
+  静的に整理。電離層比較操作は維持し、L2・L5の特徴、L1 + L5が必ず
+  L1 + L2より高精度になるわけではないこと、CLASのL6との役割差を明記
+- カード9：GPS、GLONASS、Galileo、BeiDouを全球型4システムとして国・地域、
+  説明、開始年の目安とともに表形式で追加。QZSSは日本の地域型として別枠、
+  NavICはインドと周辺地域を主範囲とする地域型として追記。固定天空図と選択操作へ
+  GLONASSも追加
+- 確認問題：問題ID、選択肢ID、設問文、正誤理由を維持し、選択肢順だけを変更。
+  表示上の正答を問1から`B / C / A / D / B / C / A`へ分散
+- 390pxでは主要レイアウトを1列化。全球型システム表は既存のカード内横スクロールを
+  利用し、ページ全体は横にはみ出さない構成を維持
+
+### 36.2 教材データと純粋関数
+
+追加・拡張したUI非依存データ:
+
+- 衛星から受信機への一方向信号フロー
+- 1 μsの時計ずれと21,000.300 kmの固定擬似距離例
+- 整数波長数の模式採用値12、FLOATからFIXまでの7段階、4衛星の役割注記
+- L2・L5の特徴データ
+- 全球型4システム、QZSS、NavIC、開始年の注意書き
+- GLONASSを含む教材用衛星数と天空図位置
+
+新しい純粋関数は追加していない。既存の距離・時計ずれ・波長・周波数数・
+GNSS選択集計・確認問題評価関数を再利用した。確認問題の安定ID7件、
+`correctOptionId`、全選択肢ID、正答理由、全誤答固有理由は変更していない。
+
+### 36.3 作成・変更ファイルと維持事項
+
+変更ファイル:
+
+- `src/components/gnss/data/gnssObservations.ts`
+- `src/components/gnss/lessons/GnssObservationsLesson.tsx`
+- `src/components/gnss/types.ts`
+- `src/styles.css`
+- `src/tests/gnssObservations.test.ts`
+- `scripts/gnss-smoke.mjs`
+- `doc/HANDOFF.md`
+
+`README.md`は第2章9カード・7問、擬似距離、搬送波、複数周波数、複数GNSSの
+既存記載が修正後の実装とも一致するため変更していない。`src/styles.css`の追加は
+`.gnss-*`名前空間内に限定した。次を維持した。
+
+- 測量の基礎全9章、15問、24項目の学習記録、復習一覧、進捗、保存形式
+- 閉合トラバースの計算、操作、確認問題、学習記録、保存形式
+- 基礎教材保存キー`survey-learning-lab:basics-learning-records:v1`
+- 閉合トラバース保存キー`survey-learning-lab:traverse-learning-records:v1`
+- 第1章`gnss-overview`の表示、文章、操作、3問、React状態保持
+- 第2章`gnss-observations`の9カード、7問、安定ID、教材往復時の状態保持
+- `App.tsx`の全教材常時マウントと教材切替時の状態保持
+- GNSS学習記録・復習一覧・localStorage保存キーを追加しない方針
+- Playwrightのhermeticブラウザ構成、既存スクリーンショット
+- GitHub Pages用Vite baseと`.github/workflows/deploy.yml`
+
+新規依存、外部API、リアルタイム衛星データ、第3章UIは追加していない。
+`package.json`、`package-lock.json`、既存依存関係、GitHub Pages公開構成は
+変更していない。コミットとpushも実施していない。
+
+### 36.4 検証結果
+
+- `npm run typecheck -- --pretty false`：成功、エラー0件
+- 単体テスト：13ファイル、164テスト成功、失敗0件
+- GNSS対象テスト：2ファイル、30テスト成功
+- 第2章テスト：1ファイル、19テスト成功
+- 第1章既存テスト：1ファイル、11テスト成功
+- 確認問題7問の正答文字`B / C / A / D / B / C / A`、全選択肢評価、
+  全誤答固有理由、正答理由：成功
+- Vite通常本番ビルド：成功、79 modules transformed
+- 通常HTML：0.59 kB（gzip 0.40 kB）
+- Pages用Vite本番ビルド：成功、79 modules transformed
+- Pages用HTML：0.61 kB（gzip 0.41 kB）
+- CSS：262.65 kB（gzip 40.19 kB）
+- JS：688.02 kB（gzip 187.28 kB）
+- 500 kBを超えたJSチャンク警告：あり。通常・Pages用ビルドとも成功
+- Pages用HTMLのscript・stylesheet参照：`/app_survey/assets/`配下
+- `node --check scripts/basics-smoke.mjs`：成功
+- `node --check scripts/phase4-smoke.mjs`：成功
+- `node --check scripts/gnss-smoke.mjs`：成功
+- GNSS Playwrightスモーク：通常URL・Pages用`github-pages` modeの
+  `/app_survey/`とも成功
+- 第2章9カード、7問、一方向通信、擬似距離固定例、整数候補解析、静的な周波数整理、
+  全球型4システム・QZSS・NavIC表示：成功
+- 第1章・第2章往復、他教材往復時のReact状態保持：成功
+- ページ再読込み後の第2章初期化：成功
+- 第1章・第2章のキーボード操作と可視フォーカス：成功
+- GNSS操作前後と再読込み後のlocalStorageキー不変、新しいGNSSキーなし：成功
+- 基礎教材Playwright回帰スモーク：成功。全9章、15問、24項目、保存・再読込み、
+  復習一覧、進捗、DOM監査18件を確認
+- 閉合トラバースPhase 4回帰スモーク：成功。交差辺の計算停止、閉合差、
+  確認問題、学習記録保存・再読込みを確認
+- 1366px：`clientWidth` 1366、`scrollWidth` 1366、ページ全体の横はみ出しなし
+- 390px：`clientWidth` 390、`scrollWidth` 390、ページ全体の横はみ出しなし
+- 1366px・390px画像とカード2・4・6・8・9の切出し画像を目視し、文字重なり、
+  ページ全体の文字切れ、操作不能なし。390pxの全球型システム表はカード内で横スクロール
+- コンソールエラー：0件
+- ページ例外：0件
+- 実行時の外部API通信：0件
+- `git diff --check`：成功
+- `git diff -- package.json package-lock.json`：差分なし
+- `git diff -- vite.config.ts .github/workflows/deploy.yml`：差分なし
+- 既存スクリーンショット：差分・上書きなし
+
+GNSS目視用画像はプロジェクト外の`/tmp`へ保存した。
+
+- `/tmp/gnss-phase2-1366.png`
+- `/tmp/gnss-phase2-390.png`
+- `/tmp/gnss-phase2-card2-1366.png`、`/tmp/gnss-phase2-card2-390.png`
+- `/tmp/gnss-phase2-card4-1366.png`、`/tmp/gnss-phase2-card4-390.png`
+- `/tmp/gnss-phase2-card6-1366.png`、`/tmp/gnss-phase2-card6-390.png`
+- `/tmp/gnss-phase2-card8-1366.png`、`/tmp/gnss-phase2-card8-390.png`
+- `/tmp/gnss-phase2-card9-1366.png`、`/tmp/gnss-phase2-card9-390.png`
+
+### 36.5 残る注意点と次回開始地点
+
+- GNSS第1章・第2章の操作、問題回答、理解済み状態はReact状態だけであり、
+  ページ再読込み後は初期化する
+- GNSS教材の学習記録、復習一覧、localStorage保存キーは未実装
+- 衛星数、天空図、距離、波長、周波数値は概念理解用の固定教材例であり、
+  リアルタイム値や実務成果には使用しない
+- 全球型システムの開始年は、初期運用・正式サービス・現在の全球システム開始などを
+  理解するための目安である
+- JSチャンクは500 kBを超える警告が出るが、警告だけを理由としたコード分割、
+  Vite警告値変更、依存変更は行っていない
+- 第3章「GNSSの座標と高さ」以降は先行実装していない
+- 作業開始時から未追跡の正式指示文
+  `prompt/依頼03_GNSS測量教材Phase2_第2章の実装_修正.md`は削除・変更していない
+
+次回開始地点は「GNSS第2章の修正後ユーザー最終確認」である。

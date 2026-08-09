@@ -6,27 +6,36 @@ import {
   countGnssFrequencies,
   createCarrierPhaseExample,
   evaluateGnssObservationsQuizAnswer,
-  getGnssFrequencySelection,
   getGnssObservationsQuizOptionLetter,
   getGnssSystemDefinition,
+  GNSS_CLOCK_OFFSET_EXAMPLE_DISTANCE_METERS,
   GNSS_DEFAULT_TRAVEL_TIME_MS,
   GNSS_FRACTIONAL_PHASE,
   GNSS_GEOMETRIC_DISTANCE_KM,
   GNSS_L1_WAVELENGTH_CM,
+  GNSS_MODELED_INTEGER_WAVELENGTHS,
+  GNSS_PSEUDORANGE_EXAMPLE_KM,
   GNSS_SIGNAL_SPEED_KM_PER_SECOND,
   gnssFrequencyBands,
+  gnssFrequencyCharacteristics,
   gnssFrequencySelections,
+  gnssFourSatelliteClarification,
+  gnssGlobalSystemDefinitions,
   gnssIntegerWavelengthCandidates,
+  gnssIntegerResolutionFlow,
+  gnssNavicNote,
   gnssObservationComparisonRows,
   gnssObservationConceptFlow,
   gnssObservationsQuizQuestions,
   gnssPseudorangeInfluences,
+  gnssQzssSystemDefinition,
+  gnssSatelliteSignalFlow,
   gnssSystemDefinitions,
+  gnssSystemStartYearCaution,
   summarizeGnssSystemSelection,
 } from "../data/gnssObservations";
 import { gnssObservationsLesson } from "../gnssCourse";
 import type {
-  GnssFrequencySelectionId,
   GnssObservationEnvironmentId,
   GnssObservationKindId,
   GnssObservationWorldId,
@@ -76,6 +85,11 @@ const distributedSatellitePositions = [
   [248, 285],
   [408, 274],
   [555, 291],
+  [102, 294],
+  [178, 269],
+  [324, 312],
+  [486, 318],
+  [675, 284],
 ] as const;
 
 const biasedSatellitePositions = [
@@ -96,6 +110,11 @@ const biasedSatellitePositions = [
   [550, 297],
   [635, 301],
   [686, 178],
+  [389, 91],
+  [688, 132],
+  [602, 327],
+  [702, 263],
+  [429, 316],
 ] as const;
 
 function GnssCardHeading({
@@ -136,16 +155,16 @@ function formatKilometersToThreeDecimals(value: number): string {
 function GnssSignalDiagram() {
   return (
     <div
-      aria-label="GNSS衛星からコード、搬送波、軌道・時刻等に関係する情報が受信機へ届く模式図"
+      aria-label="GNSS衛星が測位用の信号を継続的に送信し、GNSS受信機が一方向に受信して位置を計算する模式図"
       className="gnss-observations-signal-diagram"
       role="img"
     >
       <div className="gnss-observations-satellite-box">
         <span aria-hidden="true">◈</span>
-        <strong>GNSS衛星</strong>
+        <strong>{gnssSatelliteSignalFlow[0]}</strong>
       </div>
       <span aria-hidden="true" className="gnss-observations-down-arrow">
-        ↓ 電波
+        ↓ {gnssSatelliteSignalFlow[1]}
       </span>
       <div className="gnss-observations-signal-parts">
         <div>
@@ -162,11 +181,11 @@ function GnssSignalDiagram() {
         </div>
       </div>
       <span aria-hidden="true" className="gnss-observations-down-arrow">
-        ↓
+        ↓ 衛星から受信機への一方向
       </span>
       <div className="gnss-observations-receiver-box">
-        <strong>GNSS受信機</strong>
-        <span>観測量と衛星情報を組み合わせて位置計算</span>
+        <strong>{gnssSatelliteSignalFlow[2]}</strong>
+        <span>{gnssSatelliteSignalFlow[3]}</span>
       </div>
     </div>
   );
@@ -397,8 +416,6 @@ function GnssObservationsLesson({
     useState<GnssObservationKindId>("code");
   const [comparisonMovementCentimeters, setComparisonMovementCentimeters] =
     useState(5);
-  const [frequencySelectionId, setFrequencySelectionId] =
-    useState<GnssFrequencySelectionId>("l1-only");
   const [hasIonosphereInfluence, setHasIonosphereInfluence] = useState(false);
   const [selectedSystemIds, setSelectedSystemIds] = useState<
     readonly GnssSystemId[]
@@ -429,11 +446,6 @@ function GnssObservationsLesson({
     };
   const comparisonWavelengthRatio =
     calculateWavelengthRatio(comparisonMovementCentimeters) ?? 0;
-  const frequencySelection =
-    getGnssFrequencySelection(frequencySelectionId) ??
-    gnssFrequencySelections[0];
-  const frequencyCount =
-    countGnssFrequencies(frequencySelection.frequencyIds) ?? 1;
   const systemSelectionSummary =
     summarizeGnssSystemSelection(selectedSystemIds, environmentId) ?? {
       systemCount: 0,
@@ -602,6 +614,20 @@ function GnssObservationsLesson({
             </p>
           </aside>
         </div>
+        <div className="gnss-observations-communication-note">
+          <h3>衛星と受信機の通信方向</h3>
+          <p>
+            <strong>
+              GNSS衛星は、受信機から「電波を送ってください」という合図を受けて応答しているわけではありません。
+            </strong>
+          </p>
+          <p>
+            一般のGNSS測位では、衛星から受信機への一方向の測位信号を受信機が利用します。
+          </p>
+          <p>
+            受信機が合図を送り、返事が戻るまでの往復時間を測っているのではありません。衛星が送った信号の送信時刻と、受信機が受け取った時刻の関係から距離に相当する情報を求めます。
+          </p>
+        </div>
         <blockquote className="gnss-important-message">
           衛星は「あなたのX座標は○○mです」と送信しているわけではありません。
         </blockquote>
@@ -759,6 +785,38 @@ function GnssObservationsLesson({
               <dd>約{formatKilometersToThreeDecimals(observedDistanceKilometers)}</dd>
             </div>
           </dl>
+        </div>
+
+        <div
+          className="gnss-observations-pseudorange-example"
+          data-testid="gnss-pseudorange-fixed-example"
+        >
+          <h3>1 μsの時計ずれを含む固定教材例</h3>
+          <dl>
+            <div>
+              <dt>真の幾何学的距離</dt>
+              <dd>{formatKilometersToThreeDecimals(GNSS_GEOMETRIC_DISTANCE_KM)}</dd>
+            </div>
+            <div>
+              <dt>時計ずれ等の影響に相当する値</dt>
+              <dd>
+                +{(GNSS_CLOCK_OFFSET_EXAMPLE_DISTANCE_METERS / 1000).toFixed(3)} km
+              </dd>
+            </div>
+            <div>
+              <dt>時計ずれ等の影響を含んだ距離相当の観測値</dt>
+              <dd>{formatKilometersToThreeDecimals(GNSS_PSEUDORANGE_EXAMPLE_KM)}</dd>
+            </div>
+          </dl>
+          <p>
+            この21,000.300 kmのような「影響を含んだ距離相当の観測値全体」が擬似距離です。
+          </p>
+          <strong>
+            擬似距離とは「ずれた分の0.300 km」だけを指す言葉ではありません。
+          </strong>
+          <p>
+            時計ずれや大気などの影響を含んだ、距離に相当する観測値全体を擬似距離と呼びます。
+          </p>
         </div>
 
         <p className="gnss-important-message">
@@ -927,7 +985,9 @@ function GnssObservationsLesson({
             <div><dt>衛星まで</dt><dd>約21,000 km</dd></div>
             <div><dt>L1の1波長</dt><dd>約19 cm</dd></div>
           </dl>
-          <strong>衛星との間には1億波長を超えるほど多数の波があります。</strong>
+          <strong>
+            実際には衛星まで約21,000 km、L1波長約19 cmなので、整数波長数は1億程度の桁になります。12は仕組みを理解するための模式値です。
+          </strong>
         </div>
 
         <div className="gnss-observations-ambiguity-term">
@@ -935,26 +995,64 @@ function GnssObservationsLesson({
           <p>この章では「未知の整数波長数に関係する未知量」と理解します。</p>
         </div>
 
+        <p className="gnss-important-message">
+          教材の「12波長」は、実際の受信機が最初から知っている値ではありません。
+        </p>
+
+        <ol
+          aria-label="整数波長数の候補を絞ってFLOATからFIXへ進む流れ"
+          className="gnss-observations-ambiguity-resolution-flow"
+          data-testid="gnss-ambiguity-resolution-flow"
+        >
+          {gnssIntegerResolutionFlow.map((step, index) => (
+            <li className={step.id === "float" || step.id === "fix" ? "is-state" : ""} key={step.id}>
+              <span>{index + 1}</span>
+              <div>
+                <strong>{step.label}</strong>
+                <p>{step.description}</p>
+              </div>
+              {index < gnssIntegerResolutionFlow.length - 1 ? (
+                <b aria-hidden="true">↓</b>
+              ) : null}
+            </li>
+          ))}
+        </ol>
+
+        <p className="gnss-observations-definition">
+          複数衛星・複数周波数・基準局と移動局の観測などを組み合わせ、観測結果が最も整合する整数値を解析して決定します。
+        </p>
+
+        <div className="gnss-observations-four-satellite-note">
+          <p>{gnssFourSatelliteClarification.reason}</p>
+          <strong>{gnssFourSatelliteClarification.notMeaning}</strong>
+        </div>
+
         <div className="gnss-observations-fix-flow">
-          <div><span>整数部分が未確定</span><strong>FLOAT</strong></div>
+          <div>
+            <strong>FLOAT</strong>
+            <span>整数アンビギュイティを整数としてまだ確定できていない状態</span>
+          </div>
           <b aria-hidden="true">↓</b>
           <button
             onClick={() => {
-              setIntegerWavelengths(12);
+              setIntegerWavelengths(GNSS_MODELED_INTEGER_WAVELENGTHS);
               setIsIntegerFixed(true);
             }}
             type="button"
           >
-            整数部分を12波長として確定する
+            観測結果が最も整合する12波長を固定解として採用する
           </button>
           <b aria-hidden="true">↓</b>
           <div className={isIntegerFixed ? "is-fixed" : ""}>
-            <span>{isIntegerFixed ? "12 + 0.35波長" : "整数部分を正しく決定"}</span>
-            <strong>{isIntegerFixed ? "FIX" : "FIXへの入口"}</strong>
+            <strong>FIX</strong>
+            <span>整数アンビギュイティを整数値として固定解にできた状態</span>
           </div>
         </div>
         <p className="gnss-figure-note">
-          ※実際のRTKでは、ボタン1つで単純に決まるわけではありません。複数衛星・複数周波数・基準局と移動局の観測等を用いて解析します。
+          ※実際のRTKでは、12という値をボタン1つで指定するのではありません。この操作は、解析で最も整合する整数値を固定解として採用できた状態の模式例です。
+        </p>
+        <p className="gnss-observations-fix-monitoring-note">
+          FIXは解析終了という意味ではありません。FIX後も観測・監視を継続し、条件悪化や衛星遮蔽等によってFLOATへ戻る場合があります。
         </p>
         <p className="gnss-base-error-note">
           FIXは基準局座標、アンテナ高、座標系、マルチパス等の正しさまで保証するものではありません。
@@ -1073,7 +1171,7 @@ function GnssObservationsLesson({
         data-testid="gnss-observations-frequency-card"
       >
         <GnssCardHeading
-          description="同じGPS衛星G12から観測する周波数の組合せを切り替えます。"
+          description="同じGPS衛星G12から観測する周波数の組合せと役割を整理します。"
           index={8}
           label="複数周波数"
           title="なぜ複数周波数を使う？"
@@ -1086,49 +1184,49 @@ function GnssObservationsLesson({
           <p>1周波でもGNSS測位は可能です。</p>
         </div>
 
-        <div
-          aria-label="周波数組合せ"
-          className="gnss-segmented-control gnss-observations-frequency-selector"
-          data-testid="gnss-frequency-selector"
-        >
-          {gnssFrequencySelections.map((selection) => (
-            <button
-              aria-pressed={frequencySelection.id === selection.id}
-              key={selection.id}
-              onClick={() => setFrequencySelectionId(selection.id)}
-              type="button"
-            >
-              {selection.label}
-            </button>
-          ))}
-        </div>
-
         <div className="gnss-observations-frequency-lab" aria-live="polite">
           <div className="gnss-observations-frequency-satellite">
             <strong>GPS衛星 G12</strong>
             <div>
-              {gnssFrequencyBands.map((frequency) => {
-                const isSelected = frequencySelection.frequencyIds.includes(
-                  frequency.id,
-                );
-
-                return (
-                  <span className={isSelected ? "is-selected" : ""} key={frequency.id}>
-                    {frequency.label}
-                  </span>
-                );
-              })}
+              {gnssFrequencyBands.map((frequency) => (
+                <span className="is-selected" key={frequency.id}>
+                  {frequency.label}
+                </span>
+              ))}
             </div>
             <b aria-hidden="true">↓</b>
             <strong>受信機</strong>
           </div>
           <div className="gnss-observations-frequency-summary">
-            <span>選択中</span>
-            <h3>{frequencySelection.label} → {frequencyCount}周波</h3>
+            <span>複数周波数の意味</span>
+            <h3>同じ衛星から異なる周波数を観測</h3>
             <p>
               複数周波数とは、衛星を増やすことではありません。同じ衛星から異なる周波数の信号を観測することです。
             </p>
           </div>
+        </div>
+
+        <div
+          aria-label="L1・L2・L5の周波数组合せと周波数数"
+          className="gnss-observations-frequency-combinations"
+          data-testid="gnss-frequency-combinations"
+        >
+          {gnssFrequencySelections.map((selection) => {
+            const selectionFrequencyCount = countGnssFrequencies(
+              selection.frequencyIds,
+            );
+
+            return (
+              <article key={selection.id}>
+                <strong>{selection.label}</strong>
+                <span>
+                  {selection.label} → {selectionFrequencyCount === null
+                    ? "確認不可"
+                    : `${selectionFrequencyCount}周波`}
+                </span>
+              </article>
+            );
+          })}
         </div>
 
         <div className="gnss-observations-ionosphere-lab">
@@ -1155,12 +1253,12 @@ function GnssObservationsLesson({
             </div>
           </div>
           <div className={hasIonosphereInfluence ? "has-influence" : ""} aria-live="polite">
-            <span>L1の観測</span><b>＋</b><span>{frequencyCount >= 2 ? "L2またはL5の観測" : "別周波数は未選択"}</span>
+            <span>L1の観測</span><b>＋</b><span>L2またはL5の観測</span>
             <b>↓</b>
             <strong>
-              {hasIonosphereInfluence && frequencyCount >= 2
+              {hasIonosphereInfluence
                 ? "周波数ごとの差を利用し、電離層の影響を推定・低減"
-                : "電離層の影響は周波数によって異なる"}
+                : "電離層の影響は周波数によって異なるため、複数周波数で比較する"}
             </strong>
           </div>
         </div>
@@ -1173,6 +1271,22 @@ function GnssObservationsLesson({
             </div>
           ))}
           <p>数値の暗記は不要です。</p>
+        </div>
+
+        <div className="gnss-observations-frequency-characteristics">
+          {gnssFrequencyCharacteristics.map((frequency) => (
+            <article key={frequency.id}>
+              <h3>{frequency.label}</h3>
+              <p>{frequency.description}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className="gnss-observations-frequency-caution">
+          <p>L1 + L2もL1 + L5も、どちらも2周波観測です。</p>
+          <strong>
+            L1 + L5だから必ずL1 + L2より高精度になる、という意味ではありません。
+          </strong>
         </div>
 
         <div className="gnss-observations-frequency-observables">
@@ -1213,8 +1327,46 @@ function GnssObservationsLesson({
 
         <div className="gnss-observations-question-banner">
           <span>問い</span>
-          <strong>GPSだけでも位置は求められるのに、なぜQZSS・Galileo・BeiDouなども一緒に使うのでしょうか？</strong>
+          <strong>GPSだけでも位置は求められるのに、なぜGLONASS・Galileo・BeiDou・QZSSなども一緒に使うのでしょうか？</strong>
           <p>それぞれは別の衛星測位システムです。</p>
+        </div>
+
+        <div className="gnss-table-scroll" tabIndex={0}>
+          <table data-testid="gnss-global-system-table">
+            <caption>主要な全球型衛星測位システム</caption>
+            <thead>
+              <tr>
+                <th scope="col">システム</th>
+                <th scope="col">国・地域</th>
+                <th scope="col">説明</th>
+                <th scope="col">開始年の目安</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gnssGlobalSystemDefinitions.map((system) => (
+                <tr key={system.id}>
+                  <th scope="row">{system.label}</th>
+                  <td>{system.countryOrRegion}</td>
+                  <td>{system.description}</td>
+                  <td>{system.serviceStartLabel}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="gnss-figure-note">{gnssSystemStartYearCaution}</p>
+
+        <div className="gnss-observations-regional-systems">
+          <article>
+            <h3>{gnssQzssSystemDefinition.label}</h3>
+            <p>
+              {gnssQzssSystemDefinition.description}。{gnssQzssSystemDefinition.serviceStartLabel}にサービス開始。
+            </p>
+          </article>
+          <article>
+            <h3>ほかにもある衛星測位システム：NavIC</h3>
+            <p>{gnssNavicNote}</p>
+          </article>
         </div>
 
         <div className="gnss-observations-system-controls">

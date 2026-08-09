@@ -16,16 +16,28 @@ import {
   getGnssObservationsQuizOptionLetter,
   getGnssObservationsQuizQuestion,
   getGnssSystemDefinition,
+  GNSS_CLOCK_OFFSET_EXAMPLE_DISTANCE_METERS,
   GNSS_FRACTIONAL_PHASE,
+  GNSS_GEOMETRIC_DISTANCE_KM,
   GNSS_L1_WAVELENGTH_CM,
+  GNSS_MODELED_INTEGER_WAVELENGTHS,
+  GNSS_PSEUDORANGE_EXAMPLE_KM,
   gnssFrequencyBands,
+  gnssFrequencyCharacteristics,
   gnssFrequencySelections,
+  gnssFourSatelliteClarification,
+  gnssGlobalSystemDefinitions,
   gnssIntegerWavelengthCandidates,
+  gnssIntegerResolutionFlow,
+  gnssNavicNote,
   gnssObservationComparisonRows,
   gnssObservationConceptFlow,
   gnssObservationsQuizQuestions,
   gnssPseudorangeInfluences,
+  gnssQzssSystemDefinition,
+  gnssSatelliteSignalFlow,
   gnssSystemDefinitions,
+  gnssSystemStartYearCaution,
   summarizeGnssSystemSelection,
 } from "../components/gnss/data/gnssObservations";
 
@@ -58,6 +70,15 @@ describe("GNSS測量 Phase 2 第2章", () => {
     ]);
   });
 
+  it("衛星から受信機への一方向の測位信号を4段階で整理する", () => {
+    expect(gnssSatelliteSignalFlow).toEqual([
+      "GNSS衛星",
+      "測位用の信号を継続的に送信",
+      "GNSS受信機",
+      "受信した信号を観測して位置を計算",
+    ]);
+  });
+
   it("70msを約21,000km、1msを約300kmへ換算する", () => {
     expect(calculateSignalDistanceKm(70)).toBeCloseTo(21_000, 9);
     expect(calculateSignalDistanceKm(1)).toBeCloseTo(300, 9);
@@ -68,6 +89,16 @@ describe("GNSS測量 Phase 2 第2章", () => {
   it("1μsの時計ずれを約300mへ換算する", () => {
     expect(calculateClockOffsetDistanceMeters(0)).toBe(0);
     expect(calculateClockOffsetDistanceMeters(1)).toBe(300);
+  });
+
+  it("21,000.300km全体を時計ずれ等の影響を含む擬似距離例とする", () => {
+    expect(GNSS_GEOMETRIC_DISTANCE_KM).toBe(21_000);
+    expect(GNSS_CLOCK_OFFSET_EXAMPLE_DISTANCE_METERS).toBe(300);
+    expect(GNSS_PSEUDORANGE_EXAMPLE_KM).toBeCloseTo(21_000.3, 9);
+    expect(GNSS_PSEUDORANGE_EXAMPLE_KM - GNSS_GEOMETRIC_DISTANCE_KM).toBeCloseTo(
+      0.3,
+      9,
+    );
   });
 
   it("約5cmをL1約19cmの約0.26波長として計算する", () => {
@@ -94,6 +125,33 @@ describe("GNSS測量 Phase 2 第2章", () => {
     expect(examples.map((example) => example?.totalWavelengths)).toEqual([
       10.35, 11.35, 12.35, 13.35,
     ]);
+  });
+
+  it("整数候補を解析してFLOATからFIXへ進む流れと4衛星の役割を区別する", () => {
+    expect(GNSS_MODELED_INTEGER_WAVELENGTHS).toBe(12);
+    expect(gnssIntegerResolutionFlow.map((step) => step.label)).toEqual([
+      "複数衛星を観測",
+      "擬似距離などから概略位置を求める",
+      "搬送波位相を比較・解析",
+      "整数波長数の候補を絞る",
+      "FLOAT",
+      "複数の観測結果の整合性を確認",
+      "FIX",
+    ]);
+    expect(
+      gnssIntegerResolutionFlow.find((step) => step.id === "float")
+        ?.description,
+    ).toBe("整数アンビギュイティを整数としてまだ確定できていない状態");
+    expect(
+      gnssIntegerResolutionFlow.find((step) => step.id === "fix")
+        ?.description,
+    ).toBe("整数アンビギュイティを整数値として固定解にできた状態");
+    expect(gnssFourSatelliteClarification.reason).toContain(
+      "X・Y・Zと受信機時計ずれの4未知量",
+    );
+    expect(gnssFourSatelliteClarification.notMeaning).toContain(
+      "4機あれば整数アンビギュイティが決定できる",
+    );
   });
 
   it("指定した組合せを1周波・2周波・3周波として判定する", () => {
@@ -127,6 +185,16 @@ describe("GNSS測量 Phase 2 第2章", () => {
         }),
       ]),
     );
+    expect(gnssFrequencyCharacteristics).toEqual([
+      expect.objectContaining({
+        id: "l2",
+        description: expect.stringContaining("従来から高精度な2周波GNSS"),
+      }),
+      expect.objectContaining({
+        id: "l5",
+        description: expect.stringContaining("高い送信電力と広い帯域"),
+      }),
+    ]);
   });
 
   it("GPSのみをsingle GNSS、GPSとQZSS等をmulti GNSSと判定する", () => {
@@ -147,22 +215,53 @@ describe("GNSS測量 Phase 2 第2章", () => {
   it("山地・森林では同じ選択でも利用可能候補が減る固定教材例を持つ", () => {
     expect(
       summarizeGnssSystemSelection(
-        ["gps", "qzss", "galileo", "beidou"],
+        ["gps", "glonass", "galileo", "beidou", "qzss"],
         "open",
       )?.satelliteCount,
-    ).toBe(17);
+    ).toBe(22);
     expect(
       summarizeGnssSystemSelection(
-        ["gps", "qzss", "galileo", "beidou"],
+        ["gps", "glonass", "galileo", "beidou", "qzss"],
         "mountain-forest",
       )?.satelliteCount,
-    ).toBe(8);
+    ).toBe(10);
     expect(gnssSystemDefinitions.map((system) => system.id)).toEqual([
       "gps",
-      "qzss",
+      "glonass",
       "galileo",
       "beidou",
+      "qzss",
     ]);
+  });
+
+  it("全球型4システムとQZSS・NavICを具体的な地域と開始年で整理する", () => {
+    expect(
+      gnssGlobalSystemDefinitions.map((system) => ({
+        id: system.id,
+        region: system.countryOrRegion,
+        start: system.serviceStartLabel,
+      })),
+    ).toEqual([
+      { id: "gps", region: "アメリカ", start: "1993年" },
+      { id: "glonass", region: "ロシア", start: "1995年" },
+      { id: "galileo", region: "EU", start: "2016年" },
+      { id: "beidou", region: "中国", start: "2020年（BDS-3）" },
+    ]);
+    expect(
+      gnssGlobalSystemDefinitions.every(
+        (system) =>
+          system.coverage === "global" &&
+          system.description === "全球衛星測位システム",
+      ),
+    ).toBe(true);
+    expect(gnssQzssSystemDefinition).toMatchObject({
+      id: "qzss",
+      coverage: "regional",
+      countryOrRegion: "日本",
+      serviceStartLabel: "2018年",
+    });
+    expect(gnssNavicNote).toContain("インドとその周辺地域");
+    expect(gnssSystemStartYearCaution).toContain("目安");
   });
 
   it("擬似距離へ影響する7要因を固定m値なしで定義する", () => {
@@ -208,7 +307,7 @@ describe("GNSS測量 Phase 2 第2章", () => {
           question.correctOptionId,
         ),
       ),
-    ).toEqual(["B", "B", "B", "B", "B", "B", "B"]);
+    ).toEqual(["B", "C", "A", "D", "B", "C", "A"]);
   });
 
   it("全問題で選択肢IDを一意にし、全誤答へ固有理由を持つ", () => {
@@ -224,10 +323,26 @@ describe("GNSS測量 Phase 2 第2章", () => {
       expect(question.fieldCheck.trim()).not.toBe("");
 
       for (const option of question.options) {
+        const evaluation = evaluateGnssObservationsQuizAnswer(
+          question.id,
+          option.id,
+        );
+
+        expect(evaluation?.correctOptionId).toBe(question.correctOptionId);
+        expect(evaluation?.correctReason).toBe(question.correctReason);
+
         if (option.id === question.correctOptionId) {
           expect(option.incorrectReason).toBeNull();
+          expect(evaluation).toMatchObject({
+            isCorrect: true,
+            selectedAnswerReason: null,
+          });
         } else {
           expect(option.incorrectReason?.trim()).not.toBe("");
+          expect(evaluation).toMatchObject({
+            isCorrect: false,
+            selectedAnswerReason: option.incorrectReason,
+          });
         }
       }
     }

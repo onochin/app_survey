@@ -334,6 +334,20 @@ try {
     "GNSS第2章が9カードではありません。",
   );
 
+  const signalCard = page.getByTestId("gnss-observations-signal-card");
+  const signalCardText = await signalCard.innerText();
+  assert(
+    [
+      "測位用の信号を継続的に送信",
+      "受信した信号を観測して位置を計算",
+      "GNSS衛星は、受信機から「電波を送ってください」という合図を受けて応答しているわけではありません。",
+      "一般のGNSS測位では、衛星から受信機への一方向の測位信号を受信機が利用します。",
+      "返事が戻るまでの往復時間を測っているのではありません",
+      "送信時刻と、受信機が受け取った時刻の関係",
+    ].every((expectedText) => signalCardText.includes(expectedText)),
+    "カード2の衛星から受信機への一方向通信または非往復時間の説明が不足しています。",
+  );
+
   const observationsUnderstoodButton = observationsLesson.getByRole("button", {
     name: "この章を理解できた",
   });
@@ -369,12 +383,19 @@ try {
   await pseudorangeCard
     .getByRole("button", { name: "1 μs", exact: true })
     .click();
+  const pseudorangeFixedExample = pseudorangeCard.getByTestId(
+    "gnss-pseudorange-fixed-example",
+  );
+  const pseudorangeDistanceBreakdown = pseudorangeCard.locator(
+    ".gnss-observations-distance-breakdown",
+  );
+  const pseudorangeFixedExampleText = await pseudorangeFixedExample.innerText();
   assert(
-    (await pseudorangeCard
+    (await pseudorangeDistanceBreakdown
       .getByText("21,000.000 km", { exact: true })
       .isVisible()) &&
       (await pseudorangeCard.getByText(/約 \+0\.300 km/).isVisible()) &&
-      (await pseudorangeCard
+      (await pseudorangeDistanceBreakdown
         .getByText("約21,000.300 km", { exact: true })
         .isVisible()) &&
       (await pseudorangeCard
@@ -382,7 +403,16 @@ try {
         .isVisible()) &&
       (await pseudorangeCard
         .getByText(/少なくとも4機の衛星を利用/)
-        .isVisible()),
+        .isVisible()) &&
+      pseudorangeFixedExampleText.includes("真の幾何学的距離") &&
+      pseudorangeFixedExampleText.includes("21,000.000 km") &&
+      pseudorangeFixedExampleText.includes("21,000.300 km") &&
+      pseudorangeFixedExampleText.includes(
+        "影響を含んだ距離相当の観測値全体",
+      ) &&
+      pseudorangeFixedExampleText.includes(
+        "擬似距離とは「ずれた分の0.300 km」だけを指す言葉ではありません。",
+      ),
     "現実のGNSSと1μs時計ずれの擬似距離表示が正しくありません。",
   );
 
@@ -412,9 +442,28 @@ try {
       (await ambiguityCard.getByText(/？波長 \+ 0\.35波長/).isVisible()),
     "整数部分を変えたときに小数位相0.35が維持されません。",
   );
+  const ambiguityResolutionFlow = ambiguityCard.getByTestId(
+    "gnss-ambiguity-resolution-flow",
+  );
+  const ambiguityCardText = await ambiguityCard.innerText();
+  assert(
+    (await ambiguityResolutionFlow.locator("li").count()) === 7 &&
+      [
+        "複数衛星を観測",
+        "擬似距離などから概略位置を求める",
+        "搬送波位相を比較・解析",
+        "整数波長数の候補を絞る",
+        "整数アンビギュイティを整数としてまだ確定できていない状態",
+        "複数の観測結果の整合性を確認",
+        "整数アンビギュイティを整数値として固定解にできた状態",
+        "4機あれば整数アンビギュイティが決定できる",
+        "整数波長数は1億程度の桁",
+      ].every((expectedText) => ambiguityCardText.includes(expectedText)),
+    "整数候補の解析、FLOAT・FIX、4衛星との区別、模式値の説明が不足しています。",
+  );
   await ambiguityCard
     .getByRole("button", {
-      name: "整数部分を12波長として確定する",
+      name: "観測結果が最も整合する12波長を固定解として採用する",
       exact: true,
     })
     .click();
@@ -422,9 +471,15 @@ try {
     (await ambiguityCard
       .getByText("12波長 + 0.35波長", { exact: true })
       .isVisible()) &&
-      (await ambiguityCard.getByText("FIX", { exact: true }).isVisible()) &&
       (await ambiguityCard
-        .getByText(/ボタン1つで単純に決まるわけではありません/)
+        .locator(".gnss-observations-fix-flow")
+        .getByText("FIX", { exact: true })
+        .isVisible()) &&
+      (await ambiguityCard
+        .getByText(/FIXは解析終了という意味ではありません/)
+        .isVisible()) &&
+      (await ambiguityCard
+        .getByText(/条件悪化や衛星遮蔽等によってFLOATへ戻る場合/)
         .isVisible()),
     "整数波長数の模式確定とFLOAT・FIXへの接続が表示されません。",
   );
@@ -448,51 +503,52 @@ try {
   const frequencyCard = page.getByTestId(
     "gnss-observations-frequency-card",
   );
-  const frequencySelector = frequencyCard.getByTestId("gnss-frequency-selector");
-  const l1OnlyFrequencyButton = frequencySelector.getByRole("button", {
-    name: "L1のみ",
+  const frequencyCombinations = frequencyCard.getByTestId(
+    "gnss-frequency-combinations",
+  );
+  const frequencyCases = [
+    "L1のみ → 1周波",
+    "L1 + L2 → 2周波",
+    "L1 + L5 → 2周波",
+    "L1 + L2 + L5 → 3周波",
+  ];
+  for (const expectedSummary of frequencyCases) {
+    assert(
+      await frequencyCombinations
+        .getByText(expectedSummary, { exact: true })
+        .isVisible(),
+      `${expectedSummary}が整理後の周波数表示にありません。`,
+    );
+  }
+
+  const noIonosphereInfluenceButton = frequencyCard.getByRole("button", {
+    name: "影響なし",
     exact: true,
   });
-  const l1L2FrequencyButton = frequencySelector.getByRole("button", {
-    name: "L1 + L2",
+  const hasIonosphereInfluenceButton = frequencyCard.getByRole("button", {
+    name: "影響あり",
     exact: true,
   });
-  await l1OnlyFrequencyButton.focus();
+  await noIonosphereInfluenceButton.focus();
   await page.keyboard.press("Tab");
   assert(
-    await l1L2FrequencyButton.evaluate(
+    await hasIonosphereInfluenceButton.evaluate(
       (element) => element === document.activeElement,
     ),
-    "第2章の周波数ボタン間をTabキーで移動できません。",
+    "第2章の電離層比較ボタン間をTabキーで移動できません。",
   );
   const observationsVisibleFocus = await hasVisibleKeyboardFocus(
-    l1L2FrequencyButton,
+    hasIonosphereInfluenceButton,
   );
   await page.keyboard.press("Enter");
   const observationsKeyboardOperation =
-    (await l1L2FrequencyButton.getAttribute("aria-pressed")) === "true";
+    (await hasIonosphereInfluenceButton.getAttribute("aria-pressed")) ===
+    "true";
   assert(
     observationsVisibleFocus && observationsKeyboardOperation,
-    "第2章の周波数ボタンを可視フォーカス付きでキーボード操作できません。",
+    "第2章の電離層比較を可視フォーカス付きでキーボード操作できません。",
   );
-  const frequencyCases = [
-    ["L1のみ", "L1のみ → 1周波"],
-    ["L1 + L2", "L1 + L2 → 2周波"],
-    ["L1 + L5", "L1 + L5 → 2周波"],
-    ["L1 + L2 + L5", "L1 + L2 + L5 → 3周波"],
-  ];
-  for (const [buttonName, expectedSummary] of frequencyCases) {
-    await frequencySelector
-      .getByRole("button", { name: buttonName, exact: true })
-      .click();
-    assert(
-      await frequencyCard.getByText(expectedSummary, { exact: true }).isVisible(),
-      `${buttonName}の周波数数が正しく表示されません。`,
-    );
-  }
-  await frequencyCard
-    .getByRole("button", { name: "影響あり", exact: true })
-    .click();
+  const frequencyCardText = await frequencyCard.innerText();
   assert(
     (await frequencyCard
       .getByText(/周波数ごとの差を利用し、電離層の影響を推定・低減/)
@@ -500,14 +556,49 @@ try {
       (await frequencyCard
         .getByText(/L1＝擬似距離、L2＝搬送波位相/)
         .isVisible()) &&
-      (await frequencyCard.getByText(/CLASではL6系の信号/).isVisible()),
-    "複数周波数、電離層、コード・搬送波、CLAS L6の説明が不足しています。",
+      (await frequencyCard.getByText(/CLASではL6系の信号/).isVisible()) &&
+      frequencyCardText.includes("従来から高精度な2周波GNSS") &&
+      frequencyCardText.includes("高い送信電力と広い帯域") &&
+      frequencyCardText.includes(
+        "L1 + L2もL1 + L5も、どちらも2周波観測です。",
+      ) &&
+      frequencyCardText.includes(
+        "L1 + L5だから必ずL1 + L2より高精度になる、という意味ではありません。",
+      ),
+    "複数周波数、電離層、L2・L5、コード・搬送波、CLAS L6の説明が不足しています。",
   );
 
   const multiGnssCard = page.getByTestId(
     "gnss-observations-multi-gnss-card",
   );
-  for (const systemLabel of ["QZSS", "Galileo", "BeiDou"]) {
+  const globalSystemTableText = await multiGnssCard
+    .getByTestId("gnss-global-system-table")
+    .innerText();
+  const multiGnssCardText = await multiGnssCard.innerText();
+  assert(
+    [
+      "GPS",
+      "アメリカ",
+      "1993年",
+      "GLONASS",
+      "ロシア",
+      "1995年",
+      "Galileo",
+      "EU",
+      "2016年",
+      "BeiDou",
+      "中国",
+      "2020年（BDS-3）",
+    ].every((expectedText) => globalSystemTableText.includes(expectedText)) &&
+      multiGnssCardText.includes("QZSS（みちびき）") &&
+      multiGnssCardText.includes(
+        "日本の地域衛星測位システム。2018年にサービス開始。",
+      ) &&
+      multiGnssCardText.includes("地域衛星測位システムNavIC") &&
+      multiGnssCardText.includes("インドとその周辺地域"),
+    "全球型4システム、QZSS、NavICの具体的な表示が不足しています。",
+  );
+  for (const systemLabel of ["GLONASS", "Galileo", "BeiDou", "QZSS"]) {
     await multiGnssCard
       .getByLabel(new RegExp(`^${systemLabel}`))
       .check();
@@ -523,7 +614,7 @@ try {
     .click();
   assert(
     (await multiGnssCard.getByText("multi GNSS", { exact: true }).isVisible()) &&
-      (await multiGnssCard.getByText("8機", { exact: true }).isVisible()) &&
+      (await multiGnssCard.getByText("10機", { exact: true }).isVisible()) &&
       (await multiGnssCard
         .getByText(/衛星数だけでなく衛星配置も重要/)
         .isVisible()) &&
@@ -542,6 +633,16 @@ try {
     "gnss-observations-q06-multi-gnss",
     "gnss-observations-q07-signal-combination",
   ];
+  const observationCorrectOptionIndexes = [1, 2, 0, 3, 1, 2, 0];
+  const observationCorrectOptionLetters = ["B", "C", "A", "D", "B", "C", "A"];
+  assert(
+    new Set(observationCorrectOptionLetters).size === 4 &&
+      observationCorrectOptionLetters.filter((letter) => letter === "A").length === 2 &&
+      observationCorrectOptionLetters.filter((letter) => letter === "B").length === 2 &&
+      observationCorrectOptionLetters.filter((letter) => letter === "C").length === 2 &&
+      observationCorrectOptionLetters.filter((letter) => letter === "D").length === 1,
+    "第2章7問の表示上の正答文字がA～Dへ分散していません。",
+  );
   const observationQuestionOne = page.getByTestId(
     `gnss-quiz-question-${observationQuestionIds[0]}`,
   );
@@ -572,17 +673,32 @@ try {
     "第2章問1の誤答固有理由と正解理由が最新形式で表示されません。",
   );
 
-  for (const questionId of observationQuestionIds) {
+  for (const [questionIndex, questionId] of observationQuestionIds.entries()) {
     const question = page.getByTestId(`gnss-quiz-question-${questionId}`);
-    await question.locator('input[type="radio"]').nth(1).check();
+    const correctOptionIndex = observationCorrectOptionIndexes[questionIndex];
+    const correctOptionLetter = observationCorrectOptionLetters[questionIndex];
+
+    assert(
+      correctOptionIndex !== undefined && correctOptionLetter !== undefined,
+      `${questionId}の正答位置データがありません。`,
+    );
+    await question
+      .locator('input[type="radio"]')
+      .nth(correctOptionIndex)
+      .check();
     await question
       .getByRole("button", { name: "回答を確認する", exact: true })
       .click();
     const feedback = question.locator(".gnss-quiz-feedback");
     assert(
       (await feedback.getByText("正解", { exact: true }).isVisible()) &&
-        (await feedback.getByText("正解：B", { exact: true }).isVisible()) &&
+        (await feedback
+          .getByText(`正解：${correctOptionLetter}`, { exact: true })
+          .isVisible()) &&
         (await feedback.locator(".gnss-quiz-selected-explanation").count()) === 0 &&
+        (await feedback
+          .getByRole("heading", { name: "解説", exact: true })
+          .isVisible()) &&
         !(await feedback.innerText()).includes("正答"),
       `${questionId}の正答表示または重複のない解説が正しくありません。`,
     );
@@ -614,9 +730,8 @@ try {
     (await observationsLesson.isVisible()) &&
       (await travelTimeSlider.inputValue()) === "85" &&
       (await carrierSlider.inputValue()) === "9.5" &&
-      (await frequencyCard
-        .getByText("L1 + L2 + L5 → 3周波", { exact: true })
-        .isVisible()) &&
+      (await hasIonosphereInfluenceButton.getAttribute("aria-pressed")) ===
+        "true" &&
       (await page
         .getByTestId(`gnss-quiz-question-${observationQuestionIds[6]}`)
         .getByText("正解", { exact: true })
@@ -662,10 +777,12 @@ try {
         .getByRole("button", { name: "現実のGNSS", exact: true })
         .getAttribute("aria-pressed")) === "true" &&
       (await carrierSlider.inputValue()) === "9.5" &&
-      (await ambiguityCard.getByText("FIX", { exact: true }).isVisible()) &&
-      (await frequencyCard
-        .getByText("L1 + L2 + L5 → 3周波", { exact: true })
+      (await ambiguityCard
+        .locator(".gnss-observations-fix-flow")
+        .getByText("FIX", { exact: true })
         .isVisible()) &&
+      (await hasIonosphereInfluenceButton.getAttribute("aria-pressed")) ===
+        "true" &&
       (await multiGnssCard.getByText("multi GNSS", { exact: true }).isVisible()) &&
       (await page
         .getByTestId(`gnss-quiz-question-${observationQuestionIds[6]}`)
@@ -740,6 +857,8 @@ try {
       (await frequencyCard
         .getByText("L1 + L2 + L5 → 3周波", { exact: true })
         .isVisible()) &&
+      (await hasIonosphereInfluenceButton.getAttribute("aria-pressed")) ===
+        "true" &&
       (await multiGnssCard.getByText("multi GNSS", { exact: true }).isVisible()) &&
       (await page
         .getByTestId(`gnss-quiz-question-${observationQuestionIds[6]}`)
@@ -811,9 +930,10 @@ try {
         .getByTestId("gnss-carrier-movement-slider")
         .inputValue()) === "5" &&
       (await reloadedFrequencyCard
-        .getByRole("button", { name: "L1のみ", exact: true })
+        .getByRole("button", { name: "影響なし", exact: true })
         .getAttribute("aria-pressed")) === "true" &&
       (await reloadedMultiGnssCard.getByLabel(/^GPS/).isChecked()) &&
+      !(await reloadedMultiGnssCard.getByLabel(/^GLONASS/).isChecked()) &&
       !(await reloadedMultiGnssCard.getByLabel(/QZSS/).isChecked()) &&
       (await page
         .getByTestId("gnss-observations-quiz-panel")

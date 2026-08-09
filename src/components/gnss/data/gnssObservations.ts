@@ -16,6 +16,22 @@ export const GNSS_L1_WAVELENGTH_CM = 19;
 export const GNSS_DEFAULT_TRAVEL_TIME_MS = 70;
 export const GNSS_GEOMETRIC_DISTANCE_KM = 21_000;
 export const GNSS_FRACTIONAL_PHASE = 0.35;
+export const GNSS_CLOCK_OFFSET_EXAMPLE_MICROSECONDS = 1;
+export const GNSS_CLOCK_OFFSET_EXAMPLE_DISTANCE_METERS =
+  GNSS_SIGNAL_SPEED_KM_PER_SECOND *
+  GNSS_CLOCK_OFFSET_EXAMPLE_MICROSECONDS *
+  0.001;
+export const GNSS_PSEUDORANGE_EXAMPLE_KM =
+  GNSS_GEOMETRIC_DISTANCE_KM +
+  GNSS_CLOCK_OFFSET_EXAMPLE_DISTANCE_METERS / 1000;
+export const GNSS_MODELED_INTEGER_WAVELENGTHS = 12;
+
+export const gnssSatelliteSignalFlow = [
+  "GNSS衛星",
+  "測位用の信号を継続的に送信",
+  "GNSS受信機",
+  "受信した信号を観測して位置を計算",
+] as const;
 
 export const gnssObservationConceptFlow = [
   "衛星",
@@ -122,42 +138,144 @@ export const gnssFrequencySelections = [
   },
 ] as const satisfies readonly GnssFrequencySelection[];
 
+export const gnssFrequencyCharacteristics = [
+  {
+    id: "l2",
+    label: "L2",
+    description:
+      "測量など、従来から高精度な2周波GNSSで利用されてきた周波数。L1と組み合わせた2周波観測は、高精度測位で長く利用されてきました。",
+  },
+  {
+    id: "l5",
+    label: "L5",
+    description:
+      "L2より新しい民生向け信号。高い送信電力と広い帯域を持ち、高い性能・信頼性が求められる用途を意識して設計されています。",
+  },
+] as const;
+
 export const gnssIntegerWavelengthCandidates = [10, 11, 12, 13] as const;
 
-export const gnssSystemDefinitions = [
+export const gnssIntegerResolutionFlow = [
+  {
+    id: "observe-multiple-satellites",
+    label: "複数衛星を観測",
+    description: "異なる方向の複数衛星から観測量を得る。",
+  },
+  {
+    id: "rough-position-from-code",
+    label: "擬似距離などから概略位置を求める",
+    description: "コード観測等で距離全体のおおよその関係をつかむ。",
+  },
+  {
+    id: "compare-carrier-phase",
+    label: "搬送波位相を比較・解析",
+    description: "細かな位相と、衛星・受信機間の観測関係を比較する。",
+  },
+  {
+    id: "narrow-integer-candidates",
+    label: "整数波長数の候補を絞る",
+    description: "観測結果に合わない整数候補を除いていく。",
+  },
+  {
+    id: "float",
+    label: "FLOAT",
+    description:
+      "整数アンビギュイティを整数としてまだ確定できていない状態",
+  },
+  {
+    id: "check-consistency",
+    label: "複数の観測結果の整合性を確認",
+    description: "候補を使った結果が観測全体と整合するか確認する。",
+  },
+  {
+    id: "fix",
+    label: "FIX",
+    description:
+      "整数アンビギュイティを整数値として固定解にできた状態",
+  },
+] as const;
+
+export const gnssFourSatelliteClarification = {
+  reason:
+    "基本的な3次元単独測位で4機以上の衛星を使う主な理由は、X・Y・Zと受信機時計ずれの4未知量を求めるためです。",
+  notMeaning:
+    "「4機あれば整数アンビギュイティが決定できる」という意味ではありません。",
+} as const;
+
+export const gnssGlobalSystemDefinitions = [
   {
     id: "gps",
     label: "GPS",
     shortLabel: "G",
+    coverage: "global",
+    countryOrRegion: "アメリカ",
+    description: "全球衛星測位システム",
+    serviceStartLabel: "1993年",
     openSatelliteCount: 6,
     obstructedSatelliteCount: 3,
-    note: "GPSという1つの衛星測位システム。",
+    note: "アメリカの全球衛星測位システム。",
   },
   {
-    id: "qzss",
-    label: "QZSS（みちびき）",
-    shortLabel: "Q",
-    openSatelliteCount: 2,
-    obstructedSatelliteCount: 1,
-    note: "日本付近で高仰角の衛星を利用しやすくすることを目的とした特徴を持つ。",
+    id: "glonass",
+    label: "GLONASS",
+    shortLabel: "R",
+    coverage: "global",
+    countryOrRegion: "ロシア",
+    description: "全球衛星測位システム",
+    serviceStartLabel: "1995年",
+    openSatelliteCount: 5,
+    obstructedSatelliteCount: 2,
+    note: "ロシアの全球衛星測位システム。",
   },
   {
     id: "galileo",
     label: "Galileo",
     shortLabel: "E",
+    coverage: "global",
+    countryOrRegion: "EU",
+    description: "全球衛星測位システム",
+    serviceStartLabel: "2016年",
     openSatelliteCount: 5,
     obstructedSatelliteCount: 2,
-    note: "GPSとは別の衛星測位システム。",
+    note: "EUの全球衛星測位システム。",
   },
   {
     id: "beidou",
     label: "BeiDou",
     shortLabel: "C",
+    coverage: "global",
+    countryOrRegion: "中国",
+    description: "全球衛星測位システム",
+    serviceStartLabel: "2020年（BDS-3）",
     openSatelliteCount: 4,
     obstructedSatelliteCount: 2,
-    note: "GPSやGalileoとは別の衛星測位システム。",
+    note: "中国の全球衛星測位システム。",
   },
 ] as const satisfies readonly GnssSystemDefinition[];
+
+export const gnssQzssSystemDefinition = {
+  id: "qzss",
+  label: "QZSS（みちびき）",
+  shortLabel: "Q",
+  coverage: "regional",
+  countryOrRegion: "日本",
+  description: "日本の地域衛星測位システム",
+  serviceStartLabel: "2018年",
+  openSatelliteCount: 2,
+  obstructedSatelliteCount: 1,
+  note: "日本の地域衛星測位システム。2018年にサービス開始。",
+} as const satisfies GnssSystemDefinition;
+
+export const gnssSystemDefinitions = [
+  ...gnssGlobalSystemDefinitions,
+  gnssQzssSystemDefinition,
+] as const satisfies readonly GnssSystemDefinition[];
+
+export const gnssSystemStartYearCaution =
+  "開始年は、初期運用・正式サービス・現在の全球システム開始などを理解するための目安です。";
+
+export const gnssNavicNote =
+  "インドには地域衛星測位システムNavICがあります。GPSのような全球型ではなく、インドとその周辺地域を主なサービス範囲とする地域型の衛星測位システムです。";
 
 export const gnssObservationsQuizQuestions = [
   {
@@ -209,16 +327,16 @@ export const gnssObservationsQuizQuestions = [
           "衛星が移動することだけが擬似距離という名称の理由ではありません。時計や大気など複数の影響を含みます。",
       },
       {
-        id: "includes-clock-atmosphere-effects",
-        label:
-          "時計ずれや大気等の影響を含み、真の幾何学的距離そのものとは限らない。",
-        incorrectReason: null,
-      },
-      {
         id: "only-one-satellite",
         label: "1機の衛星しか利用できないから。",
         incorrectReason:
           "擬似距離は複数衛星を利用するときにも得られる観測量であり、衛星数が1機だから仮の値になるのではありません。",
+      },
+      {
+        id: "includes-clock-atmosphere-effects",
+        label:
+          "時計ずれや大気等の影響を含み、真の幾何学的距離そのものとは限らない。",
+        incorrectReason: null,
       },
       {
         id: "code-always-temporary",
@@ -239,15 +357,15 @@ export const gnssObservationsQuizQuestions = [
     prompt: "搬送波位相の説明として最も適切なのはどれか。",
     options: [
       {
+        id: "position-within-carrier-cycle",
+        label: "搬送波の1周期の中で、波がどの位置にあるかを表す観測量。",
+        incorrectReason: null,
+      },
+      {
         id: "code-arrival-time-only",
         label: "コードが送信されてから届くまでの時刻だけを表す。",
         incorrectReason:
           "これはコードの到達タイミングに近い説明であり、搬送波の1周期内の位置を表す説明ではありません。",
-      },
-      {
-        id: "position-within-carrier-cycle",
-        label: "搬送波の1周期の中で、波がどの位置にあるかを表す観測量。",
-        incorrectReason: null,
       },
       {
         id: "transmitted-point-coordinate",
@@ -281,12 +399,6 @@ export const gnssObservationsQuizQuestions = [
           "本章で扱う主な難しさは、波長が毎秒大きく変わることではなく、開始時の整数波長数が未知なことです。",
       },
       {
-        id: "integer-wavelength-count-unknown",
-        label:
-          "1周期内の位相は観測できても、整数で何波長あるかが最初は分からないから。",
-        incorrectReason: null,
-      },
-      {
         id: "satellite-count-unknown",
         label: "衛星数そのものが分からないから。",
         incorrectReason:
@@ -297,6 +409,12 @@ export const gnssObservationsQuizQuestions = [
         label: "搬送波では電波を受信できないから。",
         incorrectReason:
           "受信機は搬送波を追尾して位相を観測できます。受信不能だから距離全体が分からないわけではありません。",
+      },
+      {
+        id: "integer-wavelength-count-unknown",
+        label:
+          "1周期内の位相は観測できても、整数で何波長あるかが最初は分からないから。",
+        incorrectReason: null,
       },
     ],
     correctOptionId: "integer-wavelength-count-unknown",
@@ -354,15 +472,15 @@ export const gnssObservationsQuizQuestions = [
           "衛星測位システムが3種類であることと、周波数が3種類であることは同じではありません。",
       },
       {
-        id: "multi-gnss-single-frequency",
-        label: "マルチGNSS・1周波観測。",
-        incorrectReason: null,
-      },
-      {
         id: "three-satellites-only",
         label: "3衛星だけの観測。",
         incorrectReason:
           "GPS・QZSS・Galileoは衛星系の名称であり、各衛星系に複数の衛星が含まれ得ます。衛星数を3機と断定できません。",
+      },
+      {
+        id: "multi-gnss-single-frequency",
+        label: "マルチGNSS・1周波観測。",
+        incorrectReason: null,
       },
       {
         id: "gps-only",
@@ -384,17 +502,17 @@ export const gnssObservationsQuizQuestions = [
       "受信機がGPSとQZSSを利用し、それぞれでL1とL2の信号を追尾して、コード観測と搬送波観測を行っている。最も適切な説明はどれか。",
     options: [
       {
+        id: "multi-gnss-dual-frequency-observables",
+        label:
+          "マルチGNSS・2周波観測で、擬似距離や搬送波位相等の観測量を利用している。",
+        incorrectReason: null,
+      },
+      {
         id: "single-gnss-single-frequency-direct-coordinate",
         label:
           "1つのGNSSを利用した1周波観測で、座標を直接受信している。",
         incorrectReason:
           "GPSとQZSSの2つの衛星系、L1とL2の2周波を利用しており、座標そのものを直接受信しているわけではありません。",
-      },
-      {
-        id: "multi-gnss-dual-frequency-observables",
-        label:
-          "マルチGNSS・2周波観測で、擬似距離や搬送波位相等の観測量を利用している。",
-        incorrectReason: null,
       },
       {
         id: "exactly-two-satellites",

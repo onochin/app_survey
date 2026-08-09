@@ -4384,6 +4384,37 @@ input[aria-invalid="true"] {
   line-height: 1.65;
 }
 
+.gnss-observations-communication-note {
+  display: grid;
+  gap: 8px;
+  padding: 15px;
+  margin-top: 13px;
+  color: var(--slate-700);
+  background: #f7fbff;
+  border: 1px solid #cfe2f2;
+  border-left: 5px solid var(--gnss-blue);
+  border-radius: 10px;
+}
+
+.gnss-observations-communication-note h3,
+.gnss-observations-communication-note p {
+  margin: 0;
+}
+
+.gnss-observations-communication-note h3 {
+  color: var(--gnss-navy);
+  font-size: 15px;
+}
+
+.gnss-observations-communication-note p {
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.gnss-observations-communication-note strong {
+  color: #0b5599;
+}
+
 .gnss-observations-premise,
 .gnss-observations-definition {
   padding: 12px 14px;
@@ -4725,6 +4756,67 @@ input[aria-invalid="true"] {
   white-space: nowrap;
 }
 
+.gnss-observations-pseudorange-example {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  margin-top: 14px;
+  color: var(--slate-700);
+  background: #fff8ec;
+  border: 1px solid #ecd6af;
+  border-radius: 10px;
+}
+
+.gnss-observations-pseudorange-example h3,
+.gnss-observations-pseudorange-example p {
+  margin: 0;
+}
+
+.gnss-observations-pseudorange-example h3 {
+  color: #704713;
+  font-size: 16px;
+}
+
+.gnss-observations-pseudorange-example dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gnss-observations-pseudorange-example dl > div {
+  display: grid;
+  gap: 5px;
+  padding: 11px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid #e6d8bf;
+  border-radius: 8px;
+}
+
+.gnss-observations-pseudorange-example dt {
+  color: var(--slate-600);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.gnss-observations-pseudorange-example dd {
+  margin: 0;
+  color: #9a5316;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.gnss-observations-pseudorange-example p,
+.gnss-observations-pseudorange-example > strong {
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.gnss-observations-pseudorange-example > strong {
+  color: #9b4e12;
+}
+
 .gnss-observations-reality-panel {
   margin-top: 14px;
 }
@@ -4985,6 +5077,87 @@ blockquote.gnss-observations-definition {
   border-color: #edd7b2;
 }
 
+.gnss-observations-ambiguity-resolution-flow {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 13px 0;
+  list-style: none;
+}
+
+.gnss-observations-ambiguity-resolution-flow li {
+  display: grid;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 11px 13px;
+  color: var(--slate-700);
+  background: #f8fafc;
+  border: 1px solid #dce4eb;
+  border-radius: 9px;
+  grid-template-columns: 30px minmax(0, 1fr);
+}
+
+.gnss-observations-ambiguity-resolution-flow li.is-state {
+  background: #eef6ff;
+  border-color: #b9d6ee;
+}
+
+.gnss-observations-ambiguity-resolution-flow li > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  color: var(--white);
+  background: var(--gnss-blue);
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.gnss-observations-ambiguity-resolution-flow li > div {
+  display: grid;
+  gap: 3px;
+}
+
+.gnss-observations-ambiguity-resolution-flow strong {
+  color: var(--gnss-navy);
+  font-size: 13px;
+}
+
+.gnss-observations-ambiguity-resolution-flow p {
+  margin: 0;
+  color: var(--slate-600);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.gnss-observations-ambiguity-resolution-flow b {
+  grid-column: 2;
+  color: var(--gnss-blue);
+  line-height: 1;
+}
+
+.gnss-observations-four-satellite-note {
+  display: grid;
+  gap: 7px;
+  padding: 14px;
+  color: var(--slate-700);
+  background: #f7fbff;
+  border: 1px solid #cfe2f2;
+  border-radius: 9px;
+}
+
+.gnss-observations-four-satellite-note p,
+.gnss-observations-four-satellite-note strong {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.gnss-observations-four-satellite-note strong {
+  color: #9b4e12;
+}
+
 .gnss-observations-fix-flow {
   display: grid;
   align-items: center;
@@ -5036,6 +5209,17 @@ blockquote.gnss-observations-definition {
   cursor: pointer;
   font-size: 12px;
   font-weight: 800;
+}
+
+.gnss-observations-fix-monitoring-note {
+  padding: 12px 14px;
+  margin: 12px 0 0;
+  color: #4e5f6c;
+  background: #f5f7f9;
+  border: 1px solid #dce3e9;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.65;
 }
 
 .gnss-observations-comparison-lab {
@@ -5251,6 +5435,34 @@ blockquote.gnss-observations-definition {
   line-height: 1.65;
 }
 
+.gnss-observations-frequency-combinations {
+  display: grid;
+  gap: 8px;
+  margin-top: 13px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.gnss-observations-frequency-combinations article {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #dce4eb;
+  border-radius: 8px;
+}
+
+.gnss-observations-frequency-combinations strong {
+  color: var(--gnss-navy);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+}
+
+.gnss-observations-frequency-combinations span {
+  color: #255f38;
+  font-size: 12px;
+  font-weight: 850;
+}
+
 .gnss-observations-ionosphere-lab {
   display: grid;
   align-items: center;
@@ -5342,6 +5554,52 @@ blockquote.gnss-observations-definition {
   font-size: 11px;
 }
 
+.gnss-observations-frequency-characteristics {
+  display: grid;
+  gap: 9px;
+  margin-top: 13px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gnss-observations-frequency-characteristics article {
+  padding: 13px;
+  background: #f7fbff;
+  border: 1px solid #cfe2f2;
+  border-radius: 9px;
+}
+
+.gnss-observations-frequency-characteristics h3 {
+  margin: 0 0 6px;
+  color: var(--gnss-navy);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 15px;
+}
+
+.gnss-observations-frequency-characteristics p {
+  margin: 0;
+  color: var(--slate-700);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.gnss-observations-frequency-caution {
+  display: grid;
+  gap: 6px;
+  padding: 13px;
+  margin-top: 12px;
+  color: #704713;
+  background: #fff8ec;
+  border: 1px solid #ecd6af;
+  border-radius: 9px;
+}
+
+.gnss-observations-frequency-caution p,
+.gnss-observations-frequency-caution strong {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .gnss-observations-frequency-observables {
   display: grid;
   gap: 8px;
@@ -5393,6 +5651,33 @@ blockquote.gnss-observations-definition {
   align-items: start;
   gap: 13px;
   grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+}
+
+.gnss-observations-regional-systems {
+  display: grid;
+  gap: 9px;
+  margin: 12px 0 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gnss-observations-regional-systems article {
+  padding: 13px;
+  background: #f8fafc;
+  border: 1px solid #dce4eb;
+  border-radius: 9px;
+}
+
+.gnss-observations-regional-systems h3 {
+  margin: 0 0 6px;
+  color: var(--gnss-navy);
+  font-size: 14px;
+}
+
+.gnss-observations-regional-systems p {
+  margin: 0;
+  color: var(--slate-700);
+  font-size: 12px;
+  line-height: 1.65;
 }
 
 .gnss-observations-system-controls fieldset {
@@ -5506,6 +5791,11 @@ blockquote.gnss-observations-definition {
 .gnss-observations-sky-satellite.is-qzss circle {
   fill: #73c98b;
   stroke: #246f3a;
+}
+
+.gnss-observations-sky-satellite.is-glonass circle {
+  fill: #ef9289;
+  stroke: #8b352f;
 }
 
 .gnss-observations-sky-satellite.is-galileo circle {
@@ -5873,6 +6163,10 @@ blockquote.gnss-observations-definition {
   .gnss-observations-frequency-lab,
   .gnss-observations-ionosphere-lab,
   .gnss-observations-system-controls,
+  .gnss-observations-pseudorange-example dl,
+  .gnss-observations-frequency-combinations,
+  .gnss-observations-frequency-characteristics,
+  .gnss-observations-regional-systems,
   .gnss-observations-frequency-vs-system,
   .gnss-observations-combination-examples,
   .gnss-observations-satellite-signal-contrast {

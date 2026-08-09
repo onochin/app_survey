@@ -135,7 +135,12 @@ export interface GnssFrequencySelection {
   readonly frequencyIds: readonly GnssFrequencyId[];
 }
 
-export type GnssSystemId = "gps" | "qzss" | "galileo" | "beidou";
+export type GnssSystemId =
+  | "gps"
+  | "glonass"
+  | "galileo"
+  | "beidou"
+  | "qzss";
 
 export type GnssObservationEnvironmentId = "open" | "mountain-forest";
 
@@ -145,6 +150,10 @@ export interface GnssSystemDefinition {
   readonly id: GnssSystemId;
   readonly label: string;
   readonly shortLabel: string;
+  readonly coverage: "global" | "regional";
+  readonly countryOrRegion: string;
+  readonly description: string;
+  readonly serviceStartLabel: string;
   readonly openSatelliteCount: number;
   readonly obstructedSatelliteCount: number;
   readonly note: string;
