@@ -85,7 +85,7 @@ export const gnssCoordinateHeightConceptFlow = [
 
 export const gnssCoordinateHeightSampleG0 = {
   id: "gnss-coordinate-height-g0",
-  name: "基準サンプル G0",
+  name: "日本付近の基準サンプル",
   horizontalPositionBasis: "日本経緯度原点の公表位置",
   latitude: {
     dms: "35°39′29.1572″ N",
@@ -127,6 +127,22 @@ export const gnssCoordinateHeightSampleG0 = {
     zc: 3_697_471.502,
     sourceKind: "教材派生値",
   },
+} as const;
+
+export const gnssPlaneCoordinateExplanation = {
+  origin:
+    "平面直角座標系IX系では、原点（緯度36°、経度139°50′）が X=0 m、Y=0 m です。",
+  xAxis: "X軸は北が正、南が負です。",
+  yAxis: "Y軸は東が正、西が負です。",
+  sample:
+    "日本付近の基準サンプルは原点の南西側にあるため、X<0、Y<0になります。",
+} as const;
+
+export const gnssEarthCenteredExplanation = {
+  origin: "地球の重心（地球中心）",
+  zPositiveDirection: "Z軸の正方向が北極方向",
+  notation:
+    "Xc・Yc・Zcの c は、center（中心）を思い出すための教材上の表記です。唯一の公式な座標記号という意味ではありません。",
 } as const;
 
 export function convertGeodeticToGrs80Ecef(
@@ -175,6 +191,7 @@ export function convertGeodeticToGrs80Ecef(
 function createEarthPositionPreset(
   id: GnssEarthPositionPresetId,
   label: string,
+  locationHint: string,
   latitudeDegrees: number,
   longitudeDegrees: number,
   ellipsoidHeightMeters: number,
@@ -184,6 +201,7 @@ function createEarthPositionPreset(
   return {
     id,
     label,
+    locationHint,
     latitudeDegrees,
     longitudeDegrees,
     ellipsoidHeightMeters,
@@ -201,15 +219,34 @@ function createEarthPositionPreset(
 export const gnssEarthPositionPresets = [
   createEarthPositionPreset(
     "japan",
-    "日本付近（G0）",
+    "日本付近の基準サンプル",
+    "緯度 約36°N / 経度 約140°E",
     gnssCoordinateHeightSampleG0.latitude.decimalDegrees,
     gnssCoordinateHeightSampleG0.longitude.decimalDegrees,
     gnssCoordinateHeightSampleG0.height.ellipsoidHeight,
     443,
     90,
   ),
-  createEarthPositionPreset("equator", "赤道付近（模式値）", 0, 0, 0, 480, 190),
-  createEarthPositionPreset("north", "北極寄り（模式値）", 75, 40, 0, 345, 54),
+  createEarthPositionPreset(
+    "equator",
+    "赤道付近（模式値）",
+    "緯度 約0°",
+    0,
+    0,
+    0,
+    480,
+    190,
+  ),
+  createEarthPositionPreset(
+    "north",
+    "北極寄り（模式値）",
+    "緯度 約80°N / 北極は90°N",
+    80,
+    40,
+    0,
+    345,
+    54,
+  ),
 ] as const;
 
 export function getGnssEarthPositionPreset(
@@ -221,19 +258,23 @@ export function getGnssEarthPositionPreset(
 }
 
 export const gnssDatumRelationship = {
-  flow: ["ITRF", "JGD2024", "GRS80楕円体"],
-  itrf: "世界規模の位置の基準",
+  flow: ["ITRF（世界規模の基準枠）", "JGD2024（日本の測地基準）", "測量成果"],
+  itrf: "世界規模で位置を表すための基準枠（地心座標系）",
   jgd2024:
-    "日本で測量成果を扱う現在の測地系。ITRFに基づき、GRS80楕円体を採用する。",
+    "日本で測量成果を扱う現在の測地基準。ITRFに基づき、GRS80楕円体を採用する。",
+  grs80:
+    "緯度・経度・楕円体高を表すときに基準とする地球の形（準拠楕円体）。ITRFやJGD2024とは役割が異なる。",
+  conceptNote:
+    "ITRFは世界規模の基準枠、JGD2024は日本の測地基準、GRS80は地球の形を近似する準拠楕円体です。同じ概念の別名ではありません。",
   succession:
     "JGD2011からJGD2024への名称変更は測地系の定義自体を変更したものではなく、水平位置の緯度・経度と平面直角座標成果は引き継がれている。",
   wgs84:
-    "WGS84はGPSで使用される座標系。JGD2024と名称・役割・定義が同じものではないが、GNSSの多くの座標系はITRFと整合するよう維持され、実用上非常に近い関係にある。",
+    "WGS84はGPSで使用される座標系。JGD2024と名称・役割・定義が同じ測地系ではないが、GNSSの多くの座標系はITRFと整合するよう維持され、実用上非常に近い関係にある。",
 } as const;
 
 export const gnssEpochReference = {
-  originalEpochDefinition: "公表成果の基準となる時点",
-  currentEpochDefinition: "実際に観測した時点",
+  originalEpochDefinition: "成果基準時点（公表成果の基準となる時点）",
+  currentEpochDefinition: "観測時点（実際に観測した時点）",
   horizontalExample: {
     area: "東京都本土等の水平位置成果",
     referenceDate: "2011年5月24日",
@@ -242,7 +283,14 @@ export const gnssEpochReference = {
     area: "JGD2024の標高成果",
     referenceDate: "2024年6月1日",
   },
-  jgd2024Caution: "JGD2024 ≠ すべての座標の元期が2024年",
+  jgd2024Caution:
+    "測地系と時点は別の情報です。JGD2011が元期、JGD2024が今期という意味ではありません。",
+  alignmentPurpose:
+    "地面は実際に動くため、元期へそろえる操作は『元期の値が常に真値』だからではなく、国家座標や既知の測量成果と同じ基準時点で比較するために行います。",
+  applicabilityNote:
+    "セミ・ダイナミック補正を行うかどうかは、測量の種類、作業規程、使用する成果などの条件で判断します。常に同じ補正を行うわけではありません。",
+  movementAndCorrectionNote:
+    "元期から今期への移動量と、今期から元期へ戻す補正量は向きが逆なので、符号も逆になります。",
   semiDynamicNote:
     "セミ・ダイナミック補正は、異なる時点の高精度座標を同じ時点へそろえるための仕組みです。",
 } as const;
@@ -253,6 +301,7 @@ export const gnssVirtualEpochPointT1 = {
   originalEpoch: { x: 1000.0, y: 1000.0 },
   currentEpoch: { x: 1000.035, y: 999.982 },
   difference: { x: 0.035, y: -0.018 },
+  correctionToOriginal: { x: -0.035, y: 0.018 },
   sourceKind: "仮想値",
   note:
     "地殻変動を視覚的に理解するための仮想値であり、実在地点の変動量ではありません。",
@@ -319,6 +368,24 @@ export const gnssAntennaHeightExample = {
     "アンテナを鉛直に設置した場合の理解用単純モデルです。実際の高精度GNSSではアンテナ基準位置・位相中心補正等も関係します。",
 } as const;
 
+export const gnssAntennaPointRelationship = [
+  {
+    id: "antenna-reference-position",
+    label: "アンテナ基準点の位置",
+    note: "GNSSで求める位置",
+  },
+  {
+    id: "antenna-height",
+    label: "アンテナ高 2.000 m",
+    note: "正確に記録・設定する",
+  },
+  {
+    id: "ground-point-p1",
+    label: "地上の測点 P1",
+    note: "アンテナ高を用いて対応づける",
+  },
+] as const;
+
 export function calculateGnssPointHeightFromAntenna(
   antennaPositionHeight: number,
   inputAntennaHeight: number,
@@ -333,119 +400,125 @@ export function calculateGnssPointHeightFromAntenna(
   return antennaPositionHeight - inputAntennaHeight;
 }
 
-export const gnssFinalIssueCases = [
+export const gnssFinalReviewRows = [
   {
-    id: "wrong-plane-zone",
-    label: "系番号ミス",
-    lines: ["FIX ✓", "JGD2024 ✓", "第VIII系 ×", "本来：第IX系"],
-    message: "同じ地点でも、別の系を指定するとX・Yの数値が変わります。",
+    id: "datum",
+    label: "測地系",
+    check: "基準局・既知点・成果で同じ測地系を使っているか",
   },
   {
-    id: "epoch-unchecked",
-    label: "元期・今期未確認",
-    lines: ["既知点成果：元期", "GNSS観測：今期", "そのまま比較 ×"],
-    message: "比較する座標の時点をそろえる必要があります。",
+    id: "plane-zone",
+    label: "平面直角座標系",
+    check: "成果と同じ系番号を選んでいるか",
   },
   {
-    id: "ellipsoid-as-elevation",
-    label: "楕円体高を標高として使用",
-    lines: ["FIX ✓", "G0の楕円体高 63.3853 m", "標高として登録 ×"],
-    message: "G0で確認したとおり、楕円体高と標高は基準面が異なります。",
+    id: "coordinate-epoch",
+    label: "座標の時点",
+    check: "元期と今期を取り違えていないか",
   },
   {
-    id: "geoid-unchecked",
-    label: "ジオイド未確認",
-    lines: ["高さの種類：未確認", "ジオイド・モデル：？？？", "標高：？？？"],
-    message: "高さの種類と、標高換算に用いるジオイド・モデルを確認します。",
+    id: "height-type",
+    label: "高さの種類",
+    check: "楕円体高 h と標高 H を混同していないか",
   },
   {
-    id: "wrong-antenna-height",
-    label: "アンテナ高誤入力",
-    lines: ["FIX ✓", "正しいアンテナ高 2.000 m", "入力値 2.100 m ×"],
-    message: "P1の単純モデルでは、高さ成果が10 cm低くなります。",
+    id: "height-basis",
+    label: "高さの基準・ジオイド",
+    check: "使用する標高体系とジオイド・モデルが適切か",
   },
-] as const;
-
-export const gnssFinalQualityChecks = [
-  { id: "datum", label: "測地系", value: "JGD2024" },
-  { id: "plane-zone", label: "系番号", value: "第IX系" },
-  { id: "coordinate-epoch", label: "座標の時点", value: "確認済み" },
-  { id: "height-type", label: "高さの種類", value: "標高" },
-  { id: "geoid-model", label: "ジオイドモデル", value: "確認済み" },
-  { id: "antenna-height", label: "アンテナ高", value: "確認済み" },
+  {
+    id: "antenna-height",
+    label: "アンテナ高",
+    check: "測定方法、入力値、単位が正しいか",
+  },
+  {
+    id: "base-coordinate",
+    label: "基準局座標",
+    check: "基準局に正しい座標を設定しているか",
+  },
+  {
+    id: "known-point",
+    label: "既知点・再観測",
+    check: "既知点や再観測で成果との整合を確かめたか",
+  },
+  {
+    id: "environment",
+    label: "観測環境",
+    check: "上空視界、反射源、通信、固定状態に問題がないか",
+  },
 ] as const;
 
 export const gnssCoordinateHeightQuizQuestions = [
   {
     id: "gnss-coordinate-height-q01-same-position",
     questionType: "仕組み理解",
-    prompt:
-      "同じ地点P1について、地心直交座標Xc・Yc・Zcと、緯度・経度・楕円体高が表示されている。最も適切な説明はどれか。",
+    prompt: "地心直交座標 Xc・Yc・Zc の原点はどこですか。",
     options: [
       {
-        id: "different-points",
-        label: "それぞれ別の地点を示している。",
+        id: "north-pole-origin",
+        label: "北極",
         incorrectReason:
-          "座標表現を切り替えても対象地点P1は同じです。数値の組と基準が変わります。",
+          "北極はZ軸の正方向を示しますが、座標の原点ではありません。",
       },
       {
-        id: "same-position-different-representations",
-        label: "同じ地点を異なる座標の表し方で示している。",
+        id: "japanese-origin",
+        label: "日本経緯度原点",
+        incorrectReason:
+          "日本経緯度原点は日本の測量で重要な原点ですが、地心直交座標の原点ではありません。",
+      },
+      {
+        id: "earth-center-origin",
+        label: "地球の重心（地球中心）",
         incorrectReason: null,
       },
       {
-        id: "ecef-is-plane-plus-height",
-        label: "Xc・Yc・Zcは平面直角座標X・Yに高さを加えただけである。",
+        id: "equator-japan-longitude-intersection",
+        label: "赤道と日本の経度が交わる地点",
         incorrectReason:
-          "Xc・Yc・Zcは地球中心を原点とする地心直交座標で、地域ごとの平面直角座標X・Yとは別です。",
-      },
-      {
-        id: "gnss-only-latitude-longitude",
-        label: "GNSSでは緯度・経度しか求められない。",
-        incorrectReason:
-          "GNSSの位置は3次元で扱え、緯度・経度・楕円体高や地心直交座標で表せます。",
+          "赤道上の地点はX軸やY軸の方向を考える手掛かりになりますが、原点ではありません。",
       },
     ],
-    correctOptionId: "same-position-different-representations",
+    correctOptionId: "earth-center-origin",
     correctReason:
-      "地心直交座標と、緯度・経度・楕円体高は、同じ3次元位置を異なる座標表現で示すことができます。",
+      "地心直交座標は、地球の重心（地球中心）を原点にします。北極はZ軸の正方向です。",
     fieldCheck:
-      "座標値だけでなく、座標の種類、測地系、高さの種類を一緒に記録します。",
+      "地心直交座標と平面直角座標では、原点と軸の向きが異なることを確認します。",
   },
   {
     id: "gnss-coordinate-height-q02-plane-system",
     questionType: "品質管理",
     prompt:
-      "P1の緯度・経度は正しいが、平面直角座標へ変換するときに本来の第IX系ではなく別の系を指定した。最も適切な説明はどれか。",
+      "平面直角座標系IX系の原点（緯度36°、経度139°50′）から見て南西側にある地点のX・Yの符号はどれですか。",
     options: [
       {
-        id: "point-moves-to-new-place",
-        label: "P1そのものが別の場所へ移動する。",
+        id: "north-east-positive",
+        label: "X>0、Y>0",
         incorrectReason:
-          "地点は移動しません。同じ地点を異なる投影条件で数値化するため、X・Yが変わります。",
+          "X>0は北側、Y>0は東側を表すため、北東側の符号です。",
       },
       {
-        id: "zone-is-display-name-only",
-        label: "系番号は表示上の名称だけなのでX・Yには影響しない。",
+        id: "north-west-signs",
+        label: "X>0、Y<0",
         incorrectReason:
-          "系番号ごとに原点や投影条件が定められているため、X・Yへ影響します。",
+          "X>0は北側、Y<0は西側を表すため、北西側の符号です。",
       },
       {
-        id: "xy-changes-with-plane-system",
-        label: "同じP1でも、使用する座標系の原点等が異なるためX・Yの値が変わる。",
+        id: "south-east-signs",
+        label: "X<0、Y>0",
+        incorrectReason:
+          "X<0は南側、Y>0は東側を表すため、南東側の符号です。",
+      },
+      {
+        id: "south-west-negative",
+        label: "X<0、Y<0",
         incorrectReason: null,
       },
-      {
-        id: "fix-corrects-zone",
-        label: "FIXしていれば正しい系番号へ自動修正される。",
-        incorrectReason:
-          "FIXは測位解の状態であり、利用者が選ぶ平面直角座標の系番号までは保証しません。",
-      },
     ],
-    correctOptionId: "xy-changes-with-plane-system",
+    correctOptionId: "south-west-negative",
     correctReason:
-      "同じ緯度・経度でも、平面直角座標系の系番号を変えると原点等が変わるため、X・Yの数値が変わります。",
-    fieldCheck: "成果地域に適した平面直角座標系と系番号を確認します。",
+      "X軸は北が正、Y軸は東が正なので、原点の南西側ではXとYがともに負になります。日本付近の基準サンプルはX=-37928.1965 m、Y=-8327.6987 mです。",
+    fieldCheck:
+      "成果地域に適した系番号に加え、原点とX・Y軸の向きを確認します。",
   },
   {
     id: "gnss-coordinate-height-q03-jgd2024",

@@ -812,6 +812,8 @@ try {
   const earthCenteredCardText = await earthCenteredCard.innerText();
   assert(
     [
+      "日本付近の基準サンプル",
+      "緯度 約36°N / 経度 約140°E",
       "Xc",
       "Yc",
       "Zc",
@@ -819,9 +821,12 @@ try {
       "3352854.354 m",
       "3697471.502 m",
       "教材派生値",
+      "地球の重心（地球中心）",
+      "Z軸の正方向が北極方向",
+      "唯一の公式な座標記号という意味ではありません",
       "地心直交座標Xc・Yc・Zcと、日本の平面直角座標X・Yは別の座標です。",
     ].every((expectedText) => earthCenteredCardText.includes(expectedText)),
-    "カード2のG0地心直交座標、出典区分、平面直角座標との区別が不足しています。",
+    "カード2の地心原点、位置目安、Z軸方向、平面直角座標との区別が不足しています。",
   );
 
   const geodeticCard = page.getByTestId("gnss-geodetic-card");
@@ -847,7 +852,7 @@ try {
         "35°39′29.1572″ N",
         "139°44′28.8869″ E",
         "63.3853 m",
-        "数値の表し方が変わっただけで、G0が別の地点へ移動したわけではありません。",
+        "数値の表し方が変わっただけで、日本付近の基準サンプルが別の地点へ移動したわけではありません。",
       ].every((expectedText) => geodeticCardText.includes(expectedText)),
     "カード3の座標表現切替または可視フォーカス付きキーボード操作が正しくありません。",
   );
@@ -856,12 +861,29 @@ try {
   const planeZoneNineText = await planeCoordinateCard
     .getByTestId("gnss-plane-zone-9-result")
     .innerText();
+  const planeCoordinateCardText = await planeCoordinateCard.innerText();
   assert(
     planeZoneNineText.includes("X = -37928.1965 m") &&
       planeZoneNineText.includes("Y = -8327.6987 m") &&
       planeZoneNineText.includes("確認済み換算値") &&
-      planeZoneNineText.includes("X：北方向が正、Y：東方向が正"),
-    "カード4に第IX系の確認済みX・Yまたは方向規約が表示されません。",
+      planeZoneNineText.includes("X：北方向が正、Y：東方向が正") &&
+      (await planeCoordinateCard
+        .getByTestId("gnss-plane-axis-diagram")
+        .isVisible()) &&
+      [
+        "原点 X=0、Y=0",
+        "北 X+",
+        "南 X−",
+        "東 Y+",
+        "西 Y−",
+        "IX系原点：緯度36°、経度139°50′",
+        "X軸は北が正、南が負です。",
+        "Y軸は東が正、西が負です。",
+        "X<0、Y<0",
+      ].every((expectedText) =>
+        planeCoordinateCardText.includes(expectedText),
+      ),
+    "カード4に第IX系の原点、軸方向、南西側の確認済みX・Yが表示されません。",
   );
   await planeCoordinateCard.getByTestId("gnss-plane-system-other-zone").click();
   assert(
@@ -880,8 +902,10 @@ try {
   assert(
     [
       "日本測地系2024（JGD2024）",
-      "ITRF",
-      "GRS80楕円体",
+      "ITRF（世界規模の基準枠）",
+      "JGD2024（日本の測地基準）",
+      "GRS80は地球の形を近似する準拠楕円体",
+      "同じ概念の別名ではありません",
       "WGS84",
       "WGS84 = JGD2024 と同一視しません。",
       "水平位置の緯度・経度と平面直角座標成果は引き継がれている",
@@ -893,27 +917,76 @@ try {
   const epochCardText = await epochCard.innerText();
   assert(
     [
-      "公表成果の基準となる時点",
-      "実際に観測した時点",
-      "JGD2024 ≠ すべての座標の元期が2024年",
+      "成果基準時点（公表成果の基準となる時点）",
+      "観測時点（実際に観測した時点）",
+      "JGD2011が元期、JGD2024が今期という意味ではありません",
       "2011年5月24日",
       "2024年6月1日",
+      "1000.000 m",
       "1000.035 m",
       "999.982 m",
       "+0.035 m",
       "-0.018 m",
+      "元期 → 今期の実際の移動量",
+      "今期 → 元期へ戻す補正量",
+      "-0.035 m",
+      "+0.018 m",
+      "地面は実際に動く",
+      "常に同じ補正を行うわけではありません",
       "実在地点の変動量ではありません",
     ].every((expectedText) => epochCardText.includes(expectedText)),
     "カード6の元期・今期、実際の基準日例、T1仮想変位が不足しています。",
   );
-  await epochCard.getByTestId("gnss-epoch-aligned").click();
+  const unalignedAdoptedCoordinateText = await epochCard
+    .getByTestId("gnss-epoch-adopted-coordinate")
+    .innerText();
   assert(
-    await epochCard.getByText("✓ 同じ基準時点で比較", { exact: true }).isVisible(),
-    "カード6で元期へそろえた状態に切り替えられません。",
+    unalignedAdoptedCoordinateText.includes("今期の観測値") &&
+      unalignedAdoptedCoordinateText.includes("1000.035 m") &&
+      unalignedAdoptedCoordinateText.includes("999.982 m") &&
+      unalignedAdoptedCoordinateText.includes(
+        "× 今期の値のままでは元期成果と時点がそろわない",
+      ),
+    "カード6の時点未整合時に、採用座標が今期値として表示されません。",
+  );
+  await epochCard.getByTestId("gnss-epoch-aligned").click();
+  const alignedAdoptedCoordinateText = await epochCard
+    .getByTestId("gnss-epoch-adopted-coordinate")
+    .innerText();
+  assert(
+    alignedAdoptedCoordinateText.includes("元期へそろえた値") &&
+      alignedAdoptedCoordinateText.includes("採用 X\n1000.000 m") &&
+      alignedAdoptedCoordinateText.includes("採用 Y\n1000.000 m") &&
+      alignedAdoptedCoordinateText.includes(
+        "✓ 国家座標・既知成果と同じ元期で比較",
+      ),
+    "カード6で元期へそろえた採用座標を数値表示できません。",
   );
 
   const heightReferenceCard = page.getByTestId("gnss-height-reference-card");
+  const heightDiagram = heightReferenceCard.locator(
+    ".gnss-coordinate-height-diagram svg",
+  );
+  const getHeightDiagramFixedGeometry = () =>
+    heightDiagram.evaluate((diagram) => {
+      const point = diagram.querySelector(".gnss-coordinate-point");
+      const surface = diagram.querySelector(".gnss-coordinate-surface");
+      const geoid = diagram.querySelector(".gnss-coordinate-geoid");
+      const ellipsoid = diagram.querySelector(
+        ".gnss-coordinate-ellipsoid-line",
+      );
+
+      return {
+        pointCx: point?.getAttribute("cx"),
+        pointCy: point?.getAttribute("cy"),
+        surfacePath: surface?.getAttribute("d"),
+        geoidPath: geoid?.getAttribute("d"),
+        ellipsoidPath: ellipsoid?.getAttribute("d"),
+      };
+    });
+  const heightGeometryBefore = await getHeightDiagramFixedGeometry();
   await heightReferenceCard.getByTestId("gnss-height-reference-elevation").click();
+  const heightGeometryAfter = await getHeightDiagramFixedGeometry();
   assert(
     (await heightReferenceCard
       .getByText("標高 26.6800 m", { exact: true })
@@ -922,9 +995,13 @@ try {
         .getByText(/平均海面と整合する、重力を考慮した高さの基準面/)
         .isVisible()) &&
       (await heightReferenceCard
-        .getByText(/楕円体高と標高は、同じG0までの高さでも基準面が異なります/)
-        .isVisible()),
-    "カード7で高さ基準面を標高へ切り替えられません。",
+        .getByText(/楕円体高と標高は、同じP1までの高さでも基準面が異なります/)
+        .isVisible()) &&
+      (await heightReferenceCard
+        .getByText("P1（位置は固定）", { exact: true })
+        .isVisible()) &&
+      JSON.stringify(heightGeometryAfter) === JSON.stringify(heightGeometryBefore),
+    "カード7で高さ表示を切り替えたときにP1または3つの基準面が動きました。",
   );
 
   const heightConversionCard = page.getByTestId("gnss-height-conversion-card");
@@ -939,8 +1016,11 @@ try {
         .isVisible()) &&
       (await heightConversionCard
         .getByText(/ジオイド高36.7053 mはP1の高さそのものではなく/)
+        .isVisible()) &&
+      (await heightConversionCard
+        .getByText("H = h - N", { exact: true })
         .isVisible()),
-    "カード8でジオイド適用後の標高とモデルを確認できません。",
+    "カード8でジオイド適用後の標高、モデル、H = h - Nを確認できません。",
   );
   await heightConversionCard.getByTestId("gnss-height-conversion-misused").click();
   assert(
@@ -953,44 +1033,50 @@ try {
   );
 
   const antennaCard = page.getByTestId("gnss-antenna-card");
-  await antennaCard.getByTestId("gnss-antenna-height-2-1").click();
-  const antennaResultText = await antennaCard
-    .getByTestId("gnss-antenna-result")
-    .innerText();
+  const antennaCardText = await antennaCard.innerText();
   assert(
-    antennaResultText.includes("2.100 m") &&
-      antennaResultText.includes("49.732 m") &&
-      antennaResultText.includes("-0.100 m") &&
-      antennaResultText.includes("10 cm低いP1標高") &&
+    (await antennaCard.getByTestId("gnss-antenna-height-selector").count()) === 0 &&
+      !antennaCardText.includes("2.100 m") &&
+      [
+        "アンテナ基準点の位置",
+        "アンテナ高 2.000 m",
+        "地上の測点 P1",
+        "正確に記録・設定する",
+      ].every((expectedText) => antennaCardText.includes(expectedText)) &&
+      (await antennaCard.getByTestId("gnss-antenna-static-flow").isVisible()) &&
       (await antennaCard
         .getByText(/アンテナ基準位置・位相中心補正等も関係/)
         .isVisible()),
-    "カード9で2.100m誤入力と10cmの高さ影響を表示できません。",
+    "カード9の誤入力比較が残っているか、静的なアンテナ位置→アンテナ高→測点位置の関係が不足しています。",
   );
 
   const finalCheckCard = page.getByTestId("gnss-final-check-card");
-  await finalCheckCard
-    .getByTestId("gnss-final-issue-wrong-antenna-height")
-    .click();
-  assert(
-    (await finalCheckCard
-      .getByTestId("gnss-final-issue-result")
-      .getByText("測位状態はFIXのままです。", { exact: true })
-      .isVisible()) &&
-      (await finalCheckCard
-        .getByTestId("gnss-final-issue-result")
-        .getByText("入力値 2.100 m ×", { exact: true })
-        .isVisible()),
-    "カード10でFIXのままアンテナ高誤入力を表示できません。",
+  const finalReviewTable = finalCheckCard.getByTestId(
+    "gnss-final-review-table",
   );
-  await finalCheckCard.getByTestId("gnss-final-check-all").click();
+  const finalReviewText = await finalReviewTable.innerText();
   assert(
-    (await finalCheckCard
-      .getByText("✓ FIXと6つの成果条件を確認しました。", { exact: true })
-      .isVisible()) &&
-      (await finalCheckCard.locator('.gnss-coordinate-quality-grid [aria-pressed="true"]').count()) ===
-        6,
-    "カード10で全成果条件を正しい状態へできません。",
+    (await finalReviewTable.locator("tbody tr").count()) === 9 &&
+      [
+        "測地系",
+        "平面直角座標系",
+        "座標の時点",
+        "高さの種類",
+        "高さの基準・ジオイド",
+        "アンテナ高",
+        "基準局座標",
+        "既知点・再観測",
+        "観測環境",
+      ].every((expectedText) => finalReviewText.includes(expectedText)) &&
+      (await finalCheckCard.getByTestId("gnss-final-issue-selector").count()) === 0 &&
+      (await finalCheckCard.getByTestId("gnss-final-check-all").count()) === 0 &&
+      (await finalCheckCard.getByTestId("gnss-final-quality-grid").count()) === 0 &&
+      (await finalCheckCard
+        .getByText("FIXしていることと、成果条件が正しいことは別。", {
+          exact: true,
+        })
+        .isVisible()),
+    "カード10が9項目の静的確認表になっていないか、旧確認ボタンが残っています。",
   );
 
   const coordinateHeightQuestionIds = [
@@ -1003,8 +1089,8 @@ try {
     "gnss-coordinate-height-q07-antenna-height",
     "gnss-coordinate-height-q08-final-quality-check",
   ];
-  const coordinateHeightCorrectOptionIndexes = [1, 2, 0, 3, 1, 2, 0, 3];
-  const coordinateHeightCorrectOptionLetters = ["B", "C", "A", "D", "B", "C", "A", "D"];
+  const coordinateHeightCorrectOptionIndexes = [2, 3, 0, 3, 1, 2, 0, 3];
+  const coordinateHeightCorrectOptionLetters = ["C", "D", "A", "D", "B", "C", "A", "D"];
   assert(
     new Set(coordinateHeightCorrectOptionLetters).size === 4,
     "第3章8問の表示上の正答文字がA～Dへ分散していません。",
@@ -1023,15 +1109,35 @@ try {
       .getByText("不正解", { exact: true })
       .isVisible()) &&
       (await coordinateHeightQuestionOneFeedback
-        .getByText("正解：B", { exact: true })
+        .getByText("正解：C", { exact: true })
         .isVisible()) &&
       (await coordinateHeightQuestionOneFeedback
         .getByRole("heading", { name: "Aを選んだ場合の解説", exact: true })
         .isVisible()) &&
       (await coordinateHeightQuestionOneFeedback
-        .getByText(/座標表現を切り替えても対象地点P1は同じ/)
+        .getByText(/北極はZ軸の正方向を示しますが、座標の原点ではありません/)
         .isVisible()),
     "第3章問1の誤答固有理由と正解文字が表示されません。",
+  );
+  const coordinateHeightQuestionTwo = page.getByTestId(
+    `gnss-quiz-question-${coordinateHeightQuestionIds[1]}`,
+  );
+  const coordinateHeightQuestionTwoText =
+    await coordinateHeightQuestionTwo.innerText();
+  const coordinateHeightQuestionTwoCorrectLabel =
+    coordinateHeightQuestionTwo.locator("fieldset label").nth(3);
+  assert(
+    coordinateHeightQuestionTwoText.includes(
+      "原点（緯度36°、経度139°50′）から見て南西側",
+    ) &&
+      (await coordinateHeightQuestionTwoCorrectLabel
+        .locator(".gnss-option-letter")
+        .getByText("D", { exact: true })
+        .isVisible()) &&
+      (await coordinateHeightQuestionTwoCorrectLabel
+        .getByText("X<0、Y<0", { exact: true })
+        .isVisible()),
+    "第3章問2に第IX系原点の南西側と表示上の選択肢Dがありません。",
   );
 
   for (const [questionIndex, questionId] of coordinateHeightQuestionIds.entries()) {
@@ -1429,13 +1535,8 @@ try {
       (await heightConversionCard
         .getByTestId("gnss-height-conversion-misused")
         .getAttribute("aria-pressed")) === "true" &&
-      (await antennaCard
-        .getByTestId("gnss-antenna-height-2-1")
-        .getAttribute("aria-pressed")) === "true" &&
-      (await finalCheckCard
-        .getByTestId("gnss-final-quality-status")
-        .getByText("✓ FIXと6つの成果条件を確認しました。", { exact: true })
-        .isVisible()) &&
+      (await antennaCard.getByTestId("gnss-antenna-static-flow").isVisible()) &&
+      (await finalReviewTable.locator("tbody tr").count()) === 9 &&
       (await page
         .getByTestId(
           `gnss-quiz-question-${coordinateHeightQuestionIds[7]}`,
@@ -1459,18 +1560,21 @@ try {
     "GNSS章往復後に第4章の操作・候補・問題状態が保持されません。",
   );
 
+  await chapterThreeNavigationButton.click();
   const desktopMetrics = await getPageMetrics(page);
   assert(
-    desktopMetrics.scrollWidth <= desktopMetrics.clientWidth,
+    (await coordinateHeightLesson.isVisible()) &&
+      desktopMetrics.scrollWidth <= desktopMetrics.clientWidth,
     `GNSS教材が1366px幅で横方向にはみ出しています: ${JSON.stringify(desktopMetrics)}`,
   );
 
   if (saveScreenshots) {
     await page.screenshot({
       fullPage: true,
-      path: "/tmp/gnss-phase4-1366.png",
+      path: "/tmp/gnss-phase3-correction-1366.png",
     });
   }
+  await chapterFourNavigationButton.click();
 
   await page.getByRole("button", { name: "測量の基礎", exact: true }).click();
   assert(
@@ -1566,6 +1670,28 @@ try {
     "390px幅の教材切替が3教材ではありません。",
   );
 
+  assert(
+    (await positioningMethodsLesson.isVisible()) &&
+      (await offsetBaseCoordinateButton.getAttribute("aria-pressed")) === "true" &&
+      (await candidatePanel.locator('[data-candidate-id="clas"]').isVisible()) &&
+      (await page
+        .getByTestId(
+          `gnss-quiz-question-${positioningQuestionIds[7]}`,
+        )
+        .getByText("正解", { exact: true })
+        .isVisible()),
+    "390px幅で第4章の自前RTK・候補選定または確認問題結果を表示できません。",
+  );
+  await chapterThreeNavigationButton.click();
+  assert(
+    (await coordinateHeightLesson.isVisible()) &&
+      (await heightReferenceCard
+        .getByText("P1（位置は固定）", { exact: true })
+        .isVisible()) &&
+      (await finalReviewTable.locator("tbody tr").count()) === 9,
+    "390px幅で第3章の固定P1図または9項目確認表を表示できません。",
+  );
+
   const mobileMetrics = await getPageMetrics(page);
   const mobileOverflowElements = await page.evaluate(() =>
     Array.from(document.querySelectorAll(".gnss-page, .gnss-page *"))
@@ -1601,19 +1727,6 @@ try {
     mobileMetrics.scrollWidth <= mobileMetrics.clientWidth,
     `GNSS教材が390px幅で横方向にはみ出しています: ${JSON.stringify({ mobileMetrics, mobileOverflowElements })}`,
   );
-  assert(
-    (await positioningMethodsLesson.isVisible()) &&
-      (await offsetBaseCoordinateButton.getAttribute("aria-pressed")) === "true" &&
-      (await candidatePanel.locator('[data-candidate-id="clas"]').isVisible()) &&
-      (await page
-        .getByTestId(
-          `gnss-quiz-question-${positioningQuestionIds[7]}`,
-        )
-        .getByText("正解", { exact: true })
-        .isVisible()),
-    "390px幅で第4章の自前RTK・候補選定または確認問題結果を表示できません。",
-  );
-
   const invalidNumberTokens = await page.evaluate(() =>
     ["NaN", "Infinity", "undefined"].filter((token) =>
       document.body.innerText.includes(token),
@@ -1627,7 +1740,7 @@ try {
   if (saveScreenshots) {
     await page.screenshot({
       fullPage: true,
-      path: "/tmp/gnss-phase4-390.png",
+      path: "/tmp/gnss-phase3-correction-390.png",
     });
   }
 
@@ -1725,11 +1838,18 @@ try {
         .getByTestId("gnss-height-conversion-unapplied")
         .getAttribute("aria-pressed")) === "true" &&
       (await reloadedCoordinateHeightLesson
-        .getByTestId("gnss-antenna-height-2-0")
-        .getAttribute("aria-pressed")) === "true" &&
-      (await reloadedFinalCheckCard
-        .getByText("要確認：成果条件 0 / 6", { exact: true })
+        .getByTestId("gnss-antenna-height-selector")
+        .count()) === 0 &&
+      (await reloadedCoordinateHeightLesson
+        .getByTestId("gnss-antenna-static-flow")
         .isVisible()) &&
+      (await reloadedFinalCheckCard
+        .getByTestId("gnss-final-review-table")
+        .locator("tbody tr")
+        .count()) === 9 &&
+      (await reloadedFinalCheckCard
+        .getByTestId("gnss-final-check-all")
+        .count()) === 0 &&
       (await reloadedCoordinateHeightLesson
         .getByTestId("gnss-coordinate-height-quiz-panel")
         .locator(".gnss-quiz-feedback")

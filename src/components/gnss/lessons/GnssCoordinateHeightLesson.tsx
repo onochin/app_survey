@@ -1,22 +1,23 @@
 import { useState } from "react";
 import {
   calculateGnssElevation,
-  calculateGnssPointHeightFromAntenna,
   evaluateGnssCoordinateHeightQuizAnswer,
   getGnssCoordinateHeightQuizOptionLetter,
   getGnssEarthPositionPreset,
   gnssAntennaHeightExample,
+  gnssAntennaPointRelationship,
   gnssCoordinateHeightCards,
   gnssCoordinateHeightConceptFlow,
   gnssCoordinateHeightQuizQuestions,
   gnssCoordinateHeightSampleG0,
   gnssDatumRelationship,
+  gnssEarthCenteredExplanation,
   gnssEarthPositionPresets,
   gnssEpochReference,
   gnssFieldScenarioP1,
-  gnssFinalIssueCases,
-  gnssFinalQualityChecks,
+  gnssFinalReviewRows,
   gnssHeightReferenceExplanation,
+  gnssPlaneCoordinateExplanation,
   gnssVirtualEpochPointT1,
   GRS80_INVERSE_FLATTENING,
   GRS80_SEMI_MAJOR_AXIS_METERS,
@@ -104,10 +105,10 @@ function GnssEarthCenteredDiagram({
         viewBox="0 0 700 380"
       >
         <title id="gnss-earth-centered-title">
-          地球中心を原点とするXc・Yc・Zc軸と観測点の模式図
+          地球の重心を原点とするXc・Yc・Zc軸と観測点の模式図
         </title>
         <desc id="gnss-earth-centered-description">
-          地球、地球中心、3つの座標軸と、選択した模式位置の観測点を示します。
+          地球、地球の重心、北極方向を正とするZ軸を含む3つの座標軸と、選択した模式位置の観測点を示します。
         </desc>
         <defs>
           <radialGradient id="gnss-coordinate-earth-fill" cx="35%" cy="30%">
@@ -140,7 +141,7 @@ function GnssEarthCenteredDiagram({
         <text className="gnss-coordinate-axis-label" x="84" y="344">Yc</text>
         <text className="gnss-coordinate-axis-label" x="361" y="30">Zc</text>
         <circle className="gnss-coordinate-origin" cx="350" cy="190" r="6" />
-        <text className="gnss-coordinate-origin-label" x="364" y="214">地球中心</text>
+        <text className="gnss-coordinate-origin-label" x="364" y="214">地球の重心（地球中心）</text>
         <line className="gnss-coordinate-point-line" x1="350" x2={pointX} y1="190" y2={pointY} />
         <circle className="gnss-coordinate-point" cx={pointX} cy={pointY} r="9" />
         <text className="gnss-coordinate-point-label" x={pointX + 13} y={pointY - 9}>
@@ -160,7 +161,7 @@ function GnssGeodeticDiagram() {
         role="img"
         viewBox="0 0 650 330"
       >
-        <title id="gnss-geodetic-title">GRS80楕円体とG0の緯度・経度・楕円体高</title>
+        <title id="gnss-geodetic-title">GRS80楕円体と日本付近の基準サンプルの緯度・経度・楕円体高</title>
         <desc id="gnss-geodetic-description">
           同じ地点を楕円体面からの角度と高さで表す模式図です。
         </desc>
@@ -170,7 +171,7 @@ function GnssGeodeticDiagram() {
         <line className="gnss-coordinate-radius" x1="310" x2="437" y1="190" y2="99" />
         <line className="gnss-coordinate-height-line" x1="437" x2="464" y1="99" y2="75" />
         <circle className="gnss-coordinate-point" cx="464" cy="75" r="9" />
-        <text className="gnss-coordinate-point-label" x="478" y="70">G0（同じ地点）</text>
+        <text className="gnss-coordinate-point-label" x="478" y="70">基準サンプル（同じ地点）</text>
         <path className="gnss-coordinate-angle" d="M365 190A55 55 0 0 0 354 158" />
         <text className="gnss-coordinate-diagram-label" x="370" y="165">緯度</text>
         <text className="gnss-coordinate-diagram-label" x="277" y="320">経度は基準子午線からの角度</text>
@@ -185,16 +186,61 @@ function GnssProjectionDiagram() {
   return (
     <div className="gnss-coordinate-projection-diagram">
       <div>
-        <span>曲面上のG0</span>
+        <span>曲面上の基準サンプル</span>
         <i aria-hidden="true" />
         <strong>地球は曲面</strong>
       </div>
       <b aria-hidden="true">↓ 投影</b>
       <div>
-        <span>平面上のG0</span>
+        <span>平面上の基準サンプル</span>
         <em aria-hidden="true" />
         <strong>狭い範囲を平面で計算</strong>
       </div>
+    </div>
+  );
+}
+
+function GnssPlaneAxisDiagram() {
+  return (
+    <div
+      className="gnss-coordinate-plane-axis-diagram"
+      data-testid="gnss-plane-axis-diagram"
+    >
+      <svg
+        aria-labelledby="gnss-plane-axis-title gnss-plane-axis-description"
+        role="img"
+        viewBox="0 0 540 330"
+      >
+        <title id="gnss-plane-axis-title">平面直角座標系IX系の原点と軸方向</title>
+        <desc id="gnss-plane-axis-description">
+          原点から北をXの正、東をYの正とし、南西側の基準サンプルではXとYがともに負になる模式図です。
+        </desc>
+        <defs>
+          <marker
+            id="gnss-plane-axis-arrow"
+            markerHeight="8"
+            markerWidth="8"
+            orient="auto"
+            refX="7"
+            refY="4"
+          >
+            <path d="M0 0 8 4 0 8Z" />
+          </marker>
+        </defs>
+        <line className="gnss-coordinate-axis" markerEnd="url(#gnss-plane-axis-arrow)" x1="270" x2="270" y1="165" y2="35" />
+        <line className="gnss-coordinate-axis" markerEnd="url(#gnss-plane-axis-arrow)" x1="270" x2="475" y1="165" y2="165" />
+        <line className="gnss-coordinate-plane-negative-axis" x1="270" x2="270" y1="165" y2="290" />
+        <line className="gnss-coordinate-plane-negative-axis" x1="55" x2="270" y1="165" y2="165" />
+        <circle className="gnss-coordinate-origin" cx="270" cy="165" r="7" />
+        <text className="gnss-coordinate-origin-label" x="282" y="187">原点 X=0、Y=0</text>
+        <text className="gnss-coordinate-axis-label" x="284" y="38">北 X+</text>
+        <text className="gnss-coordinate-axis-label" x="424" y="151">東 Y+</text>
+        <text className="gnss-coordinate-diagram-label" x="284" y="289">南 X−</text>
+        <text className="gnss-coordinate-diagram-label" x="62" y="151">西 Y−</text>
+        <circle className="gnss-coordinate-point" cx="165" cy="242" r="9" />
+        <text className="gnss-coordinate-point-label" x="58" y="268">基準サンプル X&lt;0、Y&lt;0</text>
+      </svg>
+      <p>IX系原点：緯度36°、経度139°50′</p>
     </div>
   );
 }
@@ -204,11 +250,10 @@ function GnssEpochDiagram({
 }: {
   readonly comparisonId: GnssEpochComparisonId;
 }) {
-  const currentPointX = comparisonId === "aligned" ? 258 : 318;
-  const currentPointY = comparisonId === "aligned" ? 137 : 112;
-
   return (
-    <div className="gnss-coordinate-epoch-diagram">
+    <div
+      className={`gnss-coordinate-epoch-diagram ${comparisonId === "aligned" ? "is-aligned" : ""}`}
+    >
       <svg
         aria-labelledby="gnss-epoch-title gnss-epoch-description"
         role="img"
@@ -216,16 +261,14 @@ function GnssEpochDiagram({
       >
         <title id="gnss-epoch-title">元期と今期の位置を比較する模式図</title>
         <desc id="gnss-epoch-description">
-          操作により時点がそろっていない状態と、同じ基準時点へそろえた状態を表示します。
+          元期と今期の元データの位置を固定し、操作では採用する座標の考え方だけを切り替えます。
         </desc>
         <line className="gnss-coordinate-epoch-ground" x1="60" x2="560" y1="205" y2="205" />
         <circle className="gnss-coordinate-epoch-original" cx="258" cy="137" r="11" />
         <text x="185" y="125">元期の基準点</text>
-        <line className="gnss-coordinate-epoch-shift" x1="270" x2={currentPointX - 12} y1="132" y2={currentPointY + 4} />
-        <circle className="gnss-coordinate-epoch-current" cx={currentPointX} cy={currentPointY} r="11" />
-        <text x={currentPointX + 16} y={currentPointY - 8}>
-          {comparisonId === "aligned" ? "同じ時点へ整理" : "今期の位置"}
-        </text>
+        <line className="gnss-coordinate-epoch-shift" x1="270" x2="306" y1="132" y2="116" />
+        <circle className="gnss-coordinate-epoch-current" cx="318" cy="112" r="11" />
+        <text x="334" y="104">今期の位置</text>
         <text className="gnss-coordinate-epoch-label" x="251" y="235">どちらも同じ地表の基準点T1</text>
       </svg>
     </div>
@@ -246,13 +289,13 @@ function GnssHeightDiagram({
       >
         <title id="gnss-height-diagram-title">楕円体高・ジオイド高・標高の断面模式図</title>
         <desc id="gnss-height-diagram-description">
-          G0の位置を固定し、高さを測る基準面だけを切り替えて示します。
+          P1の位置、地表、楕円体面、ジオイド面を固定し、高さの矢印と説明だけを切り替えて示します。
         </desc>
         <path className="gnss-coordinate-surface" d="M55 87c135-31 235 28 340-4 75-23 137-14 210 2" />
         <path className="gnss-coordinate-geoid" d="M55 228c115-24 226 23 338-7 83-22 139-8 212 2" />
         <path className="gnss-coordinate-ellipsoid-line" d="M55 291c120-16 225 15 342-5 85-14 137-4 208 2" />
         <circle className="gnss-coordinate-point" cx="428" cy="78" r="9" />
-        <text className="gnss-coordinate-point-label" x="442" y="72">G0（位置は固定）</text>
+        <text className="gnss-coordinate-point-label" x="442" y="72">P1（位置は固定）</text>
         <text className="gnss-coordinate-surface-label" x="66" y="74">地表</text>
         <text className="gnss-coordinate-geoid-label" x="66" y="216">ジオイド面</text>
         <text className="gnss-coordinate-ellipsoid-label" x="66" y="324">GRS80楕円体面</text>
@@ -279,11 +322,7 @@ function GnssHeightDiagram({
   );
 }
 
-function GnssAntennaDiagram({
-  inputAntennaHeight,
-}: {
-  readonly inputAntennaHeight: number;
-}) {
+function GnssAntennaDiagram() {
   return (
     <div className="gnss-coordinate-antenna-diagram">
       <svg
@@ -293,7 +332,7 @@ function GnssAntennaDiagram({
       >
         <title id="gnss-antenna-title">GNSSアンテナと測点P1の単純鉛直モデル</title>
         <desc id="gnss-antenna-description">
-          アンテナ位置を固定し、入力アンテナ高2.000mと2.100mの違いを示します。
+          GNSSで求めるアンテナ基準点の位置から、正確に記録したアンテナ高2.000mを用いて地上の測点P1へ対応づけます。
         </desc>
         <line className="gnss-coordinate-antenna-ground" x1="70" x2="450" y1="310" y2="310" />
         <path className="gnss-coordinate-tripod" d="M260 92v202m0-142-90 158m90-158 90 158" />
@@ -301,7 +340,7 @@ function GnssAntennaDiagram({
         <circle className="gnss-coordinate-point" cx="260" cy="310" r="9" />
         <line className="gnss-coordinate-antenna-measure" x1="388" x2="388" y1="92" y2="310" />
         <text className="gnss-coordinate-antenna-value" x="400" y="205">
-          入力 {inputAntennaHeight.toFixed(3)} m
+          アンテナ高 2.000 m
         </text>
         <text className="gnss-coordinate-antenna-label" x="214" y="43">GNSSアンテナ</text>
         <text className="gnss-coordinate-antenna-label" x="281" y="341">P1 測量点</text>
@@ -329,51 +368,21 @@ function GnssCoordinateHeightLesson({
     useState<GnssHeightReferenceViewId>("ellipsoid");
   const [heightConversionStateId, setHeightConversionStateId] =
     useState<GnssHeightConversionStateId>("unapplied");
-  const [inputAntennaHeight, setInputAntennaHeight] = useState<number>(
-    gnssAntennaHeightExample.correctAntennaHeight,
-  );
-  const [selectedIssueCaseId, setSelectedIssueCaseId] = useState<string>(
-    gnssFinalIssueCases[0].id,
-  );
-  const [checkedFinalQualityIds, setCheckedFinalQualityIds] = useState<
-    readonly string[]
-  >([]);
   const [quizAnswerStates, setQuizAnswerStates] =
     useState<GnssQuizAnswerStateMap>({});
 
   const earthPositionPreset =
     getGnssEarthPositionPreset(earthPositionPresetId) ??
     gnssEarthPositionPresets[0];
-  const selectedIssueCase =
-    gnssFinalIssueCases.find((issueCase) => issueCase.id === selectedIssueCaseId) ??
-    gnssFinalIssueCases[0];
   const calculatedElevation =
     calculateGnssElevation(
       gnssCoordinateHeightSampleG0.height.ellipsoidHeight,
       gnssCoordinateHeightSampleG0.height.geoidHeight,
       gnssCoordinateHeightSampleG0.height.heightReferenceConversion,
     ) ?? gnssCoordinateHeightSampleG0.height.elevation;
-  const calculatedPointHeight =
-    calculateGnssPointHeightFromAntenna(
-      gnssAntennaHeightExample.antennaPositionHeight,
-      inputAntennaHeight,
-    ) ?? gnssAntennaHeightExample.correctPointHeight;
-  const antennaHeightDifference =
-    calculatedPointHeight - gnssAntennaHeightExample.correctPointHeight;
   const progressPercent = Math.round(
     (completedLessonCount / totalLessonCount) * 100,
   );
-  const areFinalQualityChecksComplete =
-    checkedFinalQualityIds.length === gnssFinalQualityChecks.length;
-
-  const toggleFinalQualityCheck = (checkId: string): void => {
-    setCheckedFinalQualityIds((current) =>
-      current.includes(checkId)
-        ? current.filter((id) => id !== checkId)
-        : [...current, checkId],
-    );
-  };
-
   const selectQuizOption = (questionId: string, optionId: string): void => {
     setQuizAnswerStates((current) => ({
       ...current,
@@ -540,6 +549,9 @@ function GnssCoordinateHeightLesson({
           />
           <div className="gnss-coordinate-value-panel" aria-live="polite">
             <span>{earthPositionPreset.label}</span>
+            <strong className="gnss-coordinate-location-hint">
+              {earthPositionPreset.locationHint}
+            </strong>
             <div className="gnss-coordinate-main-values">
               <div><small>Xc</small><strong>{formatEarthKilometers(earthPositionPreset.coordinate.xc)}</strong></div>
               <div><small>Yc</small><strong>{formatEarthKilometers(earthPositionPreset.coordinate.yc)}</strong></div>
@@ -556,8 +568,11 @@ function GnssCoordinateHeightLesson({
             <p>
               GRS80：長半径 a = {GRS80_SEMI_MAJOR_AXIS_METERS.toLocaleString("ja-JP")} m、1 / f = {GRS80_INVERSE_FLATTENING}
             </p>
+            <p>{gnssEarthCenteredExplanation.origin}</p>
+            <p>{gnssEarthCenteredExplanation.zPositiveDirection}</p>
           </div>
         </div>
+        <p className="gnss-figure-note">※{gnssEarthCenteredExplanation.notation}</p>
         <blockquote className="gnss-important-message">
           地心直交座標Xc・Yc・Zcと、日本の平面直角座標X・Yは別の座標です。
         </blockquote>
@@ -570,7 +585,7 @@ function GnssCoordinateHeightLesson({
         data-testid="gnss-geodetic-card"
       >
         <GnssCardHeading
-          description="G0を動かさず、同じ3次元位置の数値表現だけを切り替えます。"
+          description="日本付近の基準サンプルを動かさず、同じ3次元位置の数値表現だけを切り替えます。"
           index={3}
           label="同じ位置の別表現"
           title={gnssCoordinateHeightCards[2].title}
@@ -578,7 +593,7 @@ function GnssCoordinateHeightLesson({
         />
 
         <div
-          aria-label="G0の座標表現"
+          aria-label="日本付近の基準サンプルの座標表現"
           className="gnss-segmented-control gnss-coordinate-two-selector"
           data-testid="gnss-coordinate-representation-selector"
         >
@@ -603,7 +618,7 @@ function GnssCoordinateHeightLesson({
         <div className="gnss-coordinate-two-column">
           <GnssGeodeticDiagram />
           <div className="gnss-coordinate-representation-panel" aria-live="polite">
-            <span>基準サンプル G0</span>
+            <span>{gnssCoordinateHeightSampleG0.name}</span>
             {coordinateRepresentationId === "earth-centered" ? (
               <dl data-testid="gnss-representation-earth-centered-values">
                 <div><dt>Xc</dt><dd>{formatMeters(gnssCoordinateHeightSampleG0.earthCenteredCoordinate.xc, 3)}</dd></div>
@@ -623,7 +638,7 @@ function GnssCoordinateHeightLesson({
           </div>
         </div>
         <p className="gnss-key-message">
-          数値の表し方が変わっただけで、G0が別の地点へ移動したわけではありません。
+          数値の表し方が変わっただけで、日本付近の基準サンプルが別の地点へ移動したわけではありません。
         </p>
       </section>
 
@@ -651,6 +666,16 @@ function GnssCoordinateHeightLesson({
             <span>狭い範囲では平面で扱うと計算しやすい</span><b>↓</b>
             <span>平面へ投影</span><b>↓</b>
             <span>平面直角座標 X・Y</span>
+          </div>
+        </div>
+
+        <div className="gnss-coordinate-plane-axis-layout">
+          <GnssPlaneAxisDiagram />
+          <div className="gnss-coordinate-plane-axis-explanation">
+            <p>{gnssPlaneCoordinateExplanation.origin}</p>
+            <p>{gnssPlaneCoordinateExplanation.xAxis}</p>
+            <p>{gnssPlaneCoordinateExplanation.yAxis}</p>
+            <strong>{gnssPlaneCoordinateExplanation.sample}</strong>
           </div>
         </div>
 
@@ -695,7 +720,7 @@ function GnssCoordinateHeightLesson({
           ) : (
             <div data-testid="gnss-plane-other-zone-result">
               <span>平面直角座標 第VIII系</span>
-              <strong>同じG0でもX・Yは変化</strong>
+              <strong>同じ基準サンプルでもX・Yは変化</strong>
               <small>系を変えると原点・投影条件が変わるためX・Yが変化します。未確認の具体値は表示しません。</small>
             </div>
           )}
@@ -723,7 +748,7 @@ function GnssCoordinateHeightLesson({
           緯度・経度やX・Yが表示されていれば、それだけで測量成果として十分でしょうか？
         </p>
         <div className="gnss-coordinate-fix-summary">
-          <div><span>地点</span><strong>G0</strong></div>
+          <div><span>地点</span><strong>日本付近の基準サンプル</strong></div>
           <div><span>測位状態</span><strong>FIX ✓</strong></div>
           <div><span>測地系</span><strong data-testid="gnss-datum-value">{isDatumRevealed ? "日本測地系2024（JGD2024）" : "？？？"}</strong></div>
         </div>
@@ -747,14 +772,15 @@ function GnssCoordinateHeightLesson({
                     {index === 0
                       ? gnssDatumRelationship.itrf
                       : index === 1
-                        ? "日本で測量成果を扱う現在の測地系"
-                        : "JGD2024が採用する準拠楕円体"}
+                        ? gnssDatumRelationship.jgd2024
+                        : "国家座標や既知の測量成果と整合させて利用"}
                   </span>
                   {index < gnssDatumRelationship.flow.length - 1 ? <b aria-hidden="true">↓</b> : null}
                 </div>
               ))}
             </div>
-            <p>{gnssDatumRelationship.jgd2024}</p>
+            <p>{gnssDatumRelationship.grs80}</p>
+            <p>{gnssDatumRelationship.conceptNote}</p>
             <p>{gnssDatumRelationship.succession}</p>
           </div>
         ) : null}
@@ -829,7 +855,7 @@ function GnssCoordinateHeightLesson({
         <div className="gnss-coordinate-two-column">
           <GnssEpochDiagram comparisonId={epochComparisonId} />
           <div className="gnss-coordinate-t1-panel" data-testid="gnss-t1-values">
-            <div><span>{gnssVirtualEpochPointT1.name}</span><small>{gnssVirtualEpochPointT1.sourceKind}</small></div>
+            <div><span>{gnssVirtualEpochPointT1.name}の元データ</span><small>{gnssVirtualEpochPointT1.sourceKind}・常に表示</small></div>
             <dl>
               <div><dt>元期 X</dt><dd>{formatMeters(gnssVirtualEpochPointT1.originalEpoch.x, 3)}</dd></div>
               <div><dt>元期 Y</dt><dd>{formatMeters(gnssVirtualEpochPointT1.originalEpoch.y, 3)}</dd></div>
@@ -838,13 +864,73 @@ function GnssCoordinateHeightLesson({
               <div><dt>ΔX</dt><dd>{formatSignedMeters(gnssVirtualEpochPointT1.difference.x)}</dd></div>
               <div><dt>ΔY</dt><dd>{formatSignedMeters(gnssVirtualEpochPointT1.difference.y)}</dd></div>
             </dl>
-            <strong className={epochComparisonId === "aligned" ? "is-confirmed" : "is-warning"} data-testid="gnss-epoch-status">
-              {epochComparisonId === "aligned" ? "✓ 同じ基準時点で比較" : "× 時点がそろっていない"}
-            </strong>
             <p>{gnssVirtualEpochPointT1.note}</p>
           </div>
         </div>
+
+        <div
+          className="gnss-coordinate-epoch-adopted"
+          data-testid="gnss-epoch-adopted-coordinate"
+        >
+          <div>
+            <span>この比較で採用する座標</span>
+            <strong>{epochComparisonId === "aligned" ? "元期へそろえた値" : "今期の観測値"}</strong>
+          </div>
+          <dl>
+            <div>
+              <dt>採用 X</dt>
+              <dd>
+                {formatMeters(
+                  epochComparisonId === "aligned"
+                    ? gnssVirtualEpochPointT1.originalEpoch.x
+                    : gnssVirtualEpochPointT1.currentEpoch.x,
+                  3,
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>採用 Y</dt>
+              <dd>
+                {formatMeters(
+                  epochComparisonId === "aligned"
+                    ? gnssVirtualEpochPointT1.originalEpoch.y
+                    : gnssVirtualEpochPointT1.currentEpoch.y,
+                  3,
+                )}
+              </dd>
+            </div>
+          </dl>
+          <strong
+            className={epochComparisonId === "aligned" ? "is-confirmed" : "is-warning"}
+            data-testid="gnss-epoch-status"
+          >
+            {epochComparisonId === "aligned"
+              ? "✓ 国家座標・既知成果と同じ元期で比較"
+              : "× 今期の値のままでは元期成果と時点がそろわない"}
+          </strong>
+        </div>
+
+        <div
+          className="gnss-coordinate-epoch-correction"
+          data-testid="gnss-epoch-correction-values"
+        >
+          <article>
+            <span>元期 → 今期の実際の移動量</span>
+            <strong>
+              ΔX {formatSignedMeters(gnssVirtualEpochPointT1.difference.x)} ／ ΔY {formatSignedMeters(gnssVirtualEpochPointT1.difference.y)}
+            </strong>
+          </article>
+          <article>
+            <span>今期 → 元期へ戻す補正量</span>
+            <strong>
+              ΔX {formatSignedMeters(gnssVirtualEpochPointT1.correctionToOriginal.x)} ／ ΔY {formatSignedMeters(gnssVirtualEpochPointT1.correctionToOriginal.y)}
+            </strong>
+          </article>
+        </div>
+        <p className="gnss-key-message">{gnssEpochReference.movementAndCorrectionNote}</p>
+        <p>{gnssEpochReference.alignmentPurpose}</p>
         <p className="gnss-figure-note">{gnssEpochReference.semiDynamicNote}</p>
+        <p className="gnss-figure-note">※{gnssEpochReference.applicabilityNote}</p>
       </section>
 
       <section
@@ -854,7 +940,7 @@ function GnssCoordinateHeightLesson({
         data-testid="gnss-height-reference-card"
       >
         <GnssCardHeading
-          description="同じG0の位置を固定し、高さを測る基準面だけを切り替えます。"
+          description="同じP1の位置と3つの面を固定し、高さを示す矢印と説明だけを切り替えます。"
           index={7}
           label="高さの基準面"
           title={gnssCoordinateHeightCards[6].title}
@@ -865,7 +951,7 @@ function GnssCoordinateHeightLesson({
           GNSSでFIXし、「高さ 63.3853 m」と表示されました。この63.3853 mは、そのまま標高でしょうか？
         </p>
         <div
-          aria-label="G0の高さの種類"
+          aria-label="P1の高さの種類"
           className="gnss-segmented-control gnss-coordinate-two-selector"
           data-testid="gnss-height-reference-selector"
         >
@@ -890,7 +976,7 @@ function GnssCoordinateHeightLesson({
         <div className="gnss-coordinate-two-column">
           <GnssHeightDiagram referenceId={heightReferenceViewId} />
           <div className="gnss-coordinate-height-reference-result" aria-live="polite">
-            <span>基準サンプル G0</span>
+            <span>測点 P1（同じ位置）</span>
             <strong data-testid="gnss-height-reference-value">
               {heightReferenceViewId === "ellipsoid"
                 ? `楕円体高 ${formatMeters(gnssCoordinateHeightSampleG0.height.ellipsoidHeight)}`
@@ -901,7 +987,7 @@ function GnssCoordinateHeightLesson({
                 ? gnssHeightReferenceExplanation.ellipsoidHeight
                 : gnssHeightReferenceExplanation.elevation}
             </p>
-            <small>高さは教材値。G0の水平位置は変わりません。</small>
+            <small>高さは教材値。P1の位置と基準面は変わりません。</small>
           </div>
         </div>
         <div className="gnss-coordinate-geoid-explanation">
@@ -909,7 +995,7 @@ function GnssCoordinateHeightLesson({
           <p>{gnssHeightReferenceExplanation.geoid}</p>
         </div>
         <blockquote className="gnss-important-message">
-          楕円体高と標高は、同じG0までの高さでも基準面が異なります。
+          楕円体高と標高は、同じP1までの高さでも基準面が異なります。
         </blockquote>
       </section>
 
@@ -920,7 +1006,7 @@ function GnssCoordinateHeightLesson({
         data-testid="gnss-height-conversion-card"
       >
         <GnssCardHeading
-          description="G0の教材値で、楕円体高から標高へ換算します。"
+          description="日本付近の基準サンプルの教材値で、楕円体高から標高へ換算します。"
           index={8}
           label="ジオイド適用"
           title={gnssCoordinateHeightCards[7].title}
@@ -1006,37 +1092,34 @@ function GnssCoordinateHeightLesson({
           GNSSで扱うアンテナ側の位置と、成果として欲しい地上の測点位置を結び付けるためにアンテナ高が必要です。
         </blockquote>
         <div
-          aria-label="移動局アンテナ高の入力値"
-          className="gnss-segmented-control gnss-coordinate-two-selector"
-          data-testid="gnss-antenna-height-selector"
+          aria-label="アンテナ基準点から地上の測点P1までの関係"
+          className="gnss-coordinate-antenna-flow"
+          data-testid="gnss-antenna-static-flow"
         >
-          {[2, 2.1].map((height) => (
-            <button
-              aria-pressed={inputAntennaHeight === height}
-              data-testid={`gnss-antenna-height-${height.toFixed(1).replace(".", "-")}`}
-              key={height}
-              onClick={() => setInputAntennaHeight(height)}
-              type="button"
-            >
-              {height === 2 ? "正しい値 2.000 m" : "誤入力 2.100 m"}
-            </button>
+          {gnssAntennaPointRelationship.map((step, index) => (
+            <div key={step.id}>
+              <article>
+                <span>{step.note}</span>
+                <strong>{step.label}</strong>
+              </article>
+              {index < gnssAntennaPointRelationship.length - 1 ? (
+                <b aria-hidden="true">↓</b>
+              ) : null}
+            </div>
           ))}
         </div>
 
         <div className="gnss-coordinate-two-column">
-          <GnssAntennaDiagram inputAntennaHeight={inputAntennaHeight} />
-          <div className="gnss-coordinate-antenna-result" aria-live="polite" data-testid="gnss-antenna-result">
+          <GnssAntennaDiagram />
+          <div className="gnss-coordinate-antenna-result" data-testid="gnss-antenna-relationship">
             <span>{gnssFieldScenarioP1.sourceKind}：{gnssFieldScenarioP1.newPoint.name}</span>
             <dl>
               <div><dt>アンテナ側の高さ</dt><dd>{formatMeters(gnssAntennaHeightExample.antennaPositionHeight, 3)}</dd></div>
-              <div><dt>入力アンテナ高</dt><dd>{formatMeters(inputAntennaHeight, 3)}</dd></div>
-              <div><dt>測点の高さ成果</dt><dd>{formatMeters(calculatedPointHeight, 3)}</dd></div>
-              <div><dt>正しい成果との差</dt><dd>{formatSignedMeters(antennaHeightDifference, 3)}</dd></div>
+              <div><dt>正しく記録したアンテナ高</dt><dd>{formatMeters(gnssAntennaHeightExample.correctAntennaHeight, 3)}</dd></div>
+              <div><dt>地上の測点P1</dt><dd>{formatMeters(gnssAntennaHeightExample.correctPointHeight, 3)}</dd></div>
             </dl>
-            <strong className={inputAntennaHeight === 2 ? "is-confirmed" : "is-warning"}>
-              {inputAntennaHeight === 2 ? "✓ 正しいP1標高 49.832 m" : "× 10 cm低いP1標高 49.732 m"}
-            </strong>
-            <p>アンテナ位置そのものは同じとする教材上の単純モデルです。</p>
+            <strong className="is-confirmed">✓ アンテナ高は測定方法・値・単位を正確に記録する</strong>
+            <p>アンテナ基準点と地上の測点P1を対応づける教材上の単純モデルです。</p>
           </div>
         </div>
 
@@ -1069,83 +1152,31 @@ function GnssCoordinateHeightLesson({
 
         <div className="gnss-coordinate-final-banner">
           <div><span>P1 観測完了</span><strong>測位状態：FIX ✓</strong></div>
-          <p>このP1をそのまま成果として使ってよい？</p>
+          <p>FIXしていることと、成果条件が正しいことは別。</p>
         </div>
 
-        <div
-          aria-label="FIX後に起こり得る成果条件ミス"
-          className="gnss-coordinate-issue-selector"
-          data-testid="gnss-final-issue-selector"
-        >
-          {gnssFinalIssueCases.map((issueCase) => (
-            <button
-              aria-pressed={selectedIssueCaseId === issueCase.id}
-              data-testid={`gnss-final-issue-${issueCase.id}`}
-              key={issueCase.id}
-              onClick={() => setSelectedIssueCaseId(issueCase.id)}
-              type="button"
-            >
-              {issueCase.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="gnss-coordinate-issue-result" aria-live="polite" data-testid="gnss-final-issue-result">
-          <h3>{selectedIssueCase.label}</h3>
-          <ul>
-            {selectedIssueCase.lines.map((line) => <li key={line}>{line}</li>)}
-          </ul>
-          <p>{selectedIssueCase.message}</p>
-          <strong>測位状態はFIXのままです。</strong>
-        </div>
-
-        <div className="gnss-coordinate-quality-heading">
-          <div>
-            <h3>成果条件を確認する</h3>
-            <p>色だけでなく、✓と状態文で確認結果を示します。</p>
-          </div>
-          <button
-            data-testid="gnss-final-check-all"
-            onClick={() =>
-              setCheckedFinalQualityIds(
-                gnssFinalQualityChecks.map((check) => check.id),
-              )
-            }
-            type="button"
+        <div className="gnss-coordinate-review-table-wrap">
+          <table
+            className="gnss-coordinate-review-table"
+            data-testid="gnss-final-review-table"
           >
-            全確認項目を正しくする
-          </button>
+            <caption>FIXなのに成果と合わないときの確認項目</caption>
+            <thead>
+              <tr>
+                <th scope="col">確認項目</th>
+                <th scope="col">確かめる内容</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gnssFinalReviewRows.map((row) => (
+                <tr key={row.id}>
+                  <th scope="row">{row.label}</th>
+                  <td>{row.check}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div className="gnss-coordinate-quality-grid" data-testid="gnss-final-quality-grid">
-          <div className="is-confirmed"><span>測位状態</span><strong>FIX</strong><b>✓</b></div>
-          {gnssFinalQualityChecks.map((check) => {
-            const isChecked = checkedFinalQualityIds.includes(check.id);
-
-            return (
-              <button
-                aria-pressed={isChecked}
-                className={isChecked ? "is-confirmed" : ""}
-                data-testid={`gnss-final-check-${check.id}`}
-                key={check.id}
-                onClick={() => toggleFinalQualityCheck(check.id)}
-                type="button"
-              >
-                <span>{check.label}</span>
-                <strong>{isChecked ? check.value : "未確認"}</strong>
-                <b>{isChecked ? "✓" : "要確認"}</b>
-              </button>
-            );
-          })}
-        </div>
-        <p
-          className={areFinalQualityChecksComplete ? "gnss-coordinate-final-status is-confirmed" : "gnss-coordinate-final-status"}
-          data-testid="gnss-final-quality-status"
-          role="status"
-        >
-          {areFinalQualityChecksComplete
-            ? "✓ FIXと6つの成果条件を確認しました。"
-            : `要確認：成果条件 ${checkedFinalQualityIds.length} / ${gnssFinalQualityChecks.length}`}
-        </p>
         <blockquote className="gnss-important-message">
           FIXはRTKで固定解が得られたことを示す重要な状態です。しかし、測地系・系番号・座標の時点・高さ基準・アンテナ高まで正しいことを保証する表示ではありません。
         </blockquote>

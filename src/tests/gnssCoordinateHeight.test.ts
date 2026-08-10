@@ -4,6 +4,7 @@ import {
   gnssLessons,
   gnssObservationsLesson,
   gnssOverviewLesson,
+  gnssPositioningMethodsLesson,
 } from "../components/gnss/gnssCourse";
 import {
   calculateGnssElevation,
@@ -14,16 +15,18 @@ import {
   getGnssCoordinateHeightQuizQuestion,
   getGnssEarthPositionPreset,
   gnssAntennaHeightExample,
+  gnssAntennaPointRelationship,
   gnssCoordinateHeightCards,
   gnssCoordinateHeightQuizQuestions,
   gnssCoordinateHeightSampleG0,
   gnssDatumRelationship,
+  gnssEarthCenteredExplanation,
   gnssEarthPositionPresets,
   gnssEpochReference,
   gnssFieldScenarioP1,
-  gnssFinalIssueCases,
-  gnssFinalQualityChecks,
+  gnssFinalReviewRows,
   gnssHeightReferenceExplanation,
+  gnssPlaneCoordinateExplanation,
   gnssVirtualEpochPointT1,
   GRS80_INVERSE_FLATTENING,
   GRS80_SEMI_MAJOR_AXIS_METERS,
@@ -33,6 +36,7 @@ describe("GNSS測量 Phase 3 第3章", () => {
   it("第1章・第2章IDと第3章メタデータを維持する", () => {
     expect(gnssOverviewLesson.id).toBe("gnss-overview");
     expect(gnssObservationsLesson.id).toBe("gnss-observations");
+    expect(gnssPositioningMethodsLesson.id).toBe("gnss-positioning-methods");
     expect(gnssCoordinateHeightLesson).toMatchObject({
       id: "gnss-coordinate-height",
       number: 3,
@@ -86,9 +90,9 @@ describe("GNSS測量 Phase 3 第3章", () => {
     expect(gnssCoordinateHeightCards[9].focus).toContain("FIX後");
   });
 
-  it("基準サンプルG0の水平位置・高さ・出典区分を保持する", () => {
+  it("日本付近の基準サンプルの水平位置・高さ・出典区分を保持する", () => {
     expect(gnssCoordinateHeightSampleG0).toMatchObject({
-      name: "基準サンプル G0",
+      name: "日本付近の基準サンプル",
       latitude: {
         dms: "35°39′29.1572″ N",
         sourceKind: "公式公表値",
@@ -162,7 +166,7 @@ describe("GNSS測量 Phase 3 第3章", () => {
     expect(convertGeodeticToGrs80Ecef(35, 181, 0)).toBeNull();
   });
 
-  it("日本・赤道・北極寄りの3模式位置を安全に取得する", () => {
+  it("日本・赤道・北極寄りの3模式位置と地心原点の説明を定義する", () => {
     expect(gnssEarthPositionPresets.map((preset) => preset.id)).toEqual([
       "japan",
       "equator",
@@ -173,26 +177,64 @@ describe("GNSS測量 Phase 3 第3章", () => {
       yc: expect.any(Number),
       zc: expect.any(Number),
     });
+    expect(getGnssEarthPositionPreset("japan")?.label).not.toContain("G0");
+    expect(getGnssEarthPositionPreset("japan")?.locationHint).toBe(
+      "緯度 約36°N / 経度 約140°E",
+    );
+    expect(getGnssEarthPositionPreset("equator")?.locationHint).toBe(
+      "緯度 約0°",
+    );
+    expect(getGnssEarthPositionPreset("north")).toMatchObject({
+      latitudeDegrees: 80,
+      locationHint: "緯度 約80°N / 北極は90°N",
+    });
+    expect(gnssEarthCenteredExplanation).toMatchObject({
+      origin: "地球の重心（地球中心）",
+      zPositiveDirection: "Z軸の正方向が北極方向",
+    });
+    expect(gnssEarthCenteredExplanation.notation).toContain("教材上の表記");
+    expect(gnssEarthCenteredExplanation.notation).toContain("唯一の公式");
     expect(getGnssEarthPositionPreset("unknown")).toBeNull();
+  });
+
+  it("IX系の原点・軸方向と南西側の固定座標を明示する", () => {
+    expect(gnssPlaneCoordinateExplanation.origin).toContain(
+      "緯度36°、経度139°50′",
+    );
+    expect(gnssPlaneCoordinateExplanation.origin).toContain("X=0 m、Y=0 m");
+    expect(gnssPlaneCoordinateExplanation.xAxis).toBe(
+      "X軸は北が正、南が負です。",
+    );
+    expect(gnssPlaneCoordinateExplanation.yAxis).toBe(
+      "Y軸は東が正、西が負です。",
+    );
+    expect(gnssPlaneCoordinateExplanation.sample).toContain("X<0、Y<0");
+    expect(gnssCoordinateHeightSampleG0.planeCoordinate).toMatchObject({
+      x: -37928.1965,
+      y: -8327.6987,
+    });
   });
 
   it("JGD2024・GRS80・WGS84の関係を同一視せず説明する", () => {
     expect(gnssDatumRelationship.flow).toEqual([
-      "ITRF",
-      "JGD2024",
-      "GRS80楕円体",
+      "ITRF（世界規模の基準枠）",
+      "JGD2024（日本の測地基準）",
+      "測量成果",
     ]);
-    expect(gnssDatumRelationship.jgd2024).toContain("現在の測地系");
+    expect(gnssDatumRelationship.itrf).toContain("基準枠");
+    expect(gnssDatumRelationship.jgd2024).toContain("測地基準");
+    expect(gnssDatumRelationship.grs80).toContain("準拠楕円体");
+    expect(gnssDatumRelationship.conceptNote).toContain("同じ概念の別名ではありません");
     expect(gnssDatumRelationship.succession).toContain("引き継がれている");
-    expect(gnssDatumRelationship.wgs84).toContain("名称・役割・定義が同じものではない");
+    expect(gnssDatumRelationship.wgs84).toContain("同じ測地系ではない");
   });
 
   it("元期・今期の定義、実際の基準日例、T1仮想変位を分離する", () => {
     expect(gnssEpochReference.originalEpochDefinition).toBe(
-      "公表成果の基準となる時点",
+      "成果基準時点（公表成果の基準となる時点）",
     );
     expect(gnssEpochReference.currentEpochDefinition).toBe(
-      "実際に観測した時点",
+      "観測時点（実際に観測した時点）",
     );
     expect(gnssEpochReference.horizontalExample.referenceDate).toBe(
       "2011年5月24日",
@@ -200,11 +242,18 @@ describe("GNSS測量 Phase 3 第3章", () => {
     expect(gnssEpochReference.elevationExample.referenceDate).toBe(
       "2024年6月1日",
     );
-    expect(gnssEpochReference.jgd2024Caution).toContain("≠");
+    expect(gnssEpochReference.jgd2024Caution).toContain(
+      "JGD2011が元期、JGD2024が今期という意味ではありません",
+    );
+    expect(gnssEpochReference.alignmentPurpose).toContain("地面は実際に動く");
+    expect(gnssEpochReference.alignmentPurpose).toContain("国家座標");
+    expect(gnssEpochReference.applicabilityNote).toContain("常に同じ補正");
+    expect(gnssEpochReference.movementAndCorrectionNote).toContain("符号も逆");
     expect(gnssVirtualEpochPointT1).toMatchObject({
       originalEpoch: { x: 1000, y: 1000 },
       currentEpoch: { x: 1000.035, y: 999.982 },
       difference: { x: 0.035, y: -0.018 },
+      correctionToOriginal: { x: -0.035, y: 0.018 },
       sourceKind: "仮想値",
     });
     expect(gnssVirtualEpochPointT1.note).toContain("実在地点の変動量ではありません");
@@ -261,27 +310,28 @@ describe("GNSS測量 Phase 3 第3章", () => {
     expect(
       calculateGnssPointHeightFromAntenna(51.832, Number.POSITIVE_INFINITY),
     ).toBeNull();
+    expect(gnssAntennaPointRelationship.map((step) => step.label)).toEqual([
+      "アンテナ基準点の位置",
+      "アンテナ高 2.000 m",
+      "地上の測点 P1",
+    ]);
   });
 
-  it("FIX後の5ケースと6成果条件を持つ", () => {
-    expect(gnssFinalIssueCases.map((issueCase) => issueCase.id)).toEqual([
-      "wrong-plane-zone",
-      "epoch-unchecked",
-      "ellipsoid-as-elevation",
-      "geoid-unchecked",
-      "wrong-antenna-height",
-    ]);
-    expect(gnssFinalIssueCases.every((issueCase) => issueCase.message.length > 0)).toBe(
-      true,
-    );
-    expect(gnssFinalQualityChecks.map((check) => check.id)).toEqual([
+  it("FIX後に確認する9項目を静的な表データで持つ", () => {
+    expect(gnssFinalReviewRows.map((row) => row.id)).toEqual([
       "datum",
       "plane-zone",
       "coordinate-epoch",
       "height-type",
-      "geoid-model",
+      "height-basis",
       "antenna-height",
+      "base-coordinate",
+      "known-point",
+      "environment",
     ]);
+    expect(gnssFinalReviewRows).toHaveLength(9);
+    expect(gnssFinalReviewRows[2]?.label).toBe("座標の時点");
+    expect(gnssFinalReviewRows.every((row) => row.check.length > 0)).toBe(true);
   });
 
   it("確認問題8問を安定IDと分散した正答文字で定義する", () => {
@@ -302,7 +352,32 @@ describe("GNSS測量 Phase 3 第3章", () => {
           question.correctOptionId,
         ),
       ),
-    ).toEqual(["B", "C", "A", "D", "B", "C", "A", "D"]);
+    ).toEqual(["C", "D", "A", "D", "B", "C", "A", "D"]);
+
+    expect(gnssCoordinateHeightQuizQuestions[0]).toMatchObject({
+      id: "gnss-coordinate-height-q01-same-position",
+      correctOptionId: "earth-center-origin",
+      options: [
+        {
+          label: "北極",
+          incorrectReason: expect.stringContaining("原点ではありません"),
+        },
+        { label: "日本経緯度原点" },
+        { label: "地球の重心（地球中心）", incorrectReason: null },
+        { label: "赤道と日本の経度が交わる地点" },
+      ],
+    });
+    expect(gnssCoordinateHeightQuizQuestions[1]).toMatchObject({
+      id: "gnss-coordinate-height-q02-plane-system",
+      correctOptionId: "south-west-negative",
+      correctReason: expect.stringContaining("X軸は北が正、Y軸は東が正"),
+      options: [
+        { label: "X>0、Y>0" },
+        { label: "X>0、Y<0" },
+        { label: "X<0、Y>0" },
+        { label: "X<0、Y<0" },
+      ],
+    });
   });
 
   it("全問題の選択肢IDを一意にし、全選択肢を個別理由付きで判定する", () => {

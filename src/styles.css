@@ -1086,6 +1086,275 @@
   border-color: #b6dcbf;
 }
 
+.gnss-coordinate-location-hint {
+  color: #173f60;
+  font-size: 12px;
+}
+
+.gnss-coordinate-plane-axis-layout {
+  display: grid;
+  min-width: 0;
+  align-items: stretch;
+  gap: 16px;
+  margin: 15px 0;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+}
+
+.gnss-coordinate-plane-axis-diagram {
+  min-width: 0;
+  padding: 12px;
+  background: #f5f9fc;
+  border: 1px solid #d9e5ed;
+  border-radius: 12px;
+}
+
+.gnss-coordinate-plane-axis-diagram svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.gnss-coordinate-plane-axis-diagram > p {
+  margin: 7px 0 0;
+  color: var(--slate-500);
+  font-size: 11px;
+  text-align: center;
+}
+
+.gnss-coordinate-plane-negative-axis {
+  stroke: #718b9d;
+  stroke-dasharray: 6 5;
+  stroke-width: 2.5;
+}
+
+.gnss-coordinate-plane-axis-explanation {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 9px;
+  padding: 16px;
+  color: #24465e;
+  background: #f9fbfd;
+  border: 1px solid #dce5ec;
+  border-radius: 11px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.gnss-coordinate-plane-axis-explanation p {
+  margin: 0;
+}
+
+.gnss-coordinate-plane-axis-explanation strong {
+  padding: 10px;
+  color: #704719;
+  background: #fff8ec;
+  border: 1px solid #efd9b5;
+  border-radius: 8px;
+}
+
+.gnss-coordinate-epoch-diagram.is-aligned .gnss-coordinate-epoch-original {
+  stroke: #6bb67e;
+  stroke-width: 6;
+}
+
+.gnss-coordinate-epoch-adopted {
+  display: grid;
+  min-width: 0;
+  gap: 11px;
+  padding: 15px;
+  margin-top: 14px;
+  background: #f7fafc;
+  border: 1px solid #dce5eb;
+  border-radius: 10px;
+}
+
+.gnss-coordinate-epoch-adopted > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gnss-coordinate-epoch-adopted > div:first-child span {
+  color: var(--gnss-blue);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.gnss-coordinate-epoch-adopted > div:first-child strong {
+  color: #153f60;
+  font-size: 13px;
+}
+
+.gnss-coordinate-epoch-adopted dl {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gnss-coordinate-epoch-adopted dl > div {
+  display: flex;
+  min-width: 0;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #dce5eb;
+  border-radius: 8px;
+}
+
+.gnss-coordinate-epoch-adopted dt,
+.gnss-coordinate-epoch-adopted dd {
+  margin: 0;
+}
+
+.gnss-coordinate-epoch-adopted dd {
+  overflow-wrap: anywhere;
+  color: #153f60;
+  font-family: var(--mono);
+  font-weight: 850;
+}
+
+.gnss-coordinate-epoch-adopted > strong {
+  padding: 9px 11px;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.gnss-coordinate-epoch-adopted > strong.is-confirmed {
+  color: #255f38;
+  background: #edf8ef;
+  border-color: #b6dcbf;
+}
+
+.gnss-coordinate-epoch-adopted > strong.is-warning {
+  color: #754817;
+  background: #fff7eb;
+  border-color: #edd5ac;
+}
+
+.gnss-coordinate-epoch-correction {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gnss-coordinate-epoch-correction article {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  padding: 12px;
+  background: #eef6fc;
+  border: 1px solid #cfdfeb;
+  border-radius: 8px;
+}
+
+.gnss-coordinate-epoch-correction span {
+  color: var(--slate-500);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.gnss-coordinate-epoch-correction strong {
+  overflow-wrap: anywhere;
+  color: #16476f;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.gnss-coordinate-antenna-flow {
+  display: grid;
+  gap: 12px;
+  margin: 15px 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gnss-coordinate-antenna-flow > div {
+  position: relative;
+  min-width: 0;
+}
+
+.gnss-coordinate-antenna-flow article {
+  display: grid;
+  min-height: 78px;
+  align-content: center;
+  gap: 5px;
+  padding: 12px;
+  color: #153f60;
+  background: #edf6ff;
+  border: 1px solid #d0e3f3;
+  border-radius: 9px;
+  text-align: center;
+}
+
+.gnss-coordinate-antenna-flow span {
+  color: var(--slate-500);
+  font-size: 11px;
+}
+
+.gnss-coordinate-antenna-flow strong {
+  font-size: 13px;
+}
+
+.gnss-coordinate-antenna-flow b {
+  position: absolute;
+  right: -10px;
+  top: 32px;
+  z-index: 2;
+  color: var(--gnss-blue);
+  transform: rotate(-90deg);
+}
+
+.gnss-coordinate-review-table-wrap {
+  max-width: 100%;
+  margin-top: 14px;
+  overflow-x: auto;
+  border: 1px solid #d8e1e9;
+  border-radius: 10px;
+}
+
+.gnss-coordinate-review-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  color: #24465e;
+  background: #fff;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.gnss-coordinate-review-table caption {
+  padding: 12px;
+  color: #123f65;
+  background: #edf6ff;
+  font-size: 13px;
+  font-weight: 850;
+  text-align: left;
+}
+
+.gnss-coordinate-review-table th,
+.gnss-coordinate-review-table td {
+  padding: 10px 12px;
+  border-top: 1px solid #e1e8ed;
+  text-align: left;
+  vertical-align: top;
+}
+
+.gnss-coordinate-review-table thead th {
+  color: #173f60;
+  background: #f6f9fb;
+}
+
+.gnss-coordinate-review-table tbody th {
+  width: 30%;
+  color: #173f60;
+  background: #fbfcfd;
+}
+
 @media (max-width: 980px) {
   .gnss-coordinate-concept-flow {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1106,6 +1375,7 @@
 
 @media (max-width: 760px) {
   .gnss-coordinate-two-column,
+  .gnss-coordinate-plane-axis-layout,
   .gnss-coordinate-projection-diagram,
   .gnss-coordinate-plane-result,
   .gnss-coordinate-fix-summary,
@@ -1113,6 +1383,7 @@
   .gnss-coordinate-epoch-definitions,
   .gnss-coordinate-reference-dates,
   .gnss-coordinate-station-comparison,
+  .gnss-coordinate-epoch-correction,
   .gnss-coordinate-quality-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1155,6 +1426,7 @@
   }
 
   .gnss-coordinate-concept-flow,
+  .gnss-coordinate-antenna-flow,
   .gnss-coordinate-two-selector,
   .gnss-coordinate-three-selector,
   .gnss-coordinate-issue-selector,
@@ -1175,6 +1447,23 @@
   }
 
   .gnss-coordinate-main-values {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gnss-coordinate-antenna-flow b {
+    position: static;
+    display: block;
+    padding: 5px 0;
+    text-align: center;
+    transform: none;
+  }
+
+  .gnss-coordinate-epoch-adopted > div:first-child {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .gnss-coordinate-epoch-adopted dl {
     grid-template-columns: minmax(0, 1fr);
   }
 
