@@ -5662,3 +5662,148 @@ GNSS第4章 修正後ユーザー最終確認
 ```
 
 である。第5章実装開始とはしない。
+## 43. 依頼03 GNSS測量教材 Phase 5完了（2026-08-10）
+
+### 43.1 完了状況
+
+* GNSS測量教材 Phase 5として、第5章「自前RTK① 基準局をつくる」の実装、README更新、全検証を完了した。
+* 第4章修正後のユーザー最終確認が完了したことを、本依頼で確認済みとしてPhase 5を開始した。
+* 第6章以降、GNSS用localStorage、GNSS学習記録は実装していない。
+
+### 43.2 教材メタデータ
+
+* 教材ID：`gnss-own-base-station`
+* 章番号：`5`
+* 章タイトル：`自前RTK① 基準局をつくる`
+* 学習目標：`自前RTKの基準局について、基準となる座標をどのように用意するかを考え、その座標とGNSSアンテナを正しく結び付け、安定してGNSS観測できる基準局を準備する流れを説明できる。`
+* 教材カード数：`9`
+* 確認問題数：`8`
+
+### 43.3 実装内容
+
+* 第5章をGNSS教材レジストリの5番目に追加し、`SurveyGnss.tsx`で第1章〜第5章を常時マウントする構成を維持した。
+* 9枚の教材カードを追加した。
+  1. 第4章との接続と、基準局づくりの全体像
+  2. 基準局を成立させる「座標・アンテナ・安定した観測」の3要素
+  3. 基準局座標を用意する4つの考え方
+  4. 既知点Aを使う場合の準備手順
+  5. 近くに既知点がない場合の判断分岐
+  6. 座標とアンテナを結び付ける据付・整準・アンテナ高確認
+  7. 基準局設置場所の良い条件と注意条件
+  8. 運用開始前の8項目チェック
+  9. 第6章「補正情報を届ける」への接続
+* 第3カードでは、既知点、電子基準点等を利用した基準、事前観測で求める座標、任意座標の4案を静的な比較UIで示した。
+* 第4カードでは、既存シナリオの既知点A（X=`1000.000 m`、Y=`1000.000 m`、標高=`50.000 m`）、基準局アンテナ高=`1.800 m`、既存機材例を直接再利用した。
+* 第5カードでは、既知点がない場合を「ローカルな相対位置を優先する運用」と「公共座標・国家座標との整合を要する運用」に分け、推測した数値や作業時間を追加せず判断順序を示した。
+* 第6〜第8カードでは、求心、整準、アンテナ高、固定、上空視界、反射環境、電源・通信を含む事前確認を静的な図・比較・表で実装した。
+* 第9カードでは、`RTCM`、`Ntrip`、`Caster`、通信経路を次章の予告として名称と流れだけ示し、詳細は先行実装していない。
+* 第2〜第8カードには独自の操作ボタンを設けず、既存章と重複する疑似操作を増やしていない。
+* 第5章専用CSSはすべて `.gnss-own-base-*` 名前空間とし、390px表示ではカード内テーブルだけを横スクロール可能にした。
+
+### 43.4 確認問題と状態管理
+
+* 8問の正解位置は `B / C / A / D / B / C / A / D` とし、A〜Dを各2回にした。
+* 全32選択肢に安定した文字列IDを付け、誤答選択肢ごとの理由と正答解説を定義した。
+* 未知の問題ID・選択肢IDは評価関数で`null`を返し、`NaN`、`Infinity`、`undefined`を画面に出さない構成とした。
+* 第5章の「理解した」と確認問題の回答はReact画面状態だけで保持し、教材往復では維持、再読み込みでは初期化されることを確認した。
+* GNSS用localStorageキーは追加していない。
+
+### 43.5 追加した教材データと純粋関数
+
+* `src/components/gnss/data/gnssOwnBaseStation.ts`
+  * 9カードのメタデータ
+  * 基準局の3要素、座標源4案、既知点利用手順、既知点なしの判断分岐
+  * アンテナ据付・設置場所・運用前チェック・次章接続データ
+  * 8問・32選択肢と個別解説
+  * 問題取得、選択肢記号取得、回答評価の純粋関数
+* 既知点Aやアンテナ高などの既存値は、`fixedGnssScenario`を`gnssOwnBaseStationScenario`として直接参照し、重複定義していない。
+
+### 43.6 作成・変更ファイル
+
+作成：
+
+* `src/components/gnss/data/gnssOwnBaseStation.ts`
+* `src/components/gnss/lessons/GnssOwnBaseStationLesson.tsx`
+* `src/tests/gnssOwnBaseStation.test.ts`
+
+変更：
+
+* `src/components/gnss/types.ts`
+* `src/components/gnss/gnssCourse.ts`
+* `src/components/gnss/SurveyGnss.tsx`
+* `src/styles.css`
+* `src/tests/gnssObservations.test.ts`
+* `src/tests/gnssCoordinateHeight.test.ts`
+* `src/tests/gnssPositioningMethods.test.ts`
+* `scripts/gnss-smoke.mjs`
+* `README.md`
+* `doc/HANDOFF.md`
+
+正式依頼文 `prompt/依頼03_GNSS測量教材Phase5の実装.md` は未変更のまま未追跡である。
+
+### 43.7 維持した既存機能
+
+* 基礎教材9章と閉合トラバース教材の文章、図、操作、計算、確認問題、学習記録を変更していない。
+* GNSS第1章〜第4章の教材内容、操作、確認問題、教材往復時の状態保持を維持した。
+* `App.tsx`の両教材常時マウント、閉合トラバース学習記録の保存キーを維持した。
+* `package.json`、`package-lock.json`、`vite.config.ts`、`.github/workflows/deploy.yml`は変更していない。
+
+### 43.8 検証結果
+
+* `npm run typecheck -- --pretty false`
+  * 成功、型エラー0件。
+* `npm test -- --reporter=verbose`
+  * 成功、`16`テストファイル、`203`テストすべて成功。
+  * GNSS関連は`5`ファイル、`69`テスト成功。
+  * Phase 5追加分は`1`ファイル、`10`テスト成功。
+* `npm run build`
+  * 成功、`85 modules transformed`。
+  * `dist/index.html`：`0.59 kB`、gzip `0.40 kB`。
+  * CSS：`316.95 kB`、gzip `47.67 kB`。
+  * JS：`851.94 kB`、gzip `225.06 kB`。
+  * 既知の500 kB超警告は表示されたが、ビルドは成功。
+* `npm run build -- --mode github-pages`
+  * 成功、`85 modules transformed`。
+  * `dist/index.html`：`0.61 kB`、gzip `0.41 kB`。
+  * CSS・JSサイズは通常ビルドと同じ。
+  * `dist/index.html`のアセット参照が`/app_survey/assets/...`であることを確認。
+* `node --check scripts/basics-smoke.mjs`
+  * 成功。
+* `node --check scripts/phase4-smoke.mjs`
+  * 成功。
+* `node --check scripts/gnss-smoke.mjs`
+  * 成功。
+* 基礎教材Playwrightスモーク
+  * 成功。9章、確認問題、学習記録、Phase 7 DOM監査、1366px・390px表示を確認。
+  * コンソールエラー、ページ例外、外部API通信はいずれも0件。
+* 閉合トラバースPhase 4回帰スモーク
+  * 成功。交差辺防止、閉合差ベクトル、倍率100、確認問題・学習記録の永続化を確認。
+  * コンソールエラー、ページ例外、横はみ出しはいずれも0件。
+* GNSS Playwrightスモーク（通常配信・GitHub Pages配信）
+  * 両方成功。第1章〜第5章を通して確認した。
+  * 第5章の9カード、8問、個別誤答理由、正答解説、キーボード操作、フォーカス表示を確認。
+  * 教材往復時の状態保持と再読み込み時の初期化を確認。
+  * GNSS操作によるlocalStorage変化は0件。
+  * 1366px・390pxのページ全体に横はみ出しなし。
+  * コンソールエラー、ページ例外、外部API通信はいずれも0件。
+* 目視確認
+  * `/tmp/gnss-phase5-1366.png`
+  * `/tmp/gnss-phase5-card3-1366.png`
+  * `/tmp/gnss-phase5-card8-1366.png`
+  * `/tmp/gnss-phase5-390.png`
+  * `/tmp/gnss-phase5-card3-390.png`
+  * `/tmp/gnss-phase5-card8-390.png`
+  * 文字重なり、欠け、ページ全体の横はみ出しがないことを確認。
+* `git diff --check`
+  * 成功。
+* `git diff -- package.json package-lock.json`
+  * 差分なし。
+* `git diff -- vite.config.ts .github/workflows/deploy.yml`
+  * 差分なし。
+
+### 43.9 残る注意点と次回開始地点
+
+* 500 kB超警告は既知事項であり、この警告だけを理由としたコード分割は行っていない。
+* 第5章は実装・自動検証・目視確認まで完了しているが、ユーザー実機確認は未実施。
+* 次回開始地点は、GNSS第5章「自前RTK① 基準局をつくる」のユーザー実機確認。
+* 第6章以降の実装は、ユーザー実機確認と明示的な開始承認を受けるまで開始しない。

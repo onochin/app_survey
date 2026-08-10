@@ -34,7 +34,7 @@ import {
 } from "../components/gnss/data/gnssPositioningMethods";
 
 describe("GNSS測量 Phase 4 第4章", () => {
-  it("第1章～第3章を維持し、第4章だけを利用可能な章へ追加する", () => {
+  it("第1章～第3章を維持し、第4章を4番目の章として維持する", () => {
     expect(gnssOverviewLesson).toMatchObject({
       id: "gnss-overview",
       number: 1,
@@ -57,14 +57,12 @@ describe("GNSS測量 Phase 4 第4章", () => {
       learningGoal:
         "GNSSの主な測位方式について、基準となる情報の得方や観測方法の違いを比較し、現場条件に応じて方式を選ぶ考え方を説明できる。",
     });
-    expect(gnssLessons.map((lesson) => lesson.id)).toEqual([
+    expect(gnssLessons.slice(0, 4).map((lesson) => lesson.id)).toEqual([
       "gnss-overview",
       "gnss-observations",
       "gnss-coordinate-height",
       "gnss-positioning-methods",
     ]);
-    expect(gnssLessons).toHaveLength(4);
-    expect(gnssLessons.every((lesson) => lesson.number <= 4)).toBe(true);
     expect(gnssQuizQuestions).toHaveLength(3);
     expect(gnssObservationsQuizQuestions).toHaveLength(7);
     expect(gnssCoordinateHeightQuizQuestions).toHaveLength(8);

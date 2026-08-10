@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { gnssLessons } from "./gnssCourse";
 import GnssCoordinateHeightLesson from "./lessons/GnssCoordinateHeightLesson";
+import GnssOwnBaseStationLesson from "./lessons/GnssOwnBaseStationLesson";
 import GnssOverviewLesson from "./lessons/GnssOverviewLesson";
 import GnssObservationsLesson from "./lessons/GnssObservationsLesson";
 import GnssPositioningMethodsLesson from "./lessons/GnssPositioningMethodsLesson";
@@ -102,6 +103,18 @@ function SurveyGnss({
             "gnss-positioning-methods",
           )}
           onToggleUnderstood={() => toggleUnderstood("gnss-positioning-methods")}
+          totalLessonCount={totalLessonCount}
+        />
+      </div>
+
+      <div
+        className="gnss-lesson-panel"
+        hidden={activeLessonId !== "gnss-own-base-station"}
+      >
+        <GnssOwnBaseStationLesson
+          completedLessonCount={completedLessonCount}
+          isUnderstood={understoodLessonIds.includes("gnss-own-base-station")}
+          onToggleUnderstood={() => toggleUnderstood("gnss-own-base-station")}
           totalLessonCount={totalLessonCount}
         />
       </div>

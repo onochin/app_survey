@@ -44,14 +44,12 @@ describe("GNSS測量 Phase 3 第3章", () => {
       learningGoal:
         "GNSSで求めた3次元位置が、緯度・経度・楕円体高、平面直角座標、標高へどのようにつながるかを説明し、成果を使用するときに確認すべき測地系・系番号・座標の時点・高さ基準を判断できる。",
     });
-    expect(gnssLessons.map((lesson) => lesson.id)).toEqual([
+    expect(gnssLessons.slice(0, 4).map((lesson) => lesson.id)).toEqual([
       "gnss-overview",
       "gnss-observations",
       "gnss-coordinate-height",
       "gnss-positioning-methods",
     ]);
-    expect(gnssLessons).toHaveLength(4);
-    expect(gnssLessons.every((lesson) => lesson.number <= 4)).toBe(true);
   });
 
   it("10カードを安定IDと指定順で定義する", () => {

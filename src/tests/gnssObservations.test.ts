@@ -51,13 +51,12 @@ describe("GNSS測量 Phase 2 第2章", () => {
       learningGoal:
         "GNSS受信機が衛星から座標そのものを受け取るのではなく、電波を観測して衛星までの距離に関係する情報を求め、その観測から位置を計算していることを説明できる。",
     });
-    expect(gnssLessons.map((lesson) => lesson.id)).toEqual([
+    expect(gnssLessons.slice(0, 4).map((lesson) => lesson.id)).toEqual([
       "gnss-overview",
       "gnss-observations",
       "gnss-coordinate-height",
       "gnss-positioning-methods",
     ]);
-    expect(gnssLessons).toHaveLength(4);
   });
 
   it("衛星から位置計算までの7段階を指定順で持つ", () => {

@@ -2623,6 +2623,614 @@
   }
 }
 
+/* GNSS Phase 5: own base station lesson */
+.gnss-own-base-opening-question {
+  display: grid;
+  gap: 7px;
+  padding: 15px;
+  margin-top: 14px;
+  color: #e4f3ff;
+  background: rgba(239, 249, 255, 0.12);
+  border: 1px solid rgba(194, 226, 244, 0.38);
+  border-radius: 11px;
+}
+
+.gnss-own-base-opening-question span {
+  color: #bfe8ff;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.gnss-own-base-opening-question p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.gnss-own-base-opening-question strong {
+  color: #fff;
+  font-size: 19px;
+  line-height: 1.45;
+}
+
+.gnss-own-base-flow {
+  margin-top: 14px;
+}
+
+.gnss-own-base-distinction {
+  display: grid;
+  align-items: center;
+  gap: 7px;
+  padding: 12px;
+  margin: 11px 0 0;
+  color: #173e61;
+  background: rgba(248, 252, 255, 0.96);
+  border: 1px solid rgba(194, 226, 244, 0.7);
+  border-radius: 9px;
+  font-size: 12px;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  text-align: center;
+}
+
+.gnss-own-base-distinction span {
+  color: #a65c15;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.gnss-own-base-element-grid,
+.gnss-own-base-branch-grid,
+.gnss-own-base-not-equal-grid,
+.gnss-own-base-site-comparison {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.gnss-own-base-element-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gnss-own-base-element-grid article {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 5px;
+  padding: 14px;
+  background: #f7fbff;
+  border: 1px solid #cfe1ef;
+  border-top: 4px solid var(--gnss-blue);
+  border-radius: 10px;
+}
+
+.gnss-own-base-element-grid article > span {
+  color: var(--gnss-blue);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.gnss-own-base-element-grid h3 {
+  margin: 0;
+  color: var(--gnss-navy);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.gnss-own-base-element-grid p {
+  margin: 0;
+  color: var(--slate-700);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.gnss-own-base-element-grid small {
+  margin-top: 3px;
+  color: #255f38;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.gnss-own-base-all-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  margin: 10px 0 0;
+  color: #255f38;
+  background: #edf8ef;
+  border: 1px solid #a9d8b6;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.gnss-own-base-card-question,
+.gnss-own-base-warning-message,
+.gnss-own-base-review-note,
+.gnss-own-base-next-question {
+  padding: 12px 14px;
+  margin: 12px 0 0;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.gnss-own-base-card-question,
+.gnss-own-base-next-question {
+  color: #744414;
+  background: #fff7eb;
+  border-color: #ecd3a7;
+  border-left: 5px solid var(--gnss-orange);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.gnss-own-base-table {
+  width: 100%;
+  min-width: 650px;
+  margin-top: 12px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.gnss-own-base-coordinate-table {
+  min-width: 720px;
+}
+
+.gnss-own-base-final-check-table {
+  min-width: 620px;
+}
+
+.gnss-own-base-coordinate-notes {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gnss-own-base-coordinate-notes p {
+  min-width: 0;
+  padding: 11px;
+  margin: 0;
+  color: var(--slate-700);
+  background: #f7f9fb;
+  border: 1px solid #d8e2ea;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.gnss-own-base-coordinate-notes strong {
+  color: var(--gnss-navy);
+}
+
+.gnss-own-base-warning-message {
+  color: #744414;
+  background: #fff6e8;
+  border-color: #e8c998;
+  font-weight: 800;
+}
+
+.gnss-own-base-known-values {
+  display: grid;
+  gap: 11px;
+  padding: 14px;
+  margin-top: 13px;
+  background: #f7fbff;
+  border: 1px solid #cfe1ef;
+  border-radius: 10px;
+}
+
+.gnss-own-base-known-values > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gnss-own-base-known-values > header span {
+  color: var(--gnss-blue);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.gnss-own-base-known-values > header strong {
+  color: var(--gnss-navy);
+  font-size: 16px;
+}
+
+.gnss-own-base-known-values dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gnss-own-base-known-values dl > div {
+  min-width: 0;
+  padding: 9px;
+  background: #fff;
+  border: 1px solid #d8e4ec;
+  border-radius: 7px;
+}
+
+.gnss-own-base-known-values dt,
+.gnss-own-base-known-values dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.gnss-own-base-known-values dt {
+  margin-bottom: 4px;
+  color: var(--slate-600);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.gnss-own-base-known-values dd {
+  color: var(--gnss-navy);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.gnss-own-base-known-values > p {
+  margin: 0;
+  color: var(--slate-600);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.gnss-own-base-equipment-example {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  margin-top: 10px;
+  color: #17476f;
+  background: #eef7fd;
+  border: 1px solid #c4dfea;
+  border-radius: 9px;
+}
+
+.gnss-own-base-equipment-example span,
+.gnss-own-base-equipment-example small {
+  font-size: 11px;
+}
+
+.gnss-own-base-equipment-example strong {
+  font-size: 14px;
+}
+
+.gnss-own-base-equipment-example p {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.gnss-own-base-equipment-example small {
+  color: var(--slate-600);
+  line-height: 1.55;
+}
+
+.gnss-own-base-branch-start {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 13px;
+  margin-top: 13px;
+  color: #17476f;
+  background: #eef7fd;
+  border: 1px solid #c4dfea;
+  border-radius: 9px;
+  text-align: center;
+}
+
+.gnss-own-base-branch-start span {
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.gnss-own-base-branch-start strong {
+  color: var(--gnss-navy);
+  font-size: 14px;
+}
+
+.gnss-own-base-branch-start p {
+  margin: 0;
+  color: var(--slate-700);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.gnss-own-base-branch-start b {
+  color: var(--gnss-blue);
+}
+
+.gnss-own-base-branch-grid,
+.gnss-own-base-not-equal-grid,
+.gnss-own-base-site-comparison {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gnss-own-base-branch-grid article {
+  min-width: 0;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid #dce5ed;
+  border-top: 4px solid var(--gnss-blue);
+  border-radius: 9px;
+  text-align: center;
+}
+
+.gnss-own-base-branch-grid h3 {
+  margin: 0;
+  color: var(--gnss-navy);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.gnss-own-base-branch-grid b {
+  display: block;
+  margin: 6px 0;
+  color: var(--gnss-blue);
+}
+
+.gnss-own-base-branch-grid p {
+  margin: 0;
+  color: var(--slate-700);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.gnss-own-base-not-equal-grid p {
+  display: grid;
+  gap: 5px;
+  padding: 11px;
+  margin: 0;
+  color: #744414;
+  background: #fff7eb;
+  border: 1px solid #ecd3a7;
+  border-radius: 8px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.gnss-own-base-not-equal-grid span {
+  font-weight: 800;
+}
+
+.gnss-own-base-antenna-layout {
+  display: grid;
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 13px;
+  grid-template-columns: minmax(240px, 0.75fr) minmax(0, 1.25fr);
+}
+
+.gnss-own-base-antenna-diagram {
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+  align-content: center;
+  gap: 5px;
+  padding: 18px;
+  color: #17476f;
+  background: #eef7fd;
+  border: 1px solid #c4dfea;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.gnss-own-base-antenna-diagram strong {
+  color: var(--gnss-navy);
+  font-size: 14px;
+}
+
+.gnss-own-base-antenna-diagram span {
+  color: var(--gnss-blue);
+  font-size: 23px;
+  line-height: 1;
+}
+
+.gnss-own-base-antenna-diagram b {
+  width: 2px;
+  height: 24px;
+  background: #4e8bb8;
+}
+
+.gnss-own-base-antenna-diagram p {
+  padding: 5px 9px;
+  margin: 0;
+  background: #fff;
+  border: 1px solid #cbdfea;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.gnss-own-base-check-list {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.gnss-own-base-check-list li {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 11px;
+  color: var(--slate-700);
+  background: #f8fafc;
+  border: 1px solid #dce5ed;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.gnss-own-base-check-list li span {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  place-items: center;
+  color: #255f38;
+  background: #e4f5e8;
+  border-radius: 50%;
+  font-weight: 900;
+}
+
+.gnss-own-base-review-note {
+  color: var(--slate-700);
+  background: #f7f9fb;
+  border-color: #d8e2ea;
+  font-size: 12px;
+}
+
+.gnss-own-base-site-comparison article {
+  min-width: 0;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid #dce5ed;
+  border-radius: 10px;
+}
+
+.gnss-own-base-site-comparison article:first-child {
+  background: #f2faf4;
+  border-color: #bcdac4;
+}
+
+.gnss-own-base-site-comparison article:last-child {
+  background: #fff8ed;
+  border-color: #e8c897;
+}
+
+.gnss-own-base-site-comparison header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gnss-own-base-site-comparison header span {
+  color: var(--gnss-blue);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.gnss-own-base-site-comparison article:last-child header span {
+  color: #9a5718;
+}
+
+.gnss-own-base-site-comparison h3 {
+  margin: 0;
+  color: var(--gnss-navy);
+  font-size: 14px;
+}
+
+.gnss-own-base-site-comparison ul {
+  display: grid;
+  gap: 5px;
+  padding-left: 20px;
+  margin: 10px 0 0;
+  color: var(--slate-700);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.gnss-own-base-site-checks {
+  margin-top: 11px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gnss-own-base-site-checks li:last-child {
+  grid-column: 1 / -1;
+}
+
+.gnss-own-base-ready-message {
+  padding: 12px;
+  margin: 11px 0 0;
+  color: #255f38;
+  background: #edf8ef;
+  border: 1px solid #a9d8b6;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.gnss-own-base-next-question {
+  text-align: center;
+}
+
+.gnss-own-base-next-terms {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.gnss-own-base-next-terms span {
+  padding: 6px 10px;
+  color: #17476f;
+  background: #eaf4fb;
+  border: 1px solid #c6dfed;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .gnss-own-base-element-grid,
+  .gnss-own-base-antenna-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gnss-own-base-known-values dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .gnss-own-base-opening-question {
+    padding: 11px;
+  }
+
+  .gnss-own-base-opening-question strong {
+    font-size: 17px;
+  }
+
+  .gnss-own-base-distinction,
+  .gnss-own-base-coordinate-notes,
+  .gnss-own-base-known-values dl,
+  .gnss-own-base-branch-grid,
+  .gnss-own-base-not-equal-grid,
+  .gnss-own-base-site-comparison,
+  .gnss-own-base-site-checks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gnss-own-base-distinction span {
+    line-height: 1;
+  }
+
+  .gnss-own-base-known-values > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .gnss-own-base-site-checks li:last-child {
+    grid-column: auto;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

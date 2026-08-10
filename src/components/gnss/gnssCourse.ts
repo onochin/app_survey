@@ -124,9 +124,41 @@ export const gnssPositioningMethodsLesson = {
   ],
 } as const satisfies GnssLessonMetadata;
 
+export const gnssOwnBaseStationLesson = {
+  id: "gnss-own-base-station",
+  number: 5,
+  title: "自前RTK① 基準局をつくる",
+  description:
+    "基準局座標の出どころを確認し、その座標が示す点とGNSSアンテナを結び付け、安定して観測できる基準局を準備する。",
+  learningGoal:
+    "自前RTKの基準局について、基準となる座標をどのように用意するかを考え、その座標とGNSSアンテナを正しく結び付け、安定してGNSS観測できる基準局を準備する流れを説明できる。",
+  terms: [
+    "自前基準局",
+    "基準局座標",
+    "既知点",
+    "基準点",
+    "サーベイイン",
+    "単独測位",
+    "スタティック",
+    "求心",
+    "アンテナ高",
+    "測地系",
+    "座標の時点",
+    "上空視界",
+    "マルチパス",
+  ],
+  cautions: [
+    "GNSS受信機を置いただけで、測量成果の基準として適切な基準局が自動的に完成するとは限りません。",
+    "座標値だけでなく、その座標がどこから得られ、今回の成果基準として適切かを確認します。",
+    "相対的な位置関係の精度と、国家座標等への整合は別に確認します。",
+    "基準局側でも、求心・アンテナ高・固定状態・GNSS観測環境を確認します。",
+  ],
+} as const satisfies GnssLessonMetadata;
+
 export const gnssLessons = [
   gnssOverviewLesson,
   gnssObservationsLesson,
   gnssCoordinateHeightLesson,
   gnssPositioningMethodsLesson,
+  gnssOwnBaseStationLesson,
 ] as const;
