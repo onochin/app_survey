@@ -55,8 +55,9 @@ describe("GNSS測量 Phase 2 第2章", () => {
       "gnss-overview",
       "gnss-observations",
       "gnss-coordinate-height",
+      "gnss-positioning-methods",
     ]);
-    expect(gnssLessons).toHaveLength(3);
+    expect(gnssLessons).toHaveLength(4);
   });
 
   it("衛星から位置計算までの7段階を指定順で持つ", () => {

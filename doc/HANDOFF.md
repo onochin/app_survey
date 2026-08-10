@@ -4951,3 +4951,233 @@ GNSS目視用画像はプロジェクト外の`/tmp`へ新しい名前で保存�
 次回開始地点は「左サイドバー章サブメニューのユーザー実機確認」である。
 表示順、章名の見え方、サイドバー内スクロールに修正希望がある場合は、
 今回の構造を維持して必要箇所だけ調整する。
+
+## 39. GNSS第4章 新スレッド引継ぎ準備（2026-08-10）
+
+ユーザーの次の目的は、GNSS第4章の測位方式比較を新しいスレッドで進めることである。
+既存の第3章正式指示文では、次章名として
+`第4章「GNSS測位方式を比較する」`が記載されている。
+
+新スレッド開始用として、次の文書を作成した。
+
+```text
+prompt/依頼03_GNSS測量教材Phase4_第4章_新スレッド引継ぎ.md
+```
+
+この文書は、現在の完了状態、検証基準、維持事項、禁止事項をまとめた補助文書で
+あり、第4章の詳細な実装仕様そのものではない。
+
+その後、ユーザー作成の正式指示文が次のパスへ追加された。
+
+```text
+prompt/依頼03_GNSS測量教材Phase4_GNSS測位方式比較の実装.md
+```
+
+正式指示文により、章タイトル、安定章ID`gnss-positioning-methods`、到達目標、
+6測位方式、9カード、カード4・カード9の操作、固定教材値、8確認問題、検証条件が
+確定した。新スレッドでは最新HANDOFFを最優先とし、この正式指示文を省略せず
+全文確認する。上記引継ぎ文書は正式指示文と区別し、開始時の補助資料として使う。
+
+引継ぎ文書を一度削除したため、2026-08-10に同じパスへ復元した。復元時点では、
+第3章指示文をプロジェクト直下から`prompt/`へ移した既存差分と、第4章正式指示文の
+未追跡ファイルがある。これらはユーザーの既存変更として削除・破棄・元へ戻さない。
+
+アプリ実装、テスト、README、packageファイル、保存キー、公開構成には変更を
+加えていない。直近の検証済み基準は38.4節のとおりである。
+
+次回開始地点は、
+
+```text
+既存差分と第3章完了状態を確認後、正式指示文に従って
+GNSS第4章「GNSS測位方式を比較する」を実装
+```
+
+である。第4章実装、全検証、README・HANDOFF更新まで完了したら停止し、
+第5章には着手しない。
+
+## 40. 依頼03 GNSS測量教材 Phase 4完了（2026-08-10）
+
+### 40.1 完了範囲と教材メタデータ
+
+GNSS測量教材 Phase 4として、第4章を実装し、README更新、全検証、
+HANDOFF更新まで完了した。
+
+- 章番号：第4章
+- 安定章ID：`gnss-positioning-methods`
+- タイトル：`GNSS測位方式を比較する`
+- 到達目標：
+  `GNSSの主な測位方式について、基準となる情報の得方や観測方法の違いを比較し、現場条件に応じて方式を選ぶ考え方を説明できる。`
+- カード数：9
+- 測位方式数：6
+  - 単独測位
+  - DGNSS
+  - 自前基準局RTK
+  - ネットワーク型RTK
+  - CLAS
+  - スタティック
+
+UIは「意味のある操作だけを使用」する方針とし、カード1～3・5～8は静的な図、
+比較表、タイムラインとした。操作は、学習上の比較効果がある次の2カードだけへ
+実装した。
+
+- カード4：基準局座標が正しい場合とXを`+0.500 m`誤入力した場合を切り替える
+  - 正しい場合：`A.X = 1000.000 m`、相対X `+12.345 m`、
+    `P1.X = 1012.345 m`、`FIX`
+  - 誤入力時：`A.X = 1000.500 m`、相対X `+12.345 m`、
+    `P1.X = 1012.845 m`、`FIX`
+  - FIXでも基準局座標の誤りがP1成果へ`+0.500 m`伝わることを表示する
+- カード9：必要精度、結果時期、携帯通信、現場基準局、既知点、上空視界の
+  6条件から、ランキングではなく検討候補と理由を表示する
+  - 5プリセット：一般現場・通信良好、山間部・携帯圏外、
+    既知点あり・基準局設置可能、高精度な基準点、概略位置
+  - 上空視界が厳しい場合は特定方式を推薦せず、GNSS観測条件の確認を表示する
+  - 条件が不足・不正な場合は複数候補と追加確認へ安全に送る
+
+第4章確認問題は4択8問とした。問題IDと意味を表す選択肢IDを固定し、表示上の
+正答位置を`A, C, D, B, A, C, D, B`としてA～D各2問へ分散した。全誤答に
+選択肢固有の理由を持たせ、正解文字は配列順から導出する。
+
+### 40.2 追加した教材データと純粋関数
+
+`src/components/gnss/data/gnssPositioningMethods.ts`へ次を追加した。
+
+- 9カードの安定ID、タイトル、学習焦点
+- 6測位方式の情報源、現場基準局、情報経路、結果時期
+- 自前基準局RTKの固定座標例
+- 自前基準局RTKとネットワーク型RTKの比較データ
+- 6条件の定義、5プリセット、候補理由、判断フロー
+- 第4章確認問題8問と全選択肢別理由
+
+追加した主な純粋関数は次のとおりである。
+
+- `calculateOwnBaseRtkPointX`
+- `getOwnBaseRtkCoordinateCase`
+- `getGnssPositioningPreset`
+- `isGnssPositioningConditions`
+- `evaluateGnssPositioningConditions`
+- `getGnssPositioningMethodsQuizQuestion`
+- `getGnssPositioningMethodsQuizOptionLetter`
+- `evaluateGnssPositioningMethodsQuizAnswer`
+
+非有限座標、未知ケース、未知プリセット、不正条件、未知問題・選択肢IDを、
+`NaN`、`Infinity`、`undefined`の画面表示へ送らず安全に拒否・保留する。
+
+### 40.3 作成・変更ファイルと維持事項
+
+作成ファイル：
+
+- `src/components/gnss/data/gnssPositioningMethods.ts`
+- `src/components/gnss/lessons/GnssPositioningMethodsLesson.tsx`
+- `src/tests/gnssPositioningMethods.test.ts`
+
+変更ファイル：
+
+- `src/components/gnss/types.ts`
+- `src/components/gnss/gnssCourse.ts`
+- `src/components/gnss/SurveyGnss.tsx`
+- `src/styles.css`
+- `src/tests/gnssObservations.test.ts`
+- `src/tests/gnssCoordinateHeight.test.ts`
+- `scripts/gnss-smoke.mjs`
+- `README.md`
+- `doc/HANDOFF.md`
+
+第4章は`gnssLessons`へ4番目として追加し、`SurveyGnss.tsx`で既存3章と同様に
+常時マウントする。選択章、カード4・9の操作、8問の回答、理解済み状態は
+React状態だけで保持し、教材往復時は維持、ページ再読込み後は初期化する。
+GNSS用localStorageキー、学習記録、復習一覧は実装していない。
+
+次を維持した。
+
+- 第1章`gnss-overview`の文章、9工程、3方式、3状態、8品質確認、3問
+- 第2章`gnss-observations`の文章、9カード、7問
+- 第3章`gnss-coordinate-height`の文章、10カード、8問
+- 第1章～第3章の操作、問題回答、理解済み状態と教材往復時の状態保持
+- `App.tsx`の全教材常時マウント
+- 左サイドバー章サブメニューと教材内章ナビゲーションの状態共有
+- 測量の基礎全9章、15問、24項目の学習記録、復習一覧、進捗、保存形式
+- 基礎教材保存キー`survey-learning-lab:basics-learning-records:v1`
+- 閉合トラバースの計算、操作、確認問題、学習記録、保存形式
+- 閉合トラバース保存キー`survey-learning-lab:traverse-learning-records:v1`
+- Playwrightのhermeticブラウザ構成と既存スクリーンショット
+- GitHub Pages用Vite baseと`.github/workflows/deploy.yml`
+
+既存第1章～第3章の教材データ・レッスン6ファイルは作業開始時のSHA-256と一致し、
+直接変更していない。作業開始時から存在した第3章指示文の`prompt/`への移動差分、
+第4章正式指示文・引継ぎ文書、既存HANDOFF差分も破棄・復元していない。
+
+### 40.4 検証結果
+
+- `npm run typecheck -- --pretty false`：成功、エラー0件
+- 単体テスト：15ファイル、189テスト成功、失敗0件
+- GNSS対象テスト：4ファイル、55テスト成功
+  - 第1章：11テスト
+  - 第2章：19テスト
+  - 第3章：15テスト
+  - 第4章：10テスト
+- 第4章8問：全32選択肢評価、全誤答固有理由、正答A～D各2問、
+  未知ID安全処理：成功
+- Vite通常本番ビルド：成功、83 modules transformed
+- 通常HTML：0.59 kB（gzip 0.40 kB）
+- Vite Pages用本番ビルド：成功、83 modules transformed
+- Pages用HTML：0.61 kB（gzip 0.41 kB）
+- CSS：300.14 kB（gzip 45.61 kB）
+- JS：800.47 kB（gzip 213.42 kB）
+- 500 kBを超えたJSチャンク警告：あり。通常・Pages用ビルドとも成功
+- Pages用HTMLのscript・stylesheet参照：`/app_survey/assets/`配下
+- `node --check scripts/basics-smoke.mjs`：成功
+- `node --check scripts/phase4-smoke.mjs`：成功
+- `node --check scripts/gnss-smoke.mjs`：成功
+- GNSS Playwrightスモーク：通常URLで成功
+- Pages用`github-pages` mode previewの`/app_survey/`でGNSSスモーク：成功
+- 第1章9工程・3方式・3状態・8品質確認・3問：成功
+- 第2章9カード・各操作・7問：成功
+- 第3章10カード・各操作・FIX後6条件・8問：成功
+- 第4章9カード、6方式、カード4の固定数値・FIX、カード9の5プリセット・
+  6条件・候補理由・上空視界警告、8問：成功
+- 第1章～第4章往復、測量の基礎・閉合トラバースを含む教材往復時の
+  React状態保持：成功
+- ページ再読込み後の第1章～第4章操作・問題・理解済み状態の初期化：成功
+- 第1章～第4章のキーボード操作と可視フォーカス：成功
+- GNSS操作前後と再読込み後のlocalStorageキー不変、新しいGNSSキーなし：成功
+- 基礎教材Playwright回帰：成功。全9章、15問、24項目、保存・再読込み、
+  復習一覧、進捗、DOM監査18件を確認
+- 閉合トラバースPhase 4回帰：成功。交差辺の計算停止、閉合差、確認問題、
+  学習記録保存・再読込みを確認
+- 1366px：`clientWidth` 1366、`scrollWidth` 1366、ページ全体の横はみ出しなし
+- 390px：`clientWidth` 390、`scrollWidth` 390、ページ全体の横はみ出しなし
+- 1366px・390px全ページ画像とカード4・9の切出し画像を目視し、文字重なり、
+  ページ全体の文字切れ、操作不能なし
+- コンソールエラー：0件
+- ページ例外：0件
+- 実行時の外部API通信：0件
+- `git diff --check`：成功
+- `git diff -- package.json package-lock.json`：差分なし
+- `git diff -- vite.config.ts .github/workflows/deploy.yml`：差分なし
+- `package.json`、`package-lock.json`、依存関係：変更なし
+- 新規パッケージ、外部API、GNSS用localStorage、第5章以降：追加なし
+- 既存スクリーンショット：差分・上書きなし
+
+GNSS目視用の全ページ画像はプロジェクト外の`/tmp`へ新しい名前で保存した。
+
+- `/tmp/gnss-phase4-1366.png`
+- `/tmp/gnss-phase4-390.png`
+
+### 40.5 残る注意点と次回開始地点
+
+- カード9の候補判定は比較軸を学ぶ教材用の小さなルールであり、実務用の
+  自動方式選定や作業規程への適合判定ではない
+- GNSS第1章～第4章の操作、問題回答、理解済み状態はReact状態だけであり、
+  ページ再読込み後は初期化する
+- GNSS教材の学習記録、復習一覧、localStorage保存キーは未実装
+- JSチャンクは500 kBを超える警告が出るが、警告だけを理由としたコード分割、
+  Vite警告値変更、依存変更は行っていない
+- 第5章以降は未実装であり、先行実装していない
+
+次回開始地点は、
+
+```text
+GNSS第4章のユーザー実機確認
+```
+
+である。第5章実装開始とはしない。

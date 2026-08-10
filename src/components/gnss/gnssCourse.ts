@@ -94,8 +94,39 @@ export const gnssCoordinateHeightLesson = {
   ],
 } as const satisfies GnssLessonMetadata;
 
+export const gnssPositioningMethodsLesson = {
+  id: "gnss-positioning-methods",
+  number: 4,
+  title: "GNSS測位方式を比較する",
+  description:
+    "単独測位、DGNSS、自前基準局RTK、ネットワーク型RTK、CLAS、スタティックを、情報源・観測方法・結果の時期から比較する。",
+  learningGoal:
+    "GNSSの主な測位方式について、基準となる情報の得方や観測方法の違いを比較し、現場条件に応じて方式を選ぶ考え方を説明できる。",
+  terms: [
+    "単独測位",
+    "DGNSS",
+    "自前基準局RTK",
+    "ネットワーク型RTK",
+    "CLAS",
+    "スタティック",
+    "基線",
+    "補正情報",
+    "補強情報",
+    "L6D",
+    "同時観測",
+    "後処理",
+  ],
+  cautions: [
+    "衛星測位システムと測位方式は別の分類です。",
+    "現場側の受信機が1台でも、外部の基準・補強情報を利用する方式があります。",
+    "FIXは基準局へ入力した座標の正しさまで保証しません。",
+    "6方式は精度による単純な上位・下位のランキングではありません。",
+  ],
+} as const satisfies GnssLessonMetadata;
+
 export const gnssLessons = [
   gnssOverviewLesson,
   gnssObservationsLesson,
   gnssCoordinateHeightLesson,
+  gnssPositioningMethodsLesson,
 ] as const;

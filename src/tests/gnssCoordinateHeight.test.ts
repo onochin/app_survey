@@ -30,7 +30,7 @@ import {
 } from "../components/gnss/data/gnssCoordinateHeight";
 
 describe("GNSS測量 Phase 3 第3章", () => {
-  it("第1章・第2章IDを維持し、第3章だけを利用可能な章へ追加する", () => {
+  it("第1章・第2章IDと第3章メタデータを維持する", () => {
     expect(gnssOverviewLesson.id).toBe("gnss-overview");
     expect(gnssObservationsLesson.id).toBe("gnss-observations");
     expect(gnssCoordinateHeightLesson).toMatchObject({
@@ -44,9 +44,10 @@ describe("GNSS測量 Phase 3 第3章", () => {
       "gnss-overview",
       "gnss-observations",
       "gnss-coordinate-height",
+      "gnss-positioning-methods",
     ]);
-    expect(gnssLessons).toHaveLength(3);
-    expect(gnssLessons.every((lesson) => lesson.number <= 3)).toBe(true);
+    expect(gnssLessons).toHaveLength(4);
+    expect(gnssLessons.every((lesson) => lesson.number <= 4)).toBe(true);
   });
 
   it("10カードを安定IDと指定順で定義する", () => {

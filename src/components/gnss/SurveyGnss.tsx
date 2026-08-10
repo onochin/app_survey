@@ -3,6 +3,7 @@ import { gnssLessons } from "./gnssCourse";
 import GnssCoordinateHeightLesson from "./lessons/GnssCoordinateHeightLesson";
 import GnssOverviewLesson from "./lessons/GnssOverviewLesson";
 import GnssObservationsLesson from "./lessons/GnssObservationsLesson";
+import GnssPositioningMethodsLesson from "./lessons/GnssPositioningMethodsLesson";
 import type { GnssLessonId } from "./types";
 
 interface SurveyGnssProps {
@@ -87,6 +88,20 @@ function SurveyGnss({
           completedLessonCount={completedLessonCount}
           isUnderstood={understoodLessonIds.includes("gnss-coordinate-height")}
           onToggleUnderstood={() => toggleUnderstood("gnss-coordinate-height")}
+          totalLessonCount={totalLessonCount}
+        />
+      </div>
+
+      <div
+        className="gnss-lesson-panel"
+        hidden={activeLessonId !== "gnss-positioning-methods"}
+      >
+        <GnssPositioningMethodsLesson
+          completedLessonCount={completedLessonCount}
+          isUnderstood={understoodLessonIds.includes(
+            "gnss-positioning-methods",
+          )}
+          onToggleUnderstood={() => toggleUnderstood("gnss-positioning-methods")}
           totalLessonCount={totalLessonCount}
         />
       </div>
