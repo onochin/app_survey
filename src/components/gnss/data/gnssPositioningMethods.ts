@@ -17,6 +17,7 @@ export interface GnssPositioningMethodComparison {
   readonly shortDescription: string;
   readonly externalInformation: string;
   readonly fieldBaseStation: string;
+  readonly approach: string;
   readonly informationPath: string;
   readonly resultTiming: string;
 }
@@ -72,7 +73,7 @@ export const gnssPositioningMethodCards = [
   {
     id: "single-and-dgnss",
     title: "単独測位からDGNSSへ",
-    focus: "補正情報を使わない場合と基準側の情報を使う場合",
+    focus: "外部補正情報を使わない場合と既知位置の基準局を利用する場合",
   },
   {
     id: "own-base-rtk",
@@ -106,23 +107,128 @@ export const gnssPositioningMethodCards = [
   },
 ] as const;
 
+export const gnssPositioningInformationGroups = [
+  {
+    id: "own-observation",
+    categoryLabel: "① P1自身のGNSS観測を中心に求める",
+    representative: "単独測位",
+    precisionTrend: "概略位置～m級",
+    resultLabel: "P1の位置を求める",
+    processLabel: null,
+  },
+  {
+    id: "external-information",
+    categoryLabel: "② 外部の基準・補正・補強情報も利用する",
+    representative: "DGNSS・自前RTK・ネットワーク型RTK・CLAS",
+    precisionTrend: "方式によりm級～cm級",
+    resultLabel: "P1の位置を求める",
+    processLabel: null,
+  },
+  {
+    id: "post-processing",
+    categoryLabel: "③ 複数地点のGNSS観測を保存して後処理する",
+    representative: "スタティック",
+    precisionTrend: "高精度な測量に利用",
+    resultLabel: "P1の位置を求める",
+    processLabel: "後処理",
+  },
+] as const;
+
+export const gnssSingleAndDgnssExplanation = {
+  single: {
+    definition:
+      "基準局や補正サービスからの外部補正情報を使わず、衛星から受信した信号や航法情報を使って受信機自身で位置を求める。",
+    receiverProcessing:
+      "衛星時計や大気の影響などについても受信機内部で補正・推定を行うが、誤差を完全に取り除けるわけではありません。",
+    misconception: "単独測位 ≠ 何も補正していない測位",
+    familiarExamples: "一般的なスマートフォン、iPhone、Garmin等のGNSSウォッチ",
+    capabilityNote:
+      "2周波やマルチGNSSに対応した高性能な受信機でも、外部のRTK補正等を使っていなければ、それだけでRTKやcm級測位になるわけではありません。",
+  },
+  dgnss: {
+    definition:
+      "既知位置の基準局で得られた補正情報を利用し、単独測位に残る誤差の影響をさらに小さくする。",
+    processingNote:
+      "基準局Aの座標差をそのままP1から引く単純処理ではなく、既知位置の基準局のGNSS観測から得られる補正情報を利用します。",
+    baseStationNote:
+      "DGNSSにも基準局はある。ただし、その基準局を利用者自身が現場に設置するとは限りません。",
+    baseStationDistinction: "基準局が必要 ≠ 利用者が自分で現場基準局を設置",
+  },
+  fixTerms: [
+    {
+      term: "3D fix / GNSS fix",
+      meaning: "位置解が得られたことを示す一般的な表現として使われる場合がある",
+    },
+    {
+      term: "RTK FIX",
+      meaning: "整数アンビギュイティを固定したRTK固定解",
+    },
+  ],
+} as const;
+
+export const gnssOwnBaseRtkFlow = [
+  "基準局AのGNSS観測 ＋ 移動局P1のGNSS観測",
+  "2地点の観測を比較",
+  "AからP1までの位置の差を求める",
+  "基準局Aの既知座標 ＋ AからP1までの位置の差",
+  "P1の成果座標",
+] as const;
+
+export const gnssNetworkRtkFlow = [
+  "電子基準点網など",
+  "配信側の処理",
+  "RTK用の情報",
+  "インターネット",
+  "移動局P1",
+] as const;
+
+export const gnssClasFlow = [
+  "電子基準点等",
+  "CLAS補強情報を生成",
+  "みちびき",
+  "L6D",
+  "CLAS対応受信機 P1",
+] as const;
+
+export const gnssNetworkAndClasSignalComparison = [
+  {
+    item: "GNSS観測",
+    networkRtk: "L1 / L2 / L5等",
+    clas: "L1 / L2 / L5等",
+  },
+  {
+    item: "外部情報",
+    networkRtk: "RTK用の情報",
+    clas: "CLAS補強情報",
+  },
+  {
+    item: "主な届け方",
+    networkRtk: "インターネット",
+    clas: "みちびきL6D",
+  },
+] as const;
+
 export const gnssPositioningMethods = [
   {
     id: "single",
     label: "単独測位",
-    shortDescription: "基準局等からの補正情報を使わず位置を求める",
-    externalInformation: "なし",
+    shortDescription:
+      "基準局や補正サービスからの外部補正情報を使わず位置を求める",
+    externalInformation: "外部補正情報は使用しない",
     fieldBaseStation: "不要",
+    approach: "衛星信号や航法情報を使い、受信機自身で位置を求める",
     informationPath: "GNSS衛星 → P1",
     resultTiming: "リアルタイム",
   },
   {
     id: "dgnss",
     label: "DGNSS",
-    shortDescription: "位置が分かる基準側の補正情報を利用する",
-    externalInformation: "基準側の補正情報",
-    fieldBaseStation: "方式による",
-    informationPath: "基準側 → P1",
+    shortDescription: "既知位置の基準局で得られた補正情報を利用する",
+    externalInformation: "既知位置の基準局で作った補正情報",
+    fieldBaseStation: "必須ではない",
+    approach:
+      "基準局で分かったGNSS測位のずれを、観測点P1の位置改善に利用する",
+    informationPath: "既知位置の基準局 → 補正情報 → P1",
     resultTiming: "主にリアルタイム",
   },
   {
@@ -131,15 +237,17 @@ export const gnssPositioningMethods = [
     shortDescription: "自分で現場基準局を設置する",
     externalInformation: "自分の基準局の観測情報",
     fieldBaseStation: "必要",
+    approach: "AからP1までの3次元の位置の差を既知座標へ加える",
     informationPath: "基準局 → 移動局",
     resultTiming: "リアルタイム",
   },
   {
     id: "network-rtk",
     label: "ネットワーク型RTK",
-    shortDescription: "配信サービス側の基準情報を利用する",
-    externalInformation: "ネットワーク側の基準情報",
+    shortDescription: "配信サービス側が作るRTK用の情報を利用する",
+    externalInformation: "配信サービス側が作るRTK用の情報",
     fieldBaseStation: "不要",
+    approach: "電子基準点網などの観測データを配信側で処理して利用する",
     informationPath: "配信サービス → Internet → P1",
     resultTiming: "リアルタイム",
   },
@@ -149,7 +257,8 @@ export const gnssPositioningMethods = [
     shortDescription: "みちびきから補強情報を受ける",
     externalInformation: "CLAS補強情報",
     fieldBaseStation: "不要",
-    informationPath: "みちびきL6D → P1",
+    approach: "GNSSを観測し、みちびきL6Dから補強情報を受けて利用する",
+    informationPath: "CLAS補強情報 → みちびきL6D → P1",
     resultTiming: "リアルタイム",
   },
   {
@@ -158,6 +267,7 @@ export const gnssPositioningMethods = [
     shortDescription: "一定時間観測して後から解析する",
     externalInformation: "複数地点のGNSS観測",
     fieldBaseStation: "基準側観測点が必要",
+    approach: "複数地点の観測データを保存し、後処理で基線解析する",
     informationPath: "各受信機で保存 → 後処理",
     resultTiming: "後処理",
   },
@@ -216,12 +326,12 @@ export const gnssOwnAndNetworkRtkComparison = [
   {
     item: "情報の送り元",
     ownBase: "自分の現場基準局",
-    network: "電子基準点網などを利用した配信側",
+    network: "電子基準点網などの観測データを利用する配信側",
   },
   {
     item: "主な通信経路",
     ownBase: "基準局 → 移動局",
-    network: "配信側 → Internet → 移動局",
+    network: "RTK用の情報 → Internet → 移動局",
   },
   {
     item: "移動局",
@@ -542,7 +652,7 @@ export const gnssPositioningMethodsQuizQuestions = [
       {
         id: "single-no-correction-dgnss-reference-correction",
         label:
-          "単独測位は基準局等からの補正情報を使わず、DGNSSは基準側の観測から得た補正情報を利用する。",
+          "単独測位は基準局や補正サービスからの外部補正情報を使わず、DGNSSは既知位置の基準局で得た補正情報を利用する。",
         incorrectReason: null,
       },
       {
@@ -565,7 +675,7 @@ export const gnssPositioningMethodsQuizQuestions = [
     ],
     correctOptionId: "single-no-correction-dgnss-reference-correction",
     correctReason:
-      "単独測位では観測点自身が受信したGNSS信号を中心に位置を求めます。DGNSSでは位置が分かる基準側の観測から得た補正情報を利用し、単独測位に含まれる誤差の影響を小さくします。",
+      "単独測位では基準局や補正サービスからの外部補正情報を使わず、受信機内部で補正・推定しながら位置を求めます。DGNSSでは既知位置の基準局で得られた補正情報を利用し、単独測位に残る誤差の影響をさらに小さくします。",
     fieldCheck: "利用中の方式が、どの基準・補正情報を使っているか確認します。",
   },
   {
@@ -634,7 +744,7 @@ export const gnssPositioningMethodsQuizQuestions = [
     ],
     correctOptionId: "network-service-internet-reference",
     correctReason:
-      "ネットワーク型RTKでは、利用者が現場基準局を自分で設置する代わりに、電子基準点網などを利用した配信側の仕組みから必要な情報を受けます。",
+      "ネットワーク型RTKでは、電子基準点網などのリアルタイム観測データを配信側で処理し、作られたRTK用の情報を主にインターネット経由で受けます。",
     fieldCheck: "配信サービス、通信経路、座標系、高さ、既知点確認を点検します。",
   },
   {
@@ -669,7 +779,7 @@ export const gnssPositioningMethodsQuizQuestions = [
     ],
     correctOptionId: "clas-l6d-different-delivery",
     correctReason:
-      "CLASは、生成された補強情報をみちびきL6DでCLAS対応受信機へ届けます。インターネットを主経路とするネットワーク型RTKとは、情報の届け方と仕組みが異なります。",
+      "ネットワーク型RTKとCLASはどちらもL1/L2/L5等でGNSSを観測します。CLASは、生成された補強情報をみちびきL6Dで対応受信機へ届けるため、インターネットを主経路とするネットワーク型RTKとは外部情報の届け方と仕組みが異なります。",
     fieldCheck: "対応受信機、L6D受信、上空視界、必要精度を確認します。",
   },
   {
@@ -736,7 +846,7 @@ export const gnssPositioningMethodsQuizQuestions = [
     ],
     correctOptionId: "network-from-service-internet",
     correctReason:
-      "ネットワーク型RTKでは、電子基準点網などを利用した配信サービスから、主にインターネット経由で必要な情報を受けます。",
+      "ネットワーク型RTKでは、電子基準点網などの観測データを利用して配信サービス側が作ったRTK用の情報を、主にインターネット経由で受けます。",
     fieldCheck: "方式名だけでなく、情報源・経路・解析時期を対応付けます。",
   },
   {

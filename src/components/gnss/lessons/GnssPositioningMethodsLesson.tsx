@@ -6,13 +6,19 @@ import {
   getGnssPositioningMethodsQuizOptionLetter,
   getGnssPositioningPreset,
   getOwnBaseRtkCoordinateCase,
+  gnssClasFlow,
   gnssConditionDefinitions,
+  gnssNetworkAndClasSignalComparison,
+  gnssNetworkRtkFlow,
   gnssOwnAndNetworkRtkComparison,
+  gnssOwnBaseRtkFlow,
+  gnssPositioningInformationGroups,
   gnssPositioningMethodCards,
   gnssPositioningMethods,
   gnssPositioningMethodsQuizQuestions,
   gnssPositioningPresets,
   gnssPositioningSelectionFlow,
+  gnssSingleAndDgnssExplanation,
   isGnssPositioningConditions,
   ownBaseRtkCoordinateExample,
 } from "../data/gnssPositioningMethods";
@@ -286,34 +292,69 @@ function GnssPositioningMethodsLesson({
         />
         <div className="gnss-positioning-source-grid">
           <article>
-            <span>① P1自身の観測を中心に求める</span>
-            <h3>単独測位</h3>
+            <span>{gnssPositioningInformationGroups[0].categoryLabel}</span>
+            <h3>代表：{gnssPositioningInformationGroups[0].representative}</h3>
+            <p className="gnss-positioning-accuracy-trend">
+              <span>精度の傾向</span>
+              <strong>{gnssPositioningInformationGroups[0].precisionTrend}</strong>
+            </p>
             <GnssFlowDiagram
               ariaLabel="単独測位の情報経路"
-              steps={["GNSS衛星", "移動局P1", "位置を計算"]}
+              steps={["GNSS衛星", "移動局P1"]}
             />
+            <b aria-hidden="true" className="gnss-positioning-result-arrow">↓</b>
+            <div
+              className="gnss-positioning-source-result"
+              data-testid="gnss-positioning-source-result-own-observation"
+            >
+              {gnssPositioningInformationGroups[0].resultLabel}
+            </div>
           </article>
           <article>
-            <span>② 外部の基準・補正・補強情報も利用</span>
-            <h3>DGNSS・RTK・CLAS</h3>
+            <span>{gnssPositioningInformationGroups[1].categoryLabel}</span>
+            <h3>代表：{gnssPositioningInformationGroups[1].representative}</h3>
+            <p className="gnss-positioning-accuracy-trend">
+              <span>精度の傾向</span>
+              <strong>{gnssPositioningInformationGroups[1].precisionTrend}</strong>
+            </p>
             <div className="gnss-positioning-plus-flow">
-              <span>P1でのGNSS観測</span>
+              <span>P1のGNSS観測</span>
               <b>＋</b>
               <span>基準・補正・補強に関する情報</span>
-              <strong>↓ 位置を求める</strong>
+            </div>
+            <b aria-hidden="true" className="gnss-positioning-result-arrow">↓</b>
+            <div
+              className="gnss-positioning-source-result"
+              data-testid="gnss-positioning-source-result-external-information"
+            >
+              {gnssPositioningInformationGroups[1].resultLabel}
             </div>
             <p>
               4方式は同じ仕組みではありません。何が来るか、どこから来るか、どう利用するかが異なります。
             </p>
           </article>
           <article>
-            <span>③ 複数地点の観測を保存して後処理</span>
-            <h3>スタティック</h3>
+            <span>{gnssPositioningInformationGroups[2].categoryLabel}</span>
+            <h3>代表：{gnssPositioningInformationGroups[2].representative}</h3>
+            <p className="gnss-positioning-accuracy-trend">
+              <span>精度の傾向</span>
+              <strong>{gnssPositioningInformationGroups[2].precisionTrend}</strong>
+            </p>
             <div className="gnss-positioning-static-mini-flow">
-              <span>基準側受信機<br />観測データ</span>
+              <span>基準側の<br />観測データ</span>
               <b>＋</b>
-              <span>P1側受信機<br />観測データ</span>
-              <strong>↓ 後処理 → P1</strong>
+              <span>P1側の<br />観測データ</span>
+            </div>
+            <b aria-hidden="true" className="gnss-positioning-result-arrow">↓</b>
+            <div className="gnss-positioning-process-box">
+              {gnssPositioningInformationGroups[2].processLabel}
+            </div>
+            <b aria-hidden="true" className="gnss-positioning-result-arrow">↓</b>
+            <div
+              className="gnss-positioning-source-result"
+              data-testid="gnss-positioning-source-result-post-processing"
+            >
+              {gnssPositioningInformationGroups[2].resultLabel}
             </div>
           </article>
         </div>
@@ -329,7 +370,7 @@ function GnssPositioningMethodsLesson({
         data-testid="gnss-positioning-single-dgnss-card"
       >
         <GnssCardHeading
-          description="補正情報を使わない入口から、基準側の情報で誤差影響を小さくする考え方へ進みます。"
+          description="外部補正情報を使わない単独測位と、既知位置の基準局の補正情報を使うDGNSSを比較します。"
           index={3}
           label="静的左右比較"
           title={gnssPositioningMethodCards[2].title}
@@ -337,28 +378,55 @@ function GnssPositioningMethodsLesson({
         />
         <div className="gnss-positioning-comparison-two-column">
           <article>
-            <span>補正情報を使わない</span>
+            <span>基準局や補正サービスからの外部補正情報を使わない</span>
             <h3>単独測位</h3>
             <GnssFlowDiagram
               ariaLabel="単独測位の流れ"
-              steps={["複数のGNSS衛星", "P1自身のGNSS観測", "P1の位置"]}
+              steps={["複数のGNSS衛星", "信号・航法情報", "受信機P1", "P1の位置"]}
             />
-            <p>
-              第2章で扱った衛星時計、軌道、電離層、対流圏、マルチパス、観測ノイズ等の影響を含む観測から位置を求めます。
+            <p className="gnss-positioning-emphasis-copy">
+              {gnssSingleAndDgnssExplanation.single.definition}
             </p>
+            <p>{gnssSingleAndDgnssExplanation.single.receiverProcessing}</p>
+            <strong className="gnss-positioning-misconception">
+              {gnssSingleAndDgnssExplanation.single.misconception}
+            </strong>
+            <p className="gnss-positioning-familiar-example">
+              <b>身近な例：</b>
+              {gnssSingleAndDgnssExplanation.single.familiarExamples}
+            </p>
+            <p>{gnssSingleAndDgnssExplanation.single.capabilityNote}</p>
           </article>
           <article>
-            <span>基準側の補正情報を利用</span>
+            <span>既知位置の基準局で得られた補正情報を利用</span>
             <h3>DGNSS</h3>
             <div className="gnss-positioning-dgnss-diagram">
-              <div><strong>基準局A</strong><small>位置を知っている</small><span>GNSS観測</span></div>
-              <b>補正に使う情報 →</b>
-              <div><strong>P1</strong><small>位置を求めたい</small><span>GNSS観測</span></div>
+              <div className="gnss-positioning-dgnss-satellites">
+                <strong>GNSS衛星</strong>
+                <span>測位信号 ↓　↓</span>
+              </div>
+              <div><strong>既知位置の基準局 A</strong><small>位置が分かっている</small><span>GNSS観測 → 補正情報</span></div>
+              <b>補正情報 →</b>
+              <div><strong>移動局 P1</strong><small>位置を求めたい</small><span>GNSS観測</span></div>
             </div>
-            <p>
-              基準局Aの座標差をそのままP1から引く単純処理ではなく、基準側の観測から得られる補正情報を利用する考え方です。
+            <p className="gnss-positioning-emphasis-copy">
+              {gnssSingleAndDgnssExplanation.dgnss.definition}
             </p>
+            <p>{gnssSingleAndDgnssExplanation.dgnss.processingNote}</p>
+            <div className="gnss-positioning-base-distinction">
+              <strong>{gnssSingleAndDgnssExplanation.dgnss.baseStationNote}</strong>
+              <span>{gnssSingleAndDgnssExplanation.dgnss.baseStationDistinction}</span>
+            </div>
           </article>
+        </div>
+        <div className="gnss-positioning-fix-terms">
+          {gnssSingleAndDgnssExplanation.fixTerms.map((item) => (
+            <article key={item.term}>
+              <strong>{item.term}</strong>
+              <span>→ {item.meaning}</span>
+            </article>
+          ))}
+          <p>同じ「fix」という語を含んでも、両者は同じ意味ではありません。</p>
         </div>
         <blockquote className="gnss-positioning-bridge-message">
           基準側の情報で誤差を低減する考え方から、基準局・移動局の搬送波位相等を使う高精度な相対測位へ進みます。「DGNSSはコードだけ、RTKは搬送波だけ」とは断定しません。
@@ -380,19 +448,19 @@ function GnssPositioningMethodsLesson({
         />
         <GnssFlowDiagram
           ariaLabel="自前基準局RTKからP1成果までの流れ"
-          steps={[
-            "基準局Aと移動局P1のGNSS観測",
-            "相対的なRTK解析",
-            "A → P1 の基線",
-            "基準局Aの既知座標と結び付ける",
-            "P1の成果座標",
-          ]}
+          steps={gnssOwnBaseRtkFlow}
         />
         <div className="gnss-positioning-baseline-definition">
           <span>基線</span>
-          <strong>基準局Aから移動局P1までの相対的な位置関係を表すもの</strong>
+          <strong>AからP1までの位置の差</strong>
+          <p>
+            このような2点間の位置関係を「基線」と呼びます。単なる距離ではなく、X方向・Y方向・高さ方向を含む3次元の位置関係です。
+          </p>
           <p>具体的な基線解析や二重差は第7章で扱います。</p>
         </div>
+        <p className="gnss-positioning-dimension-note">
+          実際のRTKでは3次元の位置関係を求めますが、以下は基準局座標の誤りがP1成果へ伝わる因果関係に集中するため、X方向だけの教材例です。
+        </p>
 
         <div
           aria-label="基準局座標の状態"
@@ -412,26 +480,32 @@ function GnssPositioningMethodsLesson({
         </div>
         <div
           aria-live="polite"
-          className={`gnss-positioning-coordinate-result ${coordinateCaseId === "offset" ? "is-warning" : "is-correct"}`}
+          className="gnss-positioning-coordinate-result"
           data-testid="gnss-own-base-result"
         >
-          <div>
-            <span>基準局A.X</span>
-            <strong>{coordinateCase.baseX.toFixed(3)} m</strong>
+          <div data-coordinate-field="fix">
+            <span>測位状態</span>
+            <strong>{coordinateCase.fixState}</strong>
           </div>
-          <b>＋</b>
-          <div>
-            <span>A → P1 のX方向成分</span>
+          <div
+            className={coordinateCaseId === "offset" ? "is-changed" : ""}
+            data-coordinate-field="base-x"
+          >
+            <span>基準局 A.X</span>
+            <strong>{coordinateCase.baseX.toFixed(3)} m</strong>
+            {coordinateCaseId === "offset" ? <small>+0.500 m 変化</small> : null}
+          </div>
+          <div data-coordinate-field="relative-x">
+            <span>A→P1 X方向差</span>
             <strong>+{ownBaseRtkCoordinateExample.relativeX.toFixed(3)} m</strong>
           </div>
-          <b>＝</b>
-          <div>
+          <div
+            className={coordinateCaseId === "offset" ? "is-changed" : ""}
+            data-coordinate-field="p1-x"
+          >
             <span>P1.X</span>
             <strong>{calculatedP1X.toFixed(3)} m</strong>
-          </div>
-          <div className="gnss-positioning-fix-result">
-            <span>測位状態</span>
-            <strong>FIX ✓</strong>
+            {coordinateCaseId === "offset" ? <small>+0.500 m 変化</small> : null}
           </div>
         </div>
         <p
@@ -440,8 +514,8 @@ function GnssPositioningMethodsLesson({
           role="status"
         >
           {coordinateCaseId === "offset"
-            ? `FIXのまま、P1成果が +${p1Difference.toFixed(3)} m ずれています。`
-            : "基準局座標と相対成分を正しく結び付けたP1成果です。"}
+            ? `FIXもA→P1の位置の差も同じなのに、基準局A.Xが +${p1Difference.toFixed(3)} m違うため、P1.Xも +${p1Difference.toFixed(3)} m違います。`
+            : "基準局Aの既知座標にA→P1の位置の差を加えて、P1の座標を求めています。"}
         </p>
         <blockquote className="gnss-important-message">
           相対的な位置関係を高精度に求めても、出発点となる基準局座標が誤っていればP1成果も影響を受けます。FIXは、基準局へ入力した座標の正しさまで保証しません。
@@ -470,6 +544,9 @@ function GnssPositioningMethodsLesson({
         <p className="gnss-positioning-card-question">
           自分で基準局を置かないのに、なぜRTKができる？
         </p>
+        <p className="gnss-positioning-route-introduction">
+          電子基準点網などのリアルタイム観測データを利用して、配信サービス側がRTK用の情報を作り、インターネット経由で移動局へ届けます。
+        </p>
         <div className="gnss-positioning-route-comparison">
           <article>
             <span>自前RTK</span>
@@ -482,12 +559,7 @@ function GnssPositioningMethodsLesson({
             <span>ネットワーク型RTK</span>
             <GnssFlowDiagram
               ariaLabel="ネットワーク型RTKの情報経路"
-              steps={[
-                "電子基準点網など",
-                "配信側の処理",
-                "インターネット",
-                "移動局P1",
-              ]}
+              steps={gnssNetworkRtkFlow}
             />
           </article>
         </div>
@@ -514,6 +586,9 @@ function GnssPositioningMethodsLesson({
         <blockquote className="gnss-important-message">
           ネットワーク型RTKは「基準となるGNSS観測を利用しない」という意味ではありません。利用者自身が現場基準局を設置する代わりに、電子基準点網などを利用した配信側の仕組みを使います。
         </blockquote>
+        <p className="gnss-positioning-ground-reference-note">
+          ネットワーク型RTKだけが電子基準点を利用し、CLASだけが別の基準を使うわけではありません。どちらにも電子基準点等の地上側の基準情報が関係し、作る情報と届け方が異なります。
+        </p>
         <p className="gnss-positioning-quality-note">
           FIXだけでなく、座標系、高さ、アンテナ高、既知点確認・再観測、上空視界等の品質確認が引き続き必要です。
         </p>
@@ -535,34 +610,51 @@ function GnssPositioningMethodsLesson({
         <blockquote className="gnss-positioning-key-message">
           CLASは「ネットワーク型RTKのインターネットなし版」ではありません。
         </blockquote>
+        <div className="gnss-positioning-common-signal">
+          <span>ネットワーク型RTK・CLASに共通</span>
+          <strong>GNSS測位信号　L1 / L2 / L5 等</strong>
+          <p>どちらの方式も、L1/L2/L5等を使ってGNSSを観測します。</p>
+          <b aria-hidden="true">↓　両方式のGNSS観測へ</b>
+        </div>
         <div className="gnss-positioning-route-comparison">
           <article>
             <span>ネットワーク型RTK</span>
             <GnssFlowDiagram
               ariaLabel="ネットワーク型RTKの配信経路"
-              steps={["電子基準点網など", "配信サービス", "インターネット", "P1"]}
+              steps={gnssNetworkRtkFlow}
             />
           </article>
           <article>
             <span>CLAS</span>
             <GnssFlowDiagram
               ariaLabel="CLAS補強情報の配信経路"
-              steps={[
-                "電子基準点等を利用",
-                "CLAS補強情報を生成",
-                "みちびき",
-                "L6D",
-                "CLAS対応受信機 P1",
-              ]}
+              steps={gnssClasFlow}
             />
           </article>
         </div>
-        <div className="gnss-positioning-signal-comparison">
-          <article><strong>L1 / L2 / L5等</strong><p>GNSS測位に利用する信号</p></article>
-          <article><strong>L6D</strong><p>CLASの補強情報を届ける</p></article>
+        <div
+          aria-label="ネットワーク型RTKとCLASの信号・外部情報比較"
+          className="gnss-table-scroll"
+          data-testid="gnss-network-clas-signal-table"
+          role="region"
+          tabIndex={0}
+        >
+          <table className="gnss-positioning-comparison-table gnss-positioning-network-clas-table">
+            <caption>GNSS観測は共通、外部情報の作り方・届け方は別</caption>
+            <thead>
+              <tr><th>項目</th><th>ネットワーク型RTK</th><th>CLAS</th></tr>
+            </thead>
+            <tbody>
+              {gnssNetworkAndClasSignalComparison.map((row) => (
+                <tr key={row.item}>
+                  <th>{row.item}</th><td>{row.networkRtk}</td><td>{row.clas}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
         <ul className="gnss-positioning-caution-list">
-          <li>L6DでP1までの距離を測っている、という意味ではありません。</li>
+          <li><strong>L6DでP1までの距離を測っているのではありません。L1/L2/L5等でGNSSを観測し、L6DでCLAS補強情報を受け取ります。</strong></li>
           <li>CLAS補強情報を受信することと、みちびきだけで測位することは別です。</li>
           <li>携帯圏外でも必ず測れるわけではなく、上空視界、遮蔽、マルチパス、対応機器、必要精度を確認します。</li>
         </ul>
@@ -648,11 +740,11 @@ function GnssPositioningMethodsLesson({
           role="region"
           tabIndex={0}
         >
-          <table className="gnss-positioning-comparison-table">
+          <table className="gnss-positioning-comparison-table gnss-positioning-six-methods-table">
             <caption>同じP1を求める6方式</caption>
             <thead>
               <tr>
-                <th>方式</th><th>P1以外から利用する情報</th><th>自分で現場基準局を設置</th><th>主な情報経路</th><th>結果</th>
+                <th>方式</th><th>P1以外から利用する情報</th><th>自分で現場基準局を設置</th><th>考え方</th><th>主な情報経路</th><th>結果</th>
               </tr>
             </thead>
             <tbody>
@@ -661,6 +753,7 @@ function GnssPositioningMethodsLesson({
                   <th>{method.label}</th>
                   <td>{method.externalInformation}</td>
                   <td>{method.fieldBaseStation}</td>
+                  <td>{method.approach}</td>
                   <td>{method.informationPath}</td>
                   <td>{method.resultTiming}</td>
                 </tr>
@@ -668,6 +761,9 @@ function GnssPositioningMethodsLesson({
             </tbody>
           </table>
         </div>
+        <p className="gnss-positioning-dgnss-table-note">
+          <strong>DGNSSにも基準局はあります。</strong> 既知位置の基準局で作った補正情報を利用しますが、その基準局を利用者自身が現場に設置することは必須ではありません。
+        </p>
         <div className="gnss-positioning-route-tiles">
           {gnssPositioningMethods.map((method) => (
             <article key={method.id}>

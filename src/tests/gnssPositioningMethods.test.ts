@@ -17,12 +17,18 @@ import {
   getGnssPositioningMethodsQuizQuestion,
   getGnssPositioningPreset,
   getOwnBaseRtkCoordinateCase,
+  gnssClasFlow,
   gnssConditionDefinitions,
+  gnssNetworkAndClasSignalComparison,
+  gnssNetworkRtkFlow,
   gnssOwnAndNetworkRtkComparison,
+  gnssOwnBaseRtkFlow,
+  gnssPositioningInformationGroups,
   gnssPositioningMethodCards,
   gnssPositioningMethods,
   gnssPositioningMethodsQuizQuestions,
   gnssPositioningPresets,
+  gnssSingleAndDgnssExplanation,
   isGnssPositioningConditions,
   ownBaseRtkCoordinateExample,
 } from "../components/gnss/data/gnssPositioningMethods";
@@ -90,6 +96,48 @@ describe("GNSS測量 Phase 4 第4章", () => {
     expect(gnssPositioningMethodCards).toHaveLength(9);
   });
 
+  it("カード2の3分類へ精度傾向を追加し、結果表現を統一する", () => {
+    expect(gnssPositioningInformationGroups).toHaveLength(3);
+    expect(
+      gnssPositioningInformationGroups.map((group) => group.precisionTrend),
+    ).toEqual([
+      "概略位置～m級",
+      "方式によりm級～cm級",
+      "高精度な測量に利用",
+    ]);
+    expect(
+      gnssPositioningInformationGroups.every(
+        (group) => group.resultLabel === "P1の位置を求める",
+      ),
+    ).toBe(true);
+    expect(gnssPositioningInformationGroups[2].processLabel).toBe("後処理");
+  });
+
+  it("カード3で単独測位の内部補正とDGNSSの既知位置基準局を区別する", () => {
+    expect(gnssSingleAndDgnssExplanation.single.definition).toContain(
+      "基準局や補正サービスからの外部補正情報を使わず",
+    );
+    expect(gnssSingleAndDgnssExplanation.single.receiverProcessing).toContain(
+      "受信機内部で補正・推定",
+    );
+    expect(gnssSingleAndDgnssExplanation.single.misconception).toBe(
+      "単独測位 ≠ 何も補正していない測位",
+    );
+    expect(gnssSingleAndDgnssExplanation.single.capabilityNote).toContain(
+      "それだけでRTKやcm級測位になるわけではありません",
+    );
+    expect(gnssSingleAndDgnssExplanation.dgnss.definition).toContain(
+      "既知位置の基準局で得られた補正情報",
+    );
+    expect(gnssSingleAndDgnssExplanation.dgnss.baseStationNote).toContain(
+      "利用者自身が現場に設置するとは限りません",
+    );
+    expect(gnssSingleAndDgnssExplanation.fixTerms.map((item) => item.term)).toEqual([
+      "3D fix / GNSS fix",
+      "RTK FIX",
+    ]);
+  });
+
   it("6方式を情報源・基準局・経路・結果時期とともに定義する", () => {
     expect(gnssPositioningMethods.map((method) => method.id)).toEqual([
       "single",
@@ -103,9 +151,18 @@ describe("GNSS測量 Phase 4 第4章", () => {
     for (const method of gnssPositioningMethods) {
       expect(method.externalInformation.trim()).not.toBe("");
       expect(method.fieldBaseStation.trim()).not.toBe("");
+      expect(method.approach.trim()).not.toBe("");
       expect(method.informationPath.trim()).not.toBe("");
       expect(method.resultTiming.trim()).not.toBe("");
     }
+
+    expect(gnssPositioningMethods.find((method) => method.id === "dgnss")).toMatchObject({
+      externalInformation: "既知位置の基準局で作った補正情報",
+      fieldBaseStation: "必須ではない",
+      approach:
+        "基準局で分かったGNSS測位のずれを、観測点P1の位置改善に利用する",
+      resultTiming: "主にリアルタイム",
+    });
 
     expect(gnssOwnAndNetworkRtkComparison.map((row) => row.item)).toEqual([
       "現場基準局",
@@ -117,7 +174,50 @@ describe("GNSS測量 Phase 4 第4章", () => {
     ]);
   });
 
+  it("カード4～6の具体フローと共通GNSS観測・別経路を定義する", () => {
+    expect(gnssOwnBaseRtkFlow).toEqual([
+      "基準局AのGNSS観測 ＋ 移動局P1のGNSS観測",
+      "2地点の観測を比較",
+      "AからP1までの位置の差を求める",
+      "基準局Aの既知座標 ＋ AからP1までの位置の差",
+      "P1の成果座標",
+    ]);
+    expect(gnssNetworkRtkFlow).toEqual([
+      "電子基準点網など",
+      "配信側の処理",
+      "RTK用の情報",
+      "インターネット",
+      "移動局P1",
+    ]);
+    expect(gnssClasFlow).toEqual([
+      "電子基準点等",
+      "CLAS補強情報を生成",
+      "みちびき",
+      "L6D",
+      "CLAS対応受信機 P1",
+    ]);
+    expect(gnssNetworkAndClasSignalComparison).toEqual([
+      {
+        item: "GNSS観測",
+        networkRtk: "L1 / L2 / L5等",
+        clas: "L1 / L2 / L5等",
+      },
+      {
+        item: "外部情報",
+        networkRtk: "RTK用の情報",
+        clas: "CLAS補強情報",
+      },
+      {
+        item: "主な届け方",
+        networkRtk: "インターネット",
+        clas: "みちびきL6D",
+      },
+    ]);
+  });
+
   it("基準局Xと相対XからP1.Xを求め、0.500mの成果差でもFIXを維持する", () => {
+    expect(gnssOwnBaseRtkFlow).toContain("2地点の観測を比較");
+    expect(gnssOwnBaseRtkFlow).toContain("AからP1までの位置の差を求める");
     expect(ownBaseRtkCoordinateExample.relativeX).toBe(12.345);
     expect(ownBaseRtkCoordinateExample.cases).toEqual([
       {
