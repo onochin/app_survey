@@ -4,11 +4,12 @@ export type GnssLessonId =
   | "gnss-coordinate-height"
   | "gnss-positioning-methods"
   | "gnss-own-base-station"
-  | "gnss-correction-delivery";
+  | "gnss-correction-delivery"
+  | "gnss-baseline-fix";
 
 export interface GnssLessonMetadata {
   readonly id: GnssLessonId;
-  readonly number: 1 | 2 | 3 | 4 | 5 | 6;
+  readonly number: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   readonly title: string;
   readonly description: string;
   readonly learningGoal: string;
@@ -178,6 +179,11 @@ export interface GnssCarrierPhaseExample {
 }
 
 export type GnssCorrectionFreshnessId = "fresh" | "delayed" | "stopped";
+
+export type GnssAmbiguityEvaluationStageId =
+  | "initial"
+  | "comparison"
+  | "fixed";
 
 export type GnssCorrectionDiagnosticCaseId =
   | "no-rtcm-output"

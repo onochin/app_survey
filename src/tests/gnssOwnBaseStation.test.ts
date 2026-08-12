@@ -68,7 +68,7 @@ describe("GNSS測量 Phase 5 第5章", () => {
       "gnss-positioning-methods",
       "gnss-own-base-station",
     ]);
-    expect(gnssLessons).toHaveLength(6);
+    expect(gnssLessons).toHaveLength(7);
     expect(gnssLessons.slice(0, 5).every((lesson) => lesson.number <= 5)).toBe(
       true,
     );

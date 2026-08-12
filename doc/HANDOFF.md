@@ -5997,3 +5997,207 @@ GNSS第4章 修正後ユーザー最終確認
 * 作業開始時、指定された`GNSS教材_設計メモ.md`はプロジェクト内に存在しなかった。優先順位が上の最新HANDOFF、現行実装、AGENTS、本Phase 6正式依頼を正本として実装した。
 * Phase 6の自動検証と目視確認は完了したが、次回開始地点はGNSS第6章のユーザー実機確認。
 * ユーザーがRTCM、Ntrip、Caster、Mountpoint、非Ntrip経路、RTCM鮮度、5ケース、8問を確認するまで、第7章へ進まない。
+
+## 45. 依頼03 GNSS測量教材 Phase 7完了（2026-08-13）
+
+### 45.1 完了範囲と教材メタデータ
+
+* 今回の第7章実装依頼を、第6章確認後に第7章へ進む明示指示として受け、GNSS教材Phase 7だけを実装した。
+* 第7章タイトル：`自前RTK③ 基線解析とFIX`
+* 章ID：`gnss-baseline-fix`
+* 章番号：`7`
+* 到達目標：`基準局Aと移動局P1のGNSS観測を比較することで、なぜ共通する誤差の影響を相殺・低減しながら3次元の相対位置「基線」を求められるのかを理解し、搬送波位相の整数アンビギュイティがFLOATからFIXへ進む意味を説明できる。`
+* カード数：`9`
+* 確認問題数：`8`
+* `gnssLessons`は第1章～第6章を同じ順序で維持し、第7章だけを末尾へ追加した。
+* READMEは実装済み章を第7章まで、第8章以降を今後追加として最小更新した。
+
+### 45.2 実装した9カードと章境界
+
+1. `RTCMは届いた。なぜまだFLOAT？`
+   * 第6章の`Status / RTCM3`正常受信から接続し、RTCM受信と整数固定を別段階として示した。
+   * 第7章全体を、観測比較、誤差低減、整数候補評価、FIX、3次元基線、第8章の現場点検までの12段階で表示した。
+2. `なぜ基準局AとP1の2地点を比較する？`
+   * 1衛星を基準局Aと移動局P1が対応する時刻に観測する比較を示した。
+   * 誤差を「代表的に相殺」「近距離で低減しやすい」「差を取っても残る」に分けた。
+3. `なぜ、もう1機の衛星とも比べる？`
+   * 2受信機×2衛星の4観測、衛星ごとの受信機差、差同士の二重差を図示した。
+   * 時計項の代表的な相殺、近距離で低減しやすい影響、マルチパス・観測ノイズ・地点固有影響・整数アンビギュイティの残存を分けた。
+   * 二重差は代表的な原理解説であり、すべての現代RTKエンジンの内部実装を断定しない注記を置いた。
+4. `FLOATでは、何が分かっていて何が未確定？`
+   * FLOATを「解なし」とせず、位置・基線とアンビギュイティの実数推定解がある状態として説明した。
+   * `11.82 / 18.17 / 24.91`は模式的な未知整数関連量であり、生の整数波長数3個の実機表示ではないと明記した。
+   * FIXは単純四捨五入ではなく、複数候補を観測全体との整合性で評価することへ接続した。
+5. `どうやって整数候補を絞ってFIXする？`
+   * 候補A `12 / 18 / 25`、候補B `12 / 19 / 25`、候補C `13 / 18 / 25`を3段階で評価する教材操作を実装した。
+   * 初期FLOAT、比較FLOAT、候補B採用によるFIXへ進み、整合性を記号だけでなく「高・中・低」の文字でも表示した。
+   * 最良候補と固定してよい候補を区別し、ratio値、固定しきい値、探索アルゴリズムを再現していないことを明記した。
+   * 操作は判断材料が増える模式表現であり、複数エポックが常に必須とは断定していない。
+6. `FIXすると、基線はどう変わる？`
+   * FLOAT、候補評価、必要整数の固定、FIXによる3次元基線推定の流れを示した。
+   * 第1章と同じ参照の既知点A・新点P1固定値を再利用し、`ΔX=+12.345 m / ΔY=+8.765 m / ΔH=-0.168 m`を表示した。
+   * 平面直角座標・標高による模式表示と実際の3次元GNSS解析を区別し、FIXが真値や成果条件を保証しないことを示した。
+7. `一度FIXしたら、そのままずっとFIX？`
+   * FIX後も観測を継続し、条件悪化時はFLOAT等へ戻って再評価する流れを示した。
+   * サイクルスリップ、ロック喪失、観測環境変化を説明し、具体的な再測判断は第8章へ残した。
+8. `FIXしているのに、成果が間違うことはある？`
+   * RTK固定解と測量成果として採用する条件を分離した。
+   * 第4章の基準局A.X `+0.500 m`誤入力例を同じ教材値で静的に再接続し、操作は再実装していない。
+   * 基準局、アンテナ高・求心、測地系・系番号・座標の時点・高さ基準、ミスFIXを整理し、元期・今期等の詳細は第9章へ残した。
+9. `RTCM受信からFIXまでをつなげよう`
+   * 第5章の基準局準備、第6章のRTCM伝送、第7章の比較・FLOAT・FIX・3次元基線を12段階でまとめた。
+   * 一般理論とDrogger-GPS実機表示例を分け、`Status / RTCM3 / Age / FixMode：Float / FixMode：FIXED`を対応付けた。
+   * 第8章「自前RTK④ 現場観測と点検」への問いで終了した。
+* カード5だけを主な操作カードとし、カード1～4・6～9は静的表示にした。
+* 実RTK解析、実二重差計算、整数探索アルゴリズム、実RINEX / RTCM読込み、Drogger Processor連携は実装していない。
+* 第8章以降は先行実装していない。
+
+### 45.3 教材データ、純粋関数、確認問題
+
+* `src/components/gnss/data/gnssBaselineFix.ts`へ次を分離した。
+  * 9カードの安定ID・タイトル
+  * 章全体の12段階フロー
+  * 受信機比較、誤差分類、二重差2段階と残存影響
+  * FLOAT模式実数値、3整数候補、3評価段階
+  * 成果条件、Drogger実機表示対応、カード別公式リンク
+  * 第7章確認問題8問
+* 第1章の固定教材例は`fixedGnssScenario`を`gnssBaselineFixScenario`として同じ参照で再利用し、値を複製していない。
+* 追加した純粋関数：
+  * `getGnssBaselineAmbiguityEvaluationStage`
+  * `getNextGnssBaselineAmbiguityEvaluationStageId`
+  * `getGnssBaselineFixQuizQuestion`
+  * `getGnssBaselineFixQuizOptionLetter`
+  * `evaluateGnssBaselineFixQuizAnswer`
+* 未知の段階ID、問題ID、選択肢IDは`null`で拒否し、`NaN`、`Infinity`、`undefined`を画面へ出さない。
+* 確認問題IDと正答位置：
+  1. `rtcm-received-still-float`：B
+  2. `baseline-definition`：C
+  3. `double-difference-concept`：A
+  4. `float-state-meaning`：D
+  5. `ambiguity-candidate-fixing`：B
+  6. `fix-baseline-effect`：C
+  7. `fix-can-return-float`：A
+  8. `fix-vs-result-acceptance`：D
+* 正答はA～D各2問、全32選択肢を一意なIDで定義し、24誤答すべてに選択肢固有理由を持たせた。
+* 既存GNSS確認問題UIを再利用し、誤答時は固有理由と正答理由、正答時は重複しない正答理由を表示する。
+
+### 45.4 Drogger公式リンク
+
+* 2026-08-13にリンク先へ到達でき、掲載内容が対応することを確認した。
+* カード1・4・9：RTK移動局の動作確認（Drogger公式マニュアル）
+* カード2：RTKの誤差要因と測定方法（Drogger公式ブログ）
+* カード6：Drogger Processor 基線解析（Drogger公式マニュアル）
+* カード7：RTKガイド（Drogger公式ブログ）
+* カード8：RTK解説その3、アンテナ高、今期・元期と地殻変動補正（Drogger公式ブログ／マニュアル）
+* リンクは対応カードだけに静的`https`リンクとして配置し、実行時の外部API通信は追加していない。
+
+### 45.5 UI、アクセシビリティ、状態管理
+
+* 既存GNSS教材のカード、章ナビ、進捗、用語、注意、確認問題UIを再利用した。
+* 第7章専用CSSはすべて`.gnss-baseline-*`名前空間とし、接頭辞のないグローバルCSSは追加していない。
+* 390pxでは候補比較と3次元基線を縦積み、総まとめフローを縦方向、成果条件を読みやすいカード配置とし、表はカード内スクロールへ収めた。
+* 状態を色だけで区別せず、FLOAT / FIX、候補名、記号、整合性の高・中・低、判断文を併記した。
+* カード5ボタンと確認問題をキーボード操作でき、`:focus-visible`の可視フォーカスを確認した。
+* カード5の評価段階と8問の回答はReact状態だけで管理する。
+* `SurveyGnss`内で第1章～第7章を常時マウントし、章往復と他教材往復で第7章状態を保持する。
+* 再読込み後は候補評価が初期FLOAT、問題回答が未回答へ戻る。
+* GNSS用localStorageキー・学習記録は追加していない。GNSS操作前後と再読込み後でlocalStorageキーが不変であることを確認した。
+
+### 45.6 作成・変更ファイル
+
+作成：
+
+* `src/components/gnss/data/gnssBaselineFix.ts`
+* `src/components/gnss/lessons/GnssBaselineFixLesson.tsx`
+* `src/tests/gnssBaselineFix.test.ts`
+
+変更：
+
+* `README.md`
+* `doc/HANDOFF.md`
+* `scripts/gnss-smoke.mjs`
+* `src/components/gnss/SurveyGnss.tsx`
+* `src/components/gnss/gnssCourse.ts`
+* `src/components/gnss/types.ts`
+* `src/styles.css`
+* `src/tests/gnssCorrectionDelivery.test.ts`
+* `src/tests/gnssOwnBaseStation.test.ts`
+
+作業開始時から存在した未追跡ファイルは内容を変更せず保持した。
+
+* `prompt/GNSS教材_設計メモ_20260812-3.md`
+* `prompt/依頼03_GNSS測量教材Phase7_第7章の実装.md`
+
+最終監査時に、作業開始時の`git status --short`にはなかった未追跡`tree_L_4.txt`を検出した。この作業では生成・編集・削除せず、ユーザー側の変更として保持した。
+
+### 45.7 維持した既存機能と変更禁止事項
+
+* GNSS第1章～第6章の文章、図、操作、計算、問題ID、選択肢ID、章・教材往復時の状態を維持した。
+* 基礎教材9章と閉合トラバースの文章、図、操作、計算、確認問題、学習記録を変更していない。
+* `App.tsx`の教材常時マウント、基礎教材と閉合トラバースの保存キー・保存形式を維持した。
+* 新規パッケージ、外部API、実機通信、ファイル読込みを追加していない。
+* `package.json`、`package-lock.json`、`vite.config.ts`、`.github/workflows/deploy.yml`は変更していない。
+* 既存スクリーンショットは上書きしていない。確認画像は`/tmp`へ新しい名前で保存した。
+
+### 45.8 検証結果
+
+* `npm run typecheck -- --pretty false`
+  * 成功、型エラー0件。
+* `npm test -- --reporter=verbose`
+  * 成功、`18`テストファイル、`232`テストすべて成功。
+  * GNSS関連は`7`ファイル、`98`テスト成功。
+  * Phase 7追加分は`1`ファイル、`15`テスト成功。
+* `npm run build`
+  * 成功、`89 modules transformed`。
+  * `dist/index.html`：`0.59 kB`、gzip `0.40 kB`。
+  * CSS：`357.37 kB`、gzip `52.70 kB`。
+  * JS：`950.21 kB`、gzip `248.48 kB`。
+  * 既知の500 kB超警告は表示されたが、ビルドは成功。
+* `npm run build -- --mode github-pages`
+  * 成功、`89 modules transformed`。
+  * `dist/index.html`：`0.61 kB`、gzip `0.41 kB`。
+  * CSS・JSサイズは通常ビルドと同じ。
+  * `dist/index.html`が`/app_survey/assets/...`を参照することを確認。
+  * 既知の500 kB超警告は表示されたが、ビルドは成功。
+* スクリプト構文確認
+  * `node --check scripts/basics-smoke.mjs`：成功。
+  * `node --check scripts/phase4-smoke.mjs`：成功。
+  * `node --check scripts/gnss-smoke.mjs`：成功。
+* 基礎教材Playwrightスモーク
+  * 成功。9章、確認問題、学習記録、DOM監査、1366px・390px表示を確認。
+  * コンソールエラー、ページ例外、外部API通信はいずれも0件。
+* 閉合トラバースPhase 4回帰スモーク
+  * `SKIP_SCREENSHOTS=1`で成功。交差辺防止、閉合差ベクトル、倍率100、確認問題、学習記録を確認。
+  * コンソールエラー、ページ例外、横はみ出しはいずれも0件。
+* GNSS Playwrightスモーク（通常配信・GitHub Pages配信）
+  * 両方成功。第1章～第7章を通して確認した。
+  * 第7章9カード、12段階フロー、3段階候補評価、8問、全正答位置、誤答固有理由、正答解説を確認した。
+  * カード5と確認問題のキーボード操作・可視フォーカスを確認した。
+  * 章・教材往復時の状態保持、再読込み時の初期化、localStorageキー不変を確認した。
+  * 1366pxは`clientWidth=1366 / scrollWidth=1366`、390pxは`clientWidth=390 / scrollWidth=390`。
+  * コンソールエラー、ページ例外、外部API通信はいずれも0件。
+* 最終目視画像
+  * `/tmp/gnss-phase7-1366-20260813-verified.png`
+  * `/tmp/gnss-phase7-card3-1366-20260813-verified.png`
+  * `/tmp/gnss-phase7-card5-1366-20260813-verified.png`
+  * `/tmp/gnss-phase7-card6-1366-20260813-verified.png`
+  * `/tmp/gnss-phase7-card8-1366-20260813-verified.png`
+  * `/tmp/gnss-phase7-card9-1366-20260813-verified.png`
+  * `/tmp/gnss-phase7-390-20260813-verified.png`
+  * `/tmp/gnss-phase7-card3-390-20260813-verified.png`
+  * `/tmp/gnss-phase7-card5-390-20260813-verified.png`
+  * `/tmp/gnss-phase7-card6-390-20260813-verified.png`
+  * `/tmp/gnss-phase7-card8-390-20260813-verified.png`
+  * `/tmp/gnss-phase7-card9-390-20260813-verified.png`
+  * カード3・5・6・8・9を両幅で確認し、文字重なり、欠け、ページ全体の横はみ出しがないことを確認した。
+* 差分監査
+  * `git diff --check`：成功。
+  * `git diff -- package.json package-lock.json`：差分なし。
+  * `git diff -- vite.config.ts .github/workflows/deploy.yml`：差分なし。
+
+### 45.9 残る注意点と次回開始地点
+
+* Viteの500 kB超警告は既知事項であり、この警告だけを理由としたコード分割・依存追加・リファクタリングは行っていない。
+* 第7章は初回実装版であり、ユーザーが実際に操作・学習して理解しにくかった箇所があれば、別依頼で該当箇所だけを調整する。
+* 次回開始地点は第8章「自前RTK④ 現場観測と点検」の要件整理・実装。
+* 第8章は今回先行実装していない。Phase 7の作業はここで停止する。

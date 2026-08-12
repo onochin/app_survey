@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { gnssLessons } from "./gnssCourse";
+import GnssBaselineFixLesson from "./lessons/GnssBaselineFixLesson";
 import GnssCorrectionDeliveryLesson from "./lessons/GnssCorrectionDeliveryLesson";
 import GnssCoordinateHeightLesson from "./lessons/GnssCoordinateHeightLesson";
 import GnssOwnBaseStationLesson from "./lessons/GnssOwnBaseStationLesson";
@@ -125,6 +126,16 @@ function SurveyGnss({
         hidden={activeLessonId !== "gnss-correction-delivery"}
       >
         <GnssCorrectionDeliveryLesson
+          completedLessonCount={completedLessonCount}
+          totalLessonCount={totalLessonCount}
+        />
+      </div>
+
+      <div
+        className="gnss-lesson-panel"
+        hidden={activeLessonId !== "gnss-baseline-fix"}
+      >
+        <GnssBaselineFixLesson
           completedLessonCount={completedLessonCount}
           totalLessonCount={totalLessonCount}
         />

@@ -187,6 +187,36 @@ export const gnssCorrectionDeliveryLesson = {
   ],
 } as const satisfies GnssLessonMetadata;
 
+export const gnssBaselineFixLesson = {
+  id: "gnss-baseline-fix",
+  number: 7,
+  title: "自前RTK③ 基線解析とFIX",
+  description:
+    "基準局Aと移動局P1のGNSS観測を比較し、二重差、FLOAT、整数候補評価、FIX、3次元基線のつながりを学ぶ。",
+  learningGoal:
+    "基準局Aと移動局P1のGNSS観測を比較することで、なぜ共通する誤差の影響を相殺・低減しながら3次元の相対位置「基線」を求められるのかを理解し、搬送波位相の整数アンビギュイティがFLOATからFIXへ進む意味を説明できる。",
+  terms: [
+    "基線",
+    "相対位置",
+    "搬送波位相",
+    "整数アンビギュイティ",
+    "FLOAT",
+    "FIX",
+    "受信機間の観測差",
+    "二重差",
+    "整数候補",
+    "固定解",
+    "サイクルスリップ",
+    "ミスFIX",
+  ],
+  cautions: [
+    "RTCMが正常に届いていることと、FIXが成立したことは別の段階です。",
+    "二重差でも、すべての誤差や整数アンビギュイティが消えるわけではありません。",
+    "FLOATにも位置・基線とアンビギュイティの推定解があります。",
+    "FIXは成果条件全体の正しさを保証するものではありません。",
+  ],
+} as const satisfies GnssLessonMetadata;
+
 export const gnssLessons = [
   gnssOverviewLesson,
   gnssObservationsLesson,
@@ -194,4 +224,5 @@ export const gnssLessons = [
   gnssPositioningMethodsLesson,
   gnssOwnBaseStationLesson,
   gnssCorrectionDeliveryLesson,
+  gnssBaselineFixLesson,
 ] as const;

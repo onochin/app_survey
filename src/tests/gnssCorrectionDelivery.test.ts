@@ -75,7 +75,7 @@ describe("GNSS測量 Phase 6 第6章", () => {
       learningGoal:
         "自前RTKで、基準局側の情報がRTCMとしてどのように表され、Ntripやその他の通信経路を通って移動局へ届くかを説明し、RTCM・Ntrip・Caster・Mountpointの役割を区別できる。また、RTCMが正常に届かない場合に、情報経路を順番に確認できる。",
     });
-    expect(gnssLessons.map((lesson) => lesson.id)).toEqual([
+    expect(gnssLessons.slice(0, 6).map((lesson) => lesson.id)).toEqual([
       "gnss-overview",
       "gnss-observations",
       "gnss-coordinate-height",
@@ -83,7 +83,7 @@ describe("GNSS測量 Phase 6 第6章", () => {
       "gnss-own-base-station",
       "gnss-correction-delivery",
     ]);
-    expect(gnssLessons).toHaveLength(6);
+    expect(gnssLessons).toHaveLength(7);
     expect(gnssQuizQuestions).toHaveLength(3);
     expect(gnssObservationsQuizQuestions).toHaveLength(7);
     expect(gnssCoordinateHeightQuizQuestions).toHaveLength(8);

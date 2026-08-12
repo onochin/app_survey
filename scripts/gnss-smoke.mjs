@@ -123,9 +123,9 @@ try {
   const gnssSidebarLessons = sidebar.locator("#sidebar-gnss-lessons");
   assert(
     (await gnssSidebarButton.getAttribute("aria-expanded")) === "true" &&
-      (await gnssSidebarLessons.getByRole("button").count()) === 6 &&
+      (await gnssSidebarLessons.getByRole("button").count()) === 7 &&
       !(await sidebar.locator("#sidebar-basics-lessons").isVisible()),
-    "GNSS / Droggerの左サブメニュー6章または教材ごとの開閉が正しくありません。",
+    "GNSS / Droggerの左サブメニュー7章または教材ごとの開閉が正しくありません。",
   );
   await gnssSidebarLessons
     .locator('[data-sidebar-lesson-id="gnss-observations"]')
@@ -149,8 +149,8 @@ try {
   const overviewLesson = page.locator('[data-lesson-id="gnss-overview"]');
   const lessonNavigation = page.locator(".gnss-lesson-navigation");
   assert(
-    (await lessonNavigation.getByRole("button").count()) === 6,
-    "GNSS教材の利用可能な章が6章ではありません。",
+    (await lessonNavigation.getByRole("button").count()) === 7,
+    "GNSS教材の利用可能な章が7章ではありません。",
   );
 
   const storageKeysBeforeGnssOperations = await page.evaluate(() =>
@@ -167,13 +167,13 @@ try {
     name: "この章を理解できた",
   });
   assert(
-    await overviewLesson.getByText("0 / 6 章", { exact: true }).isVisible(),
-    "GNSS教材の初期進捗が0 / 6章ではありません。",
+    await overviewLesson.getByText("0 / 7 章", { exact: true }).isVisible(),
+    "GNSS教材の初期進捗が0 / 7章ではありません。",
   );
   await understoodButton.click();
   assert(
-    await overviewLesson.getByText("1 / 6 章", { exact: true }).isVisible(),
-    "GNSS第1章の理解済み進捗が1 / 6章になりません。",
+    await overviewLesson.getByText("1 / 7 章", { exact: true }).isVisible(),
+    "GNSS第1章の理解済み進捗が1 / 7章になりません。",
   );
 
   const representativeCaseCard = page.getByTestId("gnss-purpose-card");
@@ -414,8 +414,8 @@ try {
   });
   await observationsUnderstoodButton.click();
   assert(
-    await observationsLesson.getByText("2 / 6 章", { exact: true }).isVisible(),
-    "GNSS第2章の理解済み操作で進捗が2 / 6章になりません。",
+    await observationsLesson.getByText("2 / 7 章", { exact: true }).isVisible(),
+    "GNSS第2章の理解済み操作で進捗が2 / 7章になりません。",
   );
 
   const travelTimeCard = page.getByTestId("gnss-observations-travel-time-card");
@@ -798,8 +798,8 @@ try {
   );
   await coordinateHeightUnderstoodButton.click();
   assert(
-    await coordinateHeightLesson.getByText("3 / 6 章", { exact: true }).isVisible(),
-    "GNSS第3章の理解済み操作で進捗が3 / 6章になりません。",
+    await coordinateHeightLesson.getByText("3 / 7 章", { exact: true }).isVisible(),
+    "GNSS第3章の理解済み操作で進捗が3 / 7章になりません。",
   );
 
   const earthCenteredCard = page.getByTestId("gnss-earth-centered-card");
@@ -1205,9 +1205,9 @@ try {
   await positioningMethodsUnderstoodButton.click();
   assert(
     await positioningMethodsLesson
-      .getByText("4 / 6 章", { exact: true })
+      .getByText("4 / 7 章", { exact: true })
       .isVisible(),
-    "GNSS第4章の理解済み操作で進捗が4 / 6章になりません。",
+    "GNSS第4章の理解済み操作で進捗が4 / 7章になりません。",
   );
 
   const positioningInformationCard = page.getByTestId(
@@ -1605,8 +1605,8 @@ try {
   );
   await ownBaseStationUnderstoodButton.click();
   assert(
-    await ownBaseStationLesson.getByText("5 / 6 章", { exact: true }).isVisible(),
-    "GNSS第5章の理解済み操作で進捗が5 / 6章になりません。",
+    await ownBaseStationLesson.getByText("5 / 7 章", { exact: true }).isVisible(),
+    "GNSS第5章の理解済み操作で進捗が5 / 7章になりません。",
   );
 
   const ownBaseIntroCard = page.getByTestId("gnss-own-base-intro-card");
@@ -1913,7 +1913,7 @@ try {
         .locator("[data-gnss-correction-card]")
         .count()) === 9 &&
       (await correctionDeliveryLesson
-        .getByText("5 / 6 章", { exact: true })
+        .getByText("5 / 7 章", { exact: true })
         .isVisible()),
     "GNSS第6章、9カード構成または進捗表示を確認できません。",
   );
@@ -2316,6 +2316,430 @@ try {
     "GNSS第6章の確認問題が8問ではありません。",
   );
 
+  const chapterSevenNavigationButton = lessonNavigation.getByRole("button", {
+    name: /第7章.*自前RTK③ 基線解析とFIX/,
+  });
+  await chapterSevenNavigationButton.click();
+  const baselineFixLesson = page.locator(
+    '[data-lesson-id="gnss-baseline-fix"]',
+  );
+  assert(
+    (await baselineFixLesson.isVisible()) &&
+      (await baselineFixLesson
+        .getByRole("heading", {
+          name: "RTCMは届いた。なぜまだFLOAT？",
+          exact: true,
+        })
+        .isVisible()) &&
+      (await baselineFixLesson.locator("[data-gnss-baseline-card]").count()) ===
+        9 &&
+      (await baselineFixLesson
+        .getByText("5 / 7 章", { exact: true })
+        .isVisible()),
+    "GNSS第7章、9カード構成、到達目標または進捗表示を確認できません。",
+  );
+
+  const baselineIntroCard = page.getByTestId("gnss-baseline-intro-card");
+  const baselineIntroText = await baselineIntroCard.innerText();
+  assert(
+    (await baselineIntroCard.locator("[data-baseline-flow-step-id]").count()) ===
+      12 &&
+      (await baselineIntroCard.locator("[data-device-field]").count()) === 4 &&
+      (await baselineIntroCard.getByRole("link").count()) === 1 &&
+      [
+        "第6章では、基準局側のRTCMが移動局P1へ正しく継続して届く",
+        "RTCMは正常に届いている",
+        "なぜ最初はFLOAT",
+        "Drogger-GPSの実機表示例",
+        "Status",
+        "Running",
+        "RTCM3",
+        "Age",
+        "FixMode",
+        "Float",
+        "FIXは、その情報とP1自身の観測を使い",
+        "A → P1 の3次元基線",
+        "成果採用前の現場点検",
+      ].every((expectedText) => baselineIntroText.includes(expectedText)),
+    "第7章カード1の第6章接続、実機例、章全体図または公式リンクが不足しています。",
+  );
+
+  const baselineReceiverCard = page.getByTestId(
+    "gnss-baseline-receiver-comparison-card",
+  );
+  const baselineReceiverText = await baselineReceiverCard.innerText();
+  assert(
+    (await baselineReceiverCard.locator("[data-receiver-id]").count()) === 2 &&
+      (await baselineReceiverCard.locator("[data-effect-id]").count()) === 3 &&
+      (await baselineReceiverCard.getByRole("link").count()) === 1 &&
+      [
+        "衛星 G1",
+        "基準局A",
+        "移動局P1",
+        "対応する時刻",
+        "2地点の違いを比較",
+        "相殺できる代表例",
+        "近距離なら差が小さくなりやすいもの",
+        "残るもの",
+        "マルチパス",
+        "完全に消えるとは限らない",
+      ].every((expectedText) => baselineReceiverText.includes(expectedText)),
+    "第7章カード2の1衛星・2受信機比較または誤差分類が不足しています。",
+  );
+
+  const baselineDoubleDifferenceCard = page.getByTestId(
+    "gnss-baseline-double-difference-card",
+  );
+  const baselineDoubleDifferenceText =
+    await baselineDoubleDifferenceCard.innerText();
+  assert(
+    (await baselineDoubleDifferenceCard
+      .locator("[data-difference-step-id]")
+      .count()) === 2 &&
+      (await baselineDoubleDifferenceCard
+        .locator("[data-double-difference-effect-id]")
+        .count()) === 3 &&
+      (await baselineDoubleDifferenceCard.getByRole("link").count()) === 0 &&
+      [
+        "A × G1",
+        "A × G2",
+        "P1 × G1",
+        "P1 × G2",
+        "P1の観測 − Aの観測",
+        "差①",
+        "差②",
+        "二重差",
+        "衛星時計に関する共通項",
+        "受信機時計差",
+        "近距離で低減しやすい",
+        "整数アンビギュイティ",
+        "すべての現代RTKエンジン",
+      ].every((expectedText) => baselineDoubleDifferenceText.includes(expectedText)),
+    "第7章カード3の2衛星×2受信機、二重差、残存影響または技術的注意が不足しています。",
+  );
+
+  const baselineFloatCard = page.getByTestId("gnss-baseline-float-card");
+  const baselineFloatText = await baselineFloatCard.innerText();
+  assert(
+    (await baselineFloatCard.locator("[data-float-estimate-id]").count()) === 3 &&
+      (await baselineFloatCard.getByRole("link").count()) === 1 &&
+      [
+        "FLOAT",
+        "≠ 何も計算できていない",
+        "位置・基線の推定解はある",
+        "必要な整数をまだ固定できない",
+        "11.82",
+        "18.17",
+        "24.91",
+        "生の整数波長数を3個表示したものではありません",
+        "単純に12へ四捨五入すればFIX、ではありません",
+      ].every((expectedText) => baselineFloatText.includes(expectedText)),
+    "第7章カード4のFLOAT説明、模式実数値または単純丸めでない接続が不足しています。",
+  );
+
+  const baselineCandidateCard = page.getByTestId(
+    "gnss-baseline-candidate-card",
+  );
+  const baselineCandidateResult = baselineCandidateCard.getByTestId(
+    "gnss-baseline-candidate-result",
+  );
+  const baselineNextObservationButton = baselineCandidateCard.getByTestId(
+    "gnss-baseline-next-observation",
+  );
+  assert(
+    (await baselineCandidateResult.getAttribute("data-evaluation-stage-id")) ===
+      "initial" &&
+      (await baselineCandidateResult.locator("[data-candidate-id]").count()) ===
+        3 &&
+      (await baselineCandidateResult
+        .locator('[data-candidate-id="candidate-a"]')
+        .getAttribute("data-consistency")) === "高" &&
+      (await baselineCandidateResult
+        .locator('[data-candidate-id="candidate-b"]')
+        .getAttribute("data-consistency")) === "高" &&
+      (await baselineCandidateResult
+        .getByText("FLOAT", { exact: true })
+        .isVisible()),
+    "第7章カード5の初期候補またはFLOAT状態が正しくありません。",
+  );
+  await baselineFloatCard.getByRole("link").focus();
+  await page.keyboard.press("Tab");
+  const baselineCandidateVisibleFocus = await hasVisibleKeyboardFocus(
+    baselineNextObservationButton,
+  );
+  await page.keyboard.press("Enter");
+  const baselineCandidateKeyboardOperation =
+    (await baselineCandidateResult.getAttribute("data-evaluation-stage-id")) ===
+      "comparison" &&
+    (await baselineCandidateResult
+      .locator('[data-candidate-id="candidate-a"]')
+      .getAttribute("data-consistency")) === "中" &&
+    (await baselineCandidateResult
+      .locator('[data-candidate-id="candidate-b"]')
+      .getAttribute("data-consistency")) === "高" &&
+    (await baselineCandidateResult
+      .getByText("候補Bが最良だが、固定してよいかをさらに確認する", {
+        exact: true,
+      })
+      .isVisible());
+  await baselineNextObservationButton.click();
+  const baselineCandidateText = await baselineCandidateCard.innerText();
+  const baselineCandidateExpectedTexts = [
+    "候補A",
+    "12 / 18 / 25",
+    "候補B",
+    "12 / 19 / 25",
+    "候補C",
+    "13 / 18 / 25",
+    "整合性：高",
+    "整合性：低",
+    "候補Bを十分に確からしい固定解として採用する",
+    "一番良い候補がある",
+    "その候補を固定してよい",
+    "教材用の模式例",
+    "ratio値・固定しきい値・探索アルゴリズムは再現していません",
+    "単一エポックで整数固定が成立する解析もあり",
+    "複数時刻の観測が必ず必要という意味ではありません",
+  ];
+  const baselineCandidateChecks = {
+    visibleFocus: baselineCandidateVisibleFocus,
+    keyboardOperation: baselineCandidateKeyboardOperation,
+    fixedStage:
+      (await baselineCandidateResult.getAttribute("data-evaluation-stage-id")) ===
+      "fixed",
+    fixedLabel: await baselineCandidateResult
+      .getByText("FIX", { exact: true })
+      .isVisible(),
+    missingTexts: baselineCandidateExpectedTexts.filter(
+      (expectedText) => !baselineCandidateText.includes(expectedText),
+    ),
+  };
+  assert(
+    baselineCandidateChecks.visibleFocus &&
+      baselineCandidateChecks.keyboardOperation &&
+      baselineCandidateChecks.fixedStage &&
+      baselineCandidateChecks.fixedLabel &&
+      baselineCandidateChecks.missingTexts.length === 0,
+    `第7章カード5の3段階候補評価、キーボード操作、FIXまたは注意書きが正しくありません: ${JSON.stringify(baselineCandidateChecks)}`,
+  );
+
+  const baselineVectorCard = page.getByTestId("gnss-baseline-vector-card");
+  const baselineVectorText = await baselineVectorCard.innerText();
+  assert(
+    (await baselineVectorCard.locator("[data-baseline-point]").count()) === 2 &&
+      (await baselineVectorCard.getByRole("link").count()) === 1 &&
+      [
+        "既知点 A",
+        "X（北）",
+        "Y（東）",
+        "1000.000 m",
+        "新点 P1",
+        "1012.345 m",
+        "1008.765 m",
+        "49.832 m",
+        "北方向 ΔX",
+        "+12.345 m",
+        "東方向 ΔY",
+        "+8.765 m",
+        "高さ ΔH",
+        "-0.168 m",
+        "3次元の相対的な位置関係",
+        "平面直角座標と標高を単純に差し引くだけ",
+        "真値や成果条件全体を保証する表示ではありません",
+      ].every((expectedText) => baselineVectorText.includes(expectedText)),
+    "第7章カード6の3次元基線、既存A・P1値またはFIX注意が不足しています。",
+  );
+
+  const baselineMonitoringCard = page.getByTestId(
+    "gnss-baseline-monitoring-card",
+  );
+  const baselineMonitoringText = await baselineMonitoringCard.innerText();
+  assert(
+    (await baselineMonitoringCard.getByRole("link").count()) === 1 &&
+      [
+        "FIXを維持",
+        "FLOAT等へ戻り再評価",
+        "FIX",
+        "観測終了",
+        "サイクルスリップ",
+        "ロック喪失",
+        "10 → 11 → 12 → ? → 17",
+        "整数アンビギュイティが時間とともに小数へ変わったためでも",
+        "必ず受信機が故障したためでもありません",
+        "具体的な再測判断は第8章",
+      ].every((expectedText) => baselineMonitoringText.includes(expectedText)),
+    "第7章カード7のFIX後監視、FLOAT復帰またはサイクルスリップ説明が不足しています。",
+  );
+
+  const baselineResultCard = page.getByTestId("gnss-baseline-result-card");
+  const baselineResultText = await baselineResultCard.innerText();
+  assert(
+    (await baselineResultCard.locator("[data-result-condition-id]").count()) ===
+      4 &&
+      (await baselineResultCard.getByRole("link").count()) === 3 &&
+      [
+        "RTK解析",
+        "成果として使う",
+        "成果条件すべての合格マークではありません",
+        "基準局A.Xが +0.500 m違っていてもFIXする場合",
+        "1000.000 m",
+        "1000.500 m",
+        "1012.345 m",
+        "1012.845 m",
+        "操作は再実装していません",
+        "測地系",
+        "系番号",
+        "座標の時点",
+        "高さ基準",
+        "詳しい処理は第9章",
+        "ミスFIX",
+        "必ずミスFIXになる、という意味ではありません",
+      ].every((expectedText) => baselineResultText.includes(expectedText)),
+    "第7章カード8の成果条件、+0.500 m既習例、ミスFIXまたは公式リンクが不足しています。",
+  );
+
+  const baselineSummaryCard = page.getByTestId("gnss-baseline-summary-card");
+  const baselineSummaryText = await baselineSummaryCard.innerText();
+  const baselineDeviceDisplayTable = baselineSummaryCard.getByTestId(
+    "gnss-baseline-device-display-table",
+  );
+  assert(
+    (await baselineSummaryCard.locator("[data-baseline-flow-step-id]").count()) ===
+      12 &&
+      (await baselineDeviceDisplayTable.locator("tbody tr").count()) === 4 &&
+      (await baselineSummaryCard.getByRole("link").count()) === 1 &&
+      [
+        "Status / RTCM3",
+        "Age",
+        "FixMode：Float",
+        "FixMode：FIXED",
+        "Drogger-GPSの実機表示例",
+        "全GNSS受信機共通の固定名称・普遍的なしきい値ではなく",
+        "CLAS時は通常RTKと表示挙動が異なる",
+        "第8章への問い",
+        "自前RTK④ 現場観測と点検",
+      ].every((expectedText) => baselineSummaryText.includes(expectedText)),
+    "第7章カード9の総まとめ、Drogger表示対応または第8章接続が不足しています。",
+  );
+
+  const baselineStaticCards = baselineFixLesson.locator(
+    '[data-gnss-baseline-card="1"], [data-gnss-baseline-card="2"], [data-gnss-baseline-card="3"], [data-gnss-baseline-card="4"], [data-gnss-baseline-card="6"], [data-gnss-baseline-card="7"], [data-gnss-baseline-card="8"], [data-gnss-baseline-card="9"]',
+  );
+  assert(
+    (await baselineStaticCards.getByRole("button").count()) === 0,
+    "第7章のカード5以外へ不要な操作ボタンが追加されています。",
+  );
+  const baselineExternalLinks = baselineFixLesson.locator(
+    ".gnss-baseline-external-links a",
+  );
+  const baselineExternalLinkHrefs = await baselineExternalLinks.evaluateAll(
+    (links) => links.map((link) => link.getAttribute("href")),
+  );
+  assert(
+    (await baselineExternalLinks.count()) === 9 &&
+      baselineExternalLinkHrefs.every(
+        (href) => typeof href === "string" && href.startsWith("https://"),
+      ),
+    "第7章のDrogger公式リンク数またはhrefが正しくありません。",
+  );
+
+  const baselineQuestionIds = [
+    "rtcm-received-still-float",
+    "baseline-definition",
+    "double-difference-concept",
+    "float-state-meaning",
+    "ambiguity-candidate-fixing",
+    "fix-baseline-effect",
+    "fix-can-return-float",
+    "fix-vs-result-acceptance",
+  ];
+  const baselineCorrectOptionIndexes = [1, 2, 0, 3, 1, 2, 0, 3];
+  const baselineCorrectOptionLetters = ["B", "C", "A", "D", "B", "C", "A", "D"];
+  assert(
+    ["A", "B", "C", "D"].every(
+      (letter) =>
+        baselineCorrectOptionLetters.filter((current) => current === letter)
+          .length === 2,
+    ),
+    "第7章8問の表示上の正答文字がA～D各2問ではありません。",
+  );
+  const baselineQuestionOne = page.getByTestId(
+    `gnss-quiz-question-${baselineQuestionIds[0]}`,
+  );
+  const baselineQuestionOneOptions = baselineQuestionOne.locator(
+    'input[type="radio"]',
+  );
+  await baselineSummaryCard.getByRole("link").focus();
+  await page.keyboard.press("Tab");
+  const baselineQuizVisibleFocus = await hasVisibleKeyboardFocus(
+    baselineQuestionOneOptions.nth(0),
+  );
+  await page.keyboard.press("Space");
+  const baselineQuizKeyboardOperation =
+    await baselineQuestionOneOptions.nth(0).isChecked();
+  await baselineQuestionOne
+    .getByRole("button", { name: "回答を確認する", exact: true })
+    .click();
+  const baselineQuestionOneFeedback = baselineQuestionOne.locator(
+    ".gnss-quiz-feedback",
+  );
+  assert(
+    baselineQuizVisibleFocus &&
+      baselineQuizKeyboardOperation &&
+      (await baselineQuestionOneFeedback
+        .getByText("不正解", { exact: true })
+        .isVisible()) &&
+      (await baselineQuestionOneFeedback
+        .getByText("正解：B", { exact: true })
+        .isVisible()) &&
+      (await baselineQuestionOneFeedback
+        .getByRole("heading", { name: "Aを選んだ場合の解説", exact: true })
+        .isVisible()) &&
+      (await baselineQuestionOneFeedback
+        .getByText(/RTCM受信正常だけでは、整数アンビギュイティの固定を保証しません/)
+        .isVisible()) &&
+      (await baselineQuestionOneFeedback
+        .getByRole("heading", { name: "解説", exact: true })
+        .isVisible()),
+    "第7章問1のキーボード操作、誤答固有理由、正解文字または正答理由が正しくありません。",
+  );
+
+  for (const [questionIndex, questionId] of baselineQuestionIds.entries()) {
+    const question = page.getByTestId(`gnss-quiz-question-${questionId}`);
+    const correctOptionIndex = baselineCorrectOptionIndexes[questionIndex];
+    const correctOptionLetter = baselineCorrectOptionLetters[questionIndex];
+
+    assert(
+      correctOptionIndex !== undefined && correctOptionLetter !== undefined,
+      `${questionId}の正答位置データがありません。`,
+    );
+    await question.locator('input[type="radio"]').nth(correctOptionIndex).check();
+    await question
+      .getByRole("button", { name: "回答を確認する", exact: true })
+      .click();
+    const feedback = question.locator(".gnss-quiz-feedback");
+    assert(
+      (await feedback.getByText("正解", { exact: true }).isVisible()) &&
+        (await feedback
+          .getByText(`正解：${correctOptionLetter}`, { exact: true })
+          .isVisible()) &&
+        (await feedback.locator(".gnss-quiz-selected-explanation").count()) ===
+          0 &&
+        (await feedback
+          .getByRole("heading", { name: "解説", exact: true })
+          .isVisible()) &&
+        !(await feedback.innerText()).includes("正答"),
+      `${questionId}の正答表示または重複のない解説が正しくありません。`,
+    );
+  }
+  assert(
+    (await baselineFixLesson
+      .getByTestId("gnss-baseline-fix-quiz-panel")
+      .locator(".gnss-quiz-question")
+      .count()) === 8,
+    "GNSS第7章の確認問題が8問ではありません。",
+  );
+
   await lessonNavigation
     .getByRole("button", { name: /第1章.*GNSS測量の全体像/ })
     .click();
@@ -2327,7 +2751,7 @@ try {
         .getAttribute("aria-pressed")) === "true" &&
       (await p1Result.isVisible()) &&
       (await questionThree.getByText("正解", { exact: true }).isVisible()) &&
-      (await overviewLesson.getByText("5 / 6 章", { exact: true }).isVisible()),
+      (await overviewLesson.getByText("5 / 7 章", { exact: true }).isVisible()),
     "第4章から戻ったときにGNSS第1章の状態が保持されません。",
   );
   await chapterTwoNavigationButton.click();
@@ -2417,9 +2841,25 @@ try {
     "GNSS章往復後に第6章の鮮度・診断・問題状態が保持されません。",
   );
 
+  await chapterSevenNavigationButton.click();
+  assert(
+    (await baselineFixLesson.isVisible()) &&
+      (await baselineCandidateResult.getAttribute("data-evaluation-stage-id")) ===
+        "fixed" &&
+      (await baselineFixLesson
+        .getByTestId("gnss-baseline-fix-quiz-panel")
+        .locator(".gnss-quiz-feedback")
+        .count()) === 8 &&
+      (await page
+        .getByTestId(`gnss-quiz-question-${baselineQuestionIds[7]}`)
+        .getByText("正解", { exact: true })
+        .isVisible()),
+    "GNSS章往復後に第7章の候補評価・問題状態が保持されません。",
+  );
+
   const desktopMetrics = await getPageMetrics(page);
   assert(
-    (await correctionDeliveryLesson.isVisible()) &&
+    (await baselineFixLesson.isVisible()) &&
       desktopMetrics.scrollWidth <= desktopMetrics.clientWidth,
     `GNSS教材が1366px幅で横方向にはみ出しています: ${JSON.stringify(desktopMetrics)}`,
   );
@@ -2431,22 +2871,22 @@ try {
     try {
       await page.screenshot({
         fullPage: true,
-        path: "/tmp/gnss-phase6-1366-20260812-final.png",
+        path: "/tmp/gnss-phase7-1366-20260813-verified.png",
       });
-      await correctionCasterCard.screenshot({
-        path: "/tmp/gnss-phase6-card5-1366-20260812-final.png",
+      await baselineDoubleDifferenceCard.screenshot({
+        path: "/tmp/gnss-phase7-card3-1366-20260813-verified.png",
       });
-      await correctionRouteCard.screenshot({
-        path: "/tmp/gnss-phase6-card6-1366-20260812-final.png",
+      await baselineCandidateCard.screenshot({
+        path: "/tmp/gnss-phase7-card5-1366-20260813-verified.png",
       });
-      await correctionOtherRouteCard.screenshot({
-        path: "/tmp/gnss-phase6-card7-1366-20260812-final.png",
+      await baselineVectorCard.screenshot({
+        path: "/tmp/gnss-phase7-card6-1366-20260813-verified.png",
       });
-      await correctionFreshnessCard.screenshot({
-        path: "/tmp/gnss-phase6-card8-1366-20260812-final.png",
+      await baselineResultCard.screenshot({
+        path: "/tmp/gnss-phase7-card8-1366-20260813-verified.png",
       });
-      await correctionDiagnosisCard.screenshot({
-        path: "/tmp/gnss-phase6-card9-1366-20260812-final.png",
+      await baselineSummaryCard.screenshot({
+        path: "/tmp/gnss-phase7-card9-1366-20260813-verified.png",
       });
     } finally {
       await screenshotStyle.evaluate((style) => style.remove());
@@ -2472,16 +2912,14 @@ try {
   await page.getByRole("button", { name: "GNSS / Drogger", exact: true }).click();
 
   assert(
-    (await correctionDeliveryLesson.isVisible()) &&
-      (await correctionFreshnessResult.getAttribute("data-freshness-id")) ===
-        "stopped" &&
-      (await correctionDiagnosticResult.getAttribute("data-diagnostic-case-id")) ===
-        "rtcm-ok-float" &&
+    (await baselineFixLesson.isVisible()) &&
+      (await baselineCandidateResult.getAttribute("data-evaluation-stage-id")) ===
+        "fixed" &&
       (await page
-        .getByTestId(`gnss-quiz-question-${correctionQuestionIds[7]}`)
+        .getByTestId(`gnss-quiz-question-${baselineQuestionIds[7]}`)
         .getByText("正解", { exact: true })
         .isVisible()),
-    "教材往復後にGNSS第6章の鮮度・診断・問題状態が保持されません。",
+    "教材往復後にGNSS第7章の候補評価・問題状態が保持されません。",
   );
   await chapterTwoNavigationButton.click();
   assert(
@@ -2502,7 +2940,7 @@ try {
         .getByTestId(`gnss-quiz-question-${observationQuestionIds[6]}`)
         .getByText("正解", { exact: true })
         .isVisible()) &&
-      (await observationsLesson.getByText("5 / 6 章", { exact: true }).isVisible()),
+      (await observationsLesson.getByText("5 / 7 章", { exact: true }).isVisible()),
     "教材往復後にGNSS第2章の操作・問題・理解状態が保持されません。",
   );
   await chapterThreeNavigationButton.click();
@@ -2550,6 +2988,17 @@ try {
         .isVisible()),
     "既存章回帰後にGNSS第6章の状態が保持されません。",
   );
+  await chapterSevenNavigationButton.click();
+  assert(
+    (await baselineFixLesson.isVisible()) &&
+      (await baselineCandidateResult.getAttribute("data-evaluation-stage-id")) ===
+        "fixed" &&
+      (await page
+        .getByTestId(`gnss-quiz-question-${baselineQuestionIds[7]}`)
+        .getByText("正解", { exact: true })
+        .isVisible()),
+    "既存章回帰後にGNSS第7章の状態が保持されません。",
+  );
 
   const storageKeysAfterGnssOperations = await page.evaluate(() =>
     Object.keys(window.localStorage).sort(),
@@ -2577,16 +3026,14 @@ try {
   );
 
   assert(
-    (await correctionDeliveryLesson.isVisible()) &&
-      (await correctionFreshnessResult.getAttribute("data-freshness-id")) ===
-        "stopped" &&
-      (await correctionDiagnosticResult.getAttribute("data-diagnostic-case-id")) ===
-        "rtcm-ok-float" &&
+    (await baselineFixLesson.isVisible()) &&
+      (await baselineCandidateResult.getAttribute("data-evaluation-stage-id")) ===
+        "fixed" &&
       (await page
-        .getByTestId(`gnss-quiz-question-${correctionQuestionIds[7]}`)
+        .getByTestId(`gnss-quiz-question-${baselineQuestionIds[7]}`)
         .getByText("正解", { exact: true })
         .isVisible()),
-    "390px幅で第6章の操作・確認問題結果を表示できません。",
+    "390px幅で第7章の候補評価・確認問題結果を表示できません。",
   );
   await chapterFourNavigationButton.click();
   assert(
@@ -2656,6 +3103,40 @@ try {
       visible: await control.isVisible(),
     })),
   );
+  const mobileCorrectionDeliveryVisible = await correctionDeliveryLesson.isVisible();
+  await chapterSevenNavigationButton.click();
+  const mobileBaselineTableContainment = await baselineDeviceDisplayTable.evaluate(
+    (element) => {
+      const rect = element.getBoundingClientRect();
+
+      return {
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        left: Math.round(rect.left),
+        right: Math.round(rect.right),
+        withinViewport:
+          rect.left >= -1 && rect.right <= window.innerWidth + 1,
+      };
+    },
+  );
+  const mobileBaselineCardsVisible = await Promise.all(
+    [
+      baselineDoubleDifferenceCard,
+      baselineCandidateCard,
+      baselineVectorCard,
+      baselineResultCard,
+      baselineSummaryCard,
+    ].map((card) => card.isVisible()),
+  );
+  const mobileBaselineControls = await Promise.all(
+    [
+      baselineNextObservationButton,
+      baselineQuestionOneOptions.nth(baselineCorrectOptionIndexes[0]),
+    ].map(async (control) => ({
+      enabled: await control.isEnabled(),
+      visible: await control.isVisible(),
+    })),
+  );
   const mobileMetrics = await getPageMetrics(page);
   const mobileOverflowElements = await page.evaluate(() =>
     Array.from(document.querySelectorAll(".gnss-page, .gnss-page *"))
@@ -2696,7 +3177,7 @@ try {
         (table) =>
           table.withinViewport && table.clientWidth <= table.scrollWidth,
       ) &&
-      (await correctionDeliveryLesson.isVisible()) &&
+      mobileCorrectionDeliveryVisible &&
       (await correctionIntroCard.locator("[data-correction-map-step-id]").count()) ===
         9 &&
       mobileCorrectionTableContainment.withinViewport &&
@@ -2705,8 +3186,14 @@ try {
       mobileCorrectionControls.every(
         (control) => control.visible && control.enabled,
       ) &&
+      (await baselineFixLesson.isVisible()) &&
+      mobileBaselineCardsVisible.every(Boolean) &&
+      mobileBaselineTableContainment.withinViewport &&
+      mobileBaselineTableContainment.clientWidth <=
+        mobileBaselineTableContainment.scrollWidth &&
+      mobileBaselineControls.every((control) => control.visible && control.enabled) &&
       mobileMetrics.scrollWidth <= mobileMetrics.clientWidth,
-    `GNSS第4章・第5章回帰または第6章の390px表示が正しくありません: ${JSON.stringify({ mobileCoordinatePanelLayout, mobileOwnBaseStationVisible, mobileOwnBaseTableContainment, mobileCorrectionTableContainment, mobileCorrectionControls, mobileMetrics, mobileOverflowElements })}`,
+    `GNSS第4章〜第6章回帰または第7章の390px表示が正しくありません: ${JSON.stringify({ mobileCoordinatePanelLayout, mobileOwnBaseStationVisible, mobileOwnBaseTableContainment, mobileCorrectionDeliveryVisible, mobileCorrectionTableContainment, mobileCorrectionControls, mobileBaselineCardsVisible, mobileBaselineTableContainment, mobileBaselineControls, mobileMetrics, mobileOverflowElements })}`,
   );
 
   if (saveScreenshots) {
@@ -2716,22 +3203,22 @@ try {
     try {
       await page.screenshot({
         fullPage: true,
-        path: "/tmp/gnss-phase6-390-20260812-final.png",
+        path: "/tmp/gnss-phase7-390-20260813-verified.png",
       });
-      await correctionCasterCard.screenshot({
-        path: "/tmp/gnss-phase6-card5-390-20260812-final.png",
+      await baselineDoubleDifferenceCard.screenshot({
+        path: "/tmp/gnss-phase7-card3-390-20260813-verified.png",
       });
-      await correctionRouteCard.screenshot({
-        path: "/tmp/gnss-phase6-card6-390-20260812-final.png",
+      await baselineCandidateCard.screenshot({
+        path: "/tmp/gnss-phase7-card5-390-20260813-verified.png",
       });
-      await correctionOtherRouteCard.screenshot({
-        path: "/tmp/gnss-phase6-card7-390-20260812-final.png",
+      await baselineVectorCard.screenshot({
+        path: "/tmp/gnss-phase7-card6-390-20260813-verified.png",
       });
-      await correctionFreshnessCard.screenshot({
-        path: "/tmp/gnss-phase6-card8-390-20260812-final.png",
+      await baselineResultCard.screenshot({
+        path: "/tmp/gnss-phase7-card8-390-20260813-verified.png",
       });
-      await correctionDiagnosisCard.screenshot({
-        path: "/tmp/gnss-phase6-card9-390-20260812-final.png",
+      await baselineSummaryCard.screenshot({
+        path: "/tmp/gnss-phase7-card9-390-20260813-verified.png",
       });
     } finally {
       await screenshotStyle.evaluate((style) => style.remove());
@@ -2766,9 +3253,9 @@ try {
   assert(
       (await reloadedOverviewLesson.isVisible()) &&
       (await reloadedOverviewLesson
-        .getByText("0 / 6 章", { exact: true })
+        .getByText("0 / 7 章", { exact: true })
         .isVisible()),
-    "再読込み後にGNSS第1章と0 / 6章の初期進捗へ戻りません。",
+    "再読込み後にGNSS第1章と0 / 7章の初期進捗へ戻りません。",
   );
   await page
     .locator(".gnss-lesson-navigation")
@@ -2961,7 +3448,7 @@ try {
         .locator("[data-gnss-correction-card]")
         .count()) === 9 &&
       (await reloadedCorrectionDeliveryLesson
-        .getByText("0 / 6 章", { exact: true })
+        .getByText("0 / 7 章", { exact: true })
         .isVisible()) &&
       (await reloadedCorrectionFreshnessCard
         .getByTestId("gnss-correction-freshness-fresh")
@@ -2983,6 +3470,43 @@ try {
         .getByRole("button", { name: "この章を理解できた" })
         .count()) === 0,
     "再読込み後にGNSS第6章のReact状態が初期化されません。",
+  );
+
+  await page
+    .locator(".gnss-lesson-navigation")
+    .getByRole("button", { name: /第7章.*自前RTK③ 基線解析とFIX/ })
+    .click();
+  const reloadedBaselineFixLesson = page.locator(
+    '[data-lesson-id="gnss-baseline-fix"]',
+  );
+  const reloadedBaselineCandidateCard = page.getByTestId(
+    "gnss-baseline-candidate-card",
+  );
+  assert(
+    (await reloadedBaselineFixLesson.isVisible()) &&
+      (await reloadedBaselineFixLesson
+        .locator("[data-gnss-baseline-card]")
+        .count()) === 9 &&
+      (await reloadedBaselineFixLesson
+        .getByText("0 / 7 章", { exact: true })
+        .isVisible()) &&
+      (await reloadedBaselineCandidateCard
+        .getByTestId("gnss-baseline-candidate-result")
+        .getAttribute("data-evaluation-stage-id")) === "initial" &&
+      (await reloadedBaselineCandidateCard
+        .getByText("FLOAT", { exact: true })
+        .isVisible()) &&
+      (await reloadedBaselineCandidateCard
+        .getByRole("button", { name: "次の観測を見る", exact: true })
+        .isVisible()) &&
+      (await reloadedBaselineFixLesson
+        .getByTestId("gnss-baseline-fix-quiz-panel")
+        .locator(".gnss-quiz-feedback")
+        .count()) === 0 &&
+      (await reloadedBaselineFixLesson
+        .getByRole("button", { name: "この章を理解できた" })
+        .count()) === 0,
+    "再読込み後にGNSS第7章のReact状態が初期化されません。",
   );
 
   const storageKeysAfterReload = await page.evaluate(() =>
@@ -3020,6 +3544,7 @@ try {
           "gnss-positioning-methods",
           "gnss-own-base-station",
           "gnss-correction-delivery",
+          "gnss-baseline-fix",
         ],
         representativeCase: "一般の調査・測量",
         workflowSteps: 9,
@@ -3040,6 +3565,9 @@ try {
         correctionFreshnessStates: 3,
         correctionDiagnosticCases: 5,
         correctionDeliveryQuizQuestionsAnswered: 8,
+        baselineFixCards: 9,
+        baselineAmbiguityEvaluationStages: 3,
+        baselineFixQuizQuestionsAnswered: 8,
         statePreservedAcrossCourses: true,
         stateResetAfterReload: true,
         keyboardOperation: true,
@@ -3060,6 +3588,10 @@ try {
           correctionFreshnessVisibleFocus &&
           correctionDiagnosisVisibleFocus &&
           correctionQuizVisibleFocus,
+        baselineFixKeyboardOperation:
+          baselineCandidateKeyboardOperation && baselineQuizKeyboardOperation,
+        baselineFixVisibleFocus:
+          baselineCandidateVisibleFocus && baselineQuizVisibleFocus,
         localStorageKeysUnchanged: true,
         desktopMetrics,
         mobileMetrics,
