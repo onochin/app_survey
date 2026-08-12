@@ -5807,3 +5807,193 @@ GNSS第4章 修正後ユーザー最終確認
 * 第5章は実装・自動検証・目視確認まで完了しているが、ユーザー実機確認は未実施。
 * 次回開始地点は、GNSS第5章「自前RTK① 基準局をつくる」のユーザー実機確認。
 * 第6章以降の実装は、ユーザー実機確認と明示的な開始承認を受けるまで開始しない。
+
+## 44. 依頼03 GNSS測量教材 Phase 6完了（2026-08-12）
+
+### 44.1 完了範囲と教材メタデータ
+
+* GNSS測量教材 Phase 6として、第6章「自前RTK② 補正情報を届ける」の実装、README更新、全検証、目視確認を完了した。
+* 第5章のユーザー確認は今回の依頼で完了済みと確認し、明示的なPhase 6開始承認を受けて作業した。
+* 教材ID：`gnss-correction-delivery`
+* 章番号：`6`
+* 章タイトル：`自前RTK② 補正情報を届ける`
+* 学習目標：`自前RTKで、基準局側の情報がRTCMとしてどのように表され、Ntripやその他の通信経路を通って移動局へ届くかを説明し、RTCM・Ntrip・Caster・Mountpointの役割を区別できる。また、RTCMが正常に届かない場合に、情報経路を順番に確認できる。`
+* 教材カード数：`9`
+* 確認問題数：`8`
+* 第7章以降、基線解析、二重差、FLOAT / FIX成立原理の詳細、後処理、GNSS学習記録、GNSS用localStorageは実装していない。
+
+### 44.2 実装した9カードと章境界
+
+1. 「基準局をつくった。その次は？」
+   * 第5章で基準局座標・アンテナ・観測環境を準備したところから接続した。
+   * GNSS衛星、基準局観測、RTCM、Ntrip Server、IPネットワーク、Ntrip Caster、Mountpoint `BASE_A`、Ntrip Client、移動局P1までの章全体図を示した。
+   * 第6章の終点を「移動局P1へRTCMが届く」、第7章の開始を「届いた情報を使ってFLOAT / FIXを理解する」と明示した。
+2. 「基準局は何を移動局へ送る？」
+   * 基準局がP1の完成X・Y・高さを計算して送るのではないことを明示した。
+   * 基準局・基準局ARPの位置に関する情報と、基準局側のGNSS観測情報を分けた。
+   * 教材例としてRTCM `1005`（基準局ARP位置）、`1077`（GPS観測）、`1097`（Galileo観測）、`1127`（BeiDou観測）を示した。
+3. 「RTCMとは？」
+   * RTCMを基準局位置やGNSS観測等のデータ形式・メッセージ規格として説明した。
+   * `1005 / 1077 / 1087 / 1097 / 1127`等の複数メッセージが、それぞれの設定に応じて継続するストリームとして表示した。
+   * 1個の補正値、完成座標、1回だけ送る完成ファイル、Ntripそのものとして扱っていない。
+4. 「Ntripとは？」
+   * RTCMを情報の中身・形式、NtripをGNSSデータをIPネットワーク経由でストリーミングする仕組みとして区別した。
+   * 一般にはインターネット経由で使うが、公衆インターネット必須ではなくローカルIPネットワークの応用も考えられるとした。
+5. 「Casterは何をしている？／Mountpoint」
+   * Casterをストリームの受信・識別・配信を行う配信所として示し、RTK解析装置とはしていない。
+   * Mountpointを1本のGNSSデータストリームの識別名として示した。
+   * `BASE_A`の下に複数RTCM例を置き、RTCM番号・基準局座標・物理的据付点ではないことを明示した。
+   * 教材用仮想値`ntrip.example.jp / 2101 / BASE_A`でHost・Port・Mountpointの役割を整理した。
+6. 「自前RTKの情報経路を追う」
+   * 第2～5カードの用語を、基準局Aから移動局P1までの8段階へ統合した。
+   * Client→Casterの「BASE_Aを受信したい」という指定と、Caster→ClientのBASE_A RTCMストリーム配信を別方向で表示した。
+   * Ntrip Server / Clientは通信上の役割名であり、GNSS受信機やアプリに内蔵される場合があることを示した。
+   * RTCM受信とFIX成立は同じでないことを明示した。
+7. 「RTCMの届け方はNtripだけ？」
+   * Ntrip経路と、無線・シリアル等を使ってNtrip / Casterを介さずRTCMを届ける経路を静的比較した。
+   * Ntrip非使用時はCaster、Mountpoint、Ntrip Server / Clientが不要と整理した。
+   * 携帯圏外と自前RTK不可を同一視せず、必要な鮮度で継続して届ける通信経路が重要とした。
+   * 具体的な自社機器・周波数・電波法・通信距離・配線は将来の応用編として先行実装していない。
+8. 「届いていても『古い』ことがある」
+   * 操作状態`fresh / delayed / stopped`を、表示「正常 / 遅延 / 停止」で切り替える。
+   * 接続状態とRTCM更新状態を区別し、最終更新、Caster側最終受信、データ量、移動局側更新を確認材料として示した。
+   * 機器共通の固定表示名や、特定秒数を普遍的なしきい値として実装していない。
+9. 「どこで止まっている？」
+   * `no-rtcm-output / wrong-mountpoint / stale-rtcm / direct-link-receive-failure / rtcm-ok-float`の5ケースを切り替える。
+   * 基準局観測→RTCM出力→送信経路→Caster / Mountpoint（Ntrip時）→受信経路→移動局RTCM更新の順で切り分ける。
+   * 非Ntrip経路ではCasterを確認対象にせず、RTCM正常＋FLOATは通信経路の到達点として第7章へ接続した。
+
+### 44.3 UI、状態、教材データ、純粋関数
+
+* カード1～7は静的、カード8・9だけ操作ありとし、不要なタブ、スライダー、通信アニメーション、RTCM番号選択を追加していない。
+* 章全体図を再利用し、各カードで現在の学習位置を文字・番号・枠線で強調した。
+* 第6章専用CSSはすべて`.gnss-correction-*`名前空間とした。
+* 390pxでは情報経路を縦配置にし、Host / Port / Mountpoint表だけをカード内で横スクロール可能にした。
+* 色だけに依存せず、正常・遅延・停止、ケース名、状態値、正しい確認場所を文字でも表示した。
+* カード8・カード9・確認問題はボタン、ラジオ、可視フォーカスでキーボード操作できる。
+* カード8状態、カード9ケース、問題回答はReact画面状態だけで保持する。
+* GNSS第5章や別教材との往復では保持し、ページ再読込み後は`fresh / no-rtcm-output / 未回答`へ初期化する。
+* 第6章には「理解できた」、GNSS学習記録、GNSS用localStorageを追加していない。第1～5章の既存理解状態は維持した。
+* `src/components/gnss/data/gnssCorrectionDelivery.ts`へ次を分離した。
+  * 9カード、章全体図、基準局側情報、RTCM例、RTCMストリーム
+  * RTCM / Ntrip比較、Ntrip Server / Caster / Client、Mountpoint、仮想接続設定、要求・配信方向
+  * Ntrip / 非Ntrip経路、鮮度3状態、確認材料、診断順、診断5ケース
+  * 8問・32選択肢、全誤答固有理由、正答理由、現場確認
+* 追加した純粋関数：
+  * `getGnssCorrectionFreshnessState`
+  * `getGnssCorrectionDiagnosticCase`
+  * `getGnssCorrectionDeliveryQuizQuestion`
+  * `getGnssCorrectionDeliveryQuizOptionLetter`
+  * `evaluateGnssCorrectionDeliveryQuizAnswer`
+* 未知の状態ID、ケースID、問題ID、選択肢IDは`null`で拒否し、`NaN`、`Infinity`、`undefined`を画面へ出さない構成とした。
+
+### 44.4 確認問題
+
+* 安定問題IDは次の8件。
+  * `rtcm-role`
+  * `rtcm-vs-ntrip`
+  * `mountpoint-role`
+  * `ntrip-stream-request`
+  * `offline-rtcm-delivery`
+  * `rtcm-freshness`
+  * `wrong-mountpoint-diagnosis`
+  * `rtcm-ok-still-float`
+* 表示上の正答位置は`B / C / A / D / B / C / A / D`で、A～D各2問。
+* 全32選択肢へ安定した意味のあるIDを付け、全誤答に選択肢固有理由、全問に正答理由と現場確認を定義した。
+* 既存GNSS確認問題UIを再利用し、正答時は誤答説明を表示せず正答解説を1回だけ表示する。
+
+### 44.5 作成・変更ファイル
+
+作成：
+
+* `src/components/gnss/data/gnssCorrectionDelivery.ts`
+* `src/components/gnss/lessons/GnssCorrectionDeliveryLesson.tsx`
+* `src/tests/gnssCorrectionDelivery.test.ts`
+
+変更：
+
+* `src/components/gnss/types.ts`
+* `src/components/gnss/gnssCourse.ts`
+* `src/components/gnss/SurveyGnss.tsx`
+* `src/styles.css`
+* `src/tests/gnssOwnBaseStation.test.ts`
+* `scripts/gnss-smoke.mjs`
+* `README.md`
+* `doc/HANDOFF.md`
+
+正式依頼文`prompt/依頼03_GNSS測量教材Phase6の実装.md`は作業開始前から未追跡であり、未変更のまま保持した。
+
+### 44.6 維持した既存機能と非実装範囲
+
+* GNSS第1章～第5章の文章、図、操作、計算、問題ID、選択肢ID、教材往復時の状態を維持した。
+* 基礎教材9章と閉合トラバースの文章、図、操作、計算、確認問題、学習記録を変更していない。
+* `App.tsx`の教材常時マウント、基礎・閉合トラバースの保存キーと保存形式を維持した。
+* 実RTCM生成、実Ntrip / Caster / Mountpoint接続、外部通信、Bluetooth、シリアル、無線、Drogger機器制御、RINEX読込みを追加していない。
+* 第7章、基線解析、差分計算、整数アンビギュイティ決定、FLOAT / FIX解析、自社機器の携帯圏外RTK応用編を実装していない。
+* `package.json`、`package-lock.json`、`vite.config.ts`、`.github/workflows/deploy.yml`は変更していない。
+
+### 44.7 検証結果
+
+* `npm run typecheck -- --pretty false`
+  * 成功、型エラー0件。
+* `npm test -- --reporter=verbose`
+  * 成功、`17`テストファイル、`217`テストすべて成功。
+  * GNSS関連は`6`ファイル、`83`テスト成功。
+  * Phase 6追加分は`1`ファイル、`14`テスト成功。
+* `npm run build`
+  * 成功、`87 modules transformed`。
+  * `dist/index.html`：`0.59 kB`、gzip `0.39 kB`。
+  * CSS：`334.90 kB`、gzip `49.76 kB`。
+  * JS：`899.04 kB`、gzip `236.09 kB`。
+  * 既知の500 kB超警告は表示されたが、ビルドは成功。
+* `npm run build -- --mode github-pages`
+  * 成功、`87 modules transformed`。
+  * `dist/index.html`：`0.61 kB`、gzip `0.41 kB`。
+  * CSS・JSサイズは通常ビルドと同じ。
+  * `dist/index.html`が`/app_survey/assets/...`を参照することを確認。
+* スクリプト構文確認
+  * `node --check scripts/basics-smoke.mjs`：成功。
+  * `node --check scripts/phase4-smoke.mjs`：成功。
+  * `node --check scripts/gnss-smoke.mjs`：成功。
+* 基礎教材Playwrightスモーク
+  * 成功。9章、確認問題、学習記録、Phase 7 DOM監査、1366px・390px表示を確認。
+  * コンソールエラー、ページ例外、外部API通信はいずれも0件。
+* 閉合トラバースPhase 4回帰スモーク
+  * `SKIP_SCREENSHOTS=1`で成功。交差辺防止、閉合差ベクトル、倍率100、問題・学習記録を確認。
+  * コンソールエラー、ページ例外、横はみ出しはいずれも0件。
+* GNSS Playwrightスモーク（通常配信・GitHub Pages配信）
+  * 両方成功。第1章～第6章を通して確認した。
+  * 第6章9カード、RTCM代表例、Mountpoint `BASE_A`、Client→Caster要求、Caster→Client配信、Ntrip / 非Ntrip比較を確認。
+  * カード8の3状態、カード9の5ケース、8問、全正答位置、誤答固有理由、正答解説を確認。
+  * キーボード操作と可視フォーカスを確認。
+  * 章・教材往復時の状態保持と、再読込み時の初期化を確認。
+  * GNSS操作によるlocalStorageキーの追加・変更は0件。
+  * 1366pxは`clientWidth=1366 / scrollWidth=1366`、390pxは`clientWidth=390 / scrollWidth=390`。
+  * コンソールエラー、ページ例外、外部API通信はいずれも0件。
+* 最終目視画像
+  * `/tmp/gnss-phase6-1366-20260812-final.png`
+  * `/tmp/gnss-phase6-card5-1366-20260812-final.png`
+  * `/tmp/gnss-phase6-card6-1366-20260812-final.png`
+  * `/tmp/gnss-phase6-card7-1366-20260812-final.png`
+  * `/tmp/gnss-phase6-card8-1366-20260812-final.png`
+  * `/tmp/gnss-phase6-card9-1366-20260812-final.png`
+  * `/tmp/gnss-phase6-390-20260812-final.png`
+  * `/tmp/gnss-phase6-card5-390-20260812-final.png`
+  * `/tmp/gnss-phase6-card6-390-20260812-final.png`
+  * `/tmp/gnss-phase6-card7-390-20260812-final.png`
+  * `/tmp/gnss-phase6-card8-390-20260812-final.png`
+  * `/tmp/gnss-phase6-card9-390-20260812-final.png`
+  * 文字重なり、欠け、ページ全体の横はみ出しがないことを確認。
+* `git diff --check`
+  * 成功。
+* `git diff -- package.json package-lock.json`
+  * 差分なし。
+* `git diff -- vite.config.ts .github/workflows/deploy.yml`
+  * 差分なし。
+
+### 44.8 残る注意点と次回開始地点
+
+* Viteの500 kB超警告は既知事項であり、この警告だけを理由としたコード分割・依存追加・リファクタリングは行っていない。
+* 作業開始時、指定された`GNSS教材_設計メモ.md`はプロジェクト内に存在しなかった。優先順位が上の最新HANDOFF、現行実装、AGENTS、本Phase 6正式依頼を正本として実装した。
+* Phase 6の自動検証と目視確認は完了したが、次回開始地点はGNSS第6章のユーザー実機確認。
+* ユーザーがRTCM、Ntrip、Caster、Mountpoint、非Ntrip経路、RTCM鮮度、5ケース、8問を確認するまで、第7章へ進まない。

@@ -123,9 +123,9 @@ try {
   const gnssSidebarLessons = sidebar.locator("#sidebar-gnss-lessons");
   assert(
     (await gnssSidebarButton.getAttribute("aria-expanded")) === "true" &&
-      (await gnssSidebarLessons.getByRole("button").count()) === 5 &&
+      (await gnssSidebarLessons.getByRole("button").count()) === 6 &&
       !(await sidebar.locator("#sidebar-basics-lessons").isVisible()),
-    "GNSS / Droggerの左サブメニュー5章または教材ごとの開閉が正しくありません。",
+    "GNSS / Droggerの左サブメニュー6章または教材ごとの開閉が正しくありません。",
   );
   await gnssSidebarLessons
     .locator('[data-sidebar-lesson-id="gnss-observations"]')
@@ -149,8 +149,8 @@ try {
   const overviewLesson = page.locator('[data-lesson-id="gnss-overview"]');
   const lessonNavigation = page.locator(".gnss-lesson-navigation");
   assert(
-    (await lessonNavigation.getByRole("button").count()) === 5,
-    "GNSS教材の利用可能な章が5章ではありません。",
+    (await lessonNavigation.getByRole("button").count()) === 6,
+    "GNSS教材の利用可能な章が6章ではありません。",
   );
 
   const storageKeysBeforeGnssOperations = await page.evaluate(() =>
@@ -167,13 +167,13 @@ try {
     name: "この章を理解できた",
   });
   assert(
-    await overviewLesson.getByText("0 / 5 章", { exact: true }).isVisible(),
-    "GNSS教材の初期進捗が0 / 5章ではありません。",
+    await overviewLesson.getByText("0 / 6 章", { exact: true }).isVisible(),
+    "GNSS教材の初期進捗が0 / 6章ではありません。",
   );
   await understoodButton.click();
   assert(
-    await overviewLesson.getByText("1 / 5 章", { exact: true }).isVisible(),
-    "GNSS第1章の理解済み進捗が1 / 5章になりません。",
+    await overviewLesson.getByText("1 / 6 章", { exact: true }).isVisible(),
+    "GNSS第1章の理解済み進捗が1 / 6章になりません。",
   );
 
   const representativeCaseCard = page.getByTestId("gnss-purpose-card");
@@ -414,8 +414,8 @@ try {
   });
   await observationsUnderstoodButton.click();
   assert(
-    await observationsLesson.getByText("2 / 5 章", { exact: true }).isVisible(),
-    "GNSS第2章の理解済み操作で進捗が2 / 5章になりません。",
+    await observationsLesson.getByText("2 / 6 章", { exact: true }).isVisible(),
+    "GNSS第2章の理解済み操作で進捗が2 / 6章になりません。",
   );
 
   const travelTimeCard = page.getByTestId("gnss-observations-travel-time-card");
@@ -798,8 +798,8 @@ try {
   );
   await coordinateHeightUnderstoodButton.click();
   assert(
-    await coordinateHeightLesson.getByText("3 / 5 章", { exact: true }).isVisible(),
-    "GNSS第3章の理解済み操作で進捗が3 / 5章になりません。",
+    await coordinateHeightLesson.getByText("3 / 6 章", { exact: true }).isVisible(),
+    "GNSS第3章の理解済み操作で進捗が3 / 6章になりません。",
   );
 
   const earthCenteredCard = page.getByTestId("gnss-earth-centered-card");
@@ -1205,9 +1205,9 @@ try {
   await positioningMethodsUnderstoodButton.click();
   assert(
     await positioningMethodsLesson
-      .getByText("4 / 5 章", { exact: true })
+      .getByText("4 / 6 章", { exact: true })
       .isVisible(),
-    "GNSS第4章の理解済み操作で進捗が4 / 5章になりません。",
+    "GNSS第4章の理解済み操作で進捗が4 / 6章になりません。",
   );
 
   const positioningInformationCard = page.getByTestId(
@@ -1605,8 +1605,8 @@ try {
   );
   await ownBaseStationUnderstoodButton.click();
   assert(
-    await ownBaseStationLesson.getByText("5 / 5 章", { exact: true }).isVisible(),
-    "GNSS第5章の理解済み操作で進捗が5 / 5章になりません。",
+    await ownBaseStationLesson.getByText("5 / 6 章", { exact: true }).isVisible(),
+    "GNSS第5章の理解済み操作で進捗が5 / 6章になりません。",
   );
 
   const ownBaseIntroCard = page.getByTestId("gnss-own-base-intro-card");
@@ -1894,6 +1894,428 @@ try {
     "GNSS第5章の確認問題が8問ではありません。",
   );
 
+  const chapterSixNavigationButton = lessonNavigation.getByRole("button", {
+    name: /第6章.*自前RTK② 補正情報を届ける/,
+  });
+  await chapterSixNavigationButton.click();
+  const correctionDeliveryLesson = page.locator(
+    '[data-lesson-id="gnss-correction-delivery"]',
+  );
+  assert(
+    (await correctionDeliveryLesson.isVisible()) &&
+      (await correctionDeliveryLesson
+        .getByRole("heading", {
+          name: "基準局をつくった。その次は？",
+          exact: true,
+        })
+        .isVisible()) &&
+      (await correctionDeliveryLesson
+        .locator("[data-gnss-correction-card]")
+        .count()) === 9 &&
+      (await correctionDeliveryLesson
+        .getByText("5 / 6 章", { exact: true })
+        .isVisible()),
+    "GNSS第6章、9カード構成または進捗表示を確認できません。",
+  );
+
+  const correctionIntroCard = page.getByTestId("gnss-correction-intro-card");
+  const correctionIntroText = await correctionIntroCard.innerText();
+  assert(
+    (await correctionIntroCard.locator("[data-correction-map-step-id]").count()) ===
+      9 &&
+      [
+        "第5章では、基準局座標・アンテナ・GNSS観測環境を確認",
+        "離れたP1の移動局は、その基準局の情報をどうやって受け取るのでしょうか？",
+        "基準局を設置しただけでは、自前RTKはまだ成立していません",
+        "GNSS衛星",
+        "Ntrip Server",
+        "Ntrip Caster",
+        "Mountpoint：BASE_A",
+        "Ntrip Client",
+        "移動局P1へRTCMが届く",
+        "第6章",
+        "情報を届ける",
+        "第7章",
+        "届いた情報を使ってFLOAT / FIXを理解する",
+      ].every((expectedText) => correctionIntroText.includes(expectedText)),
+    "第6章カード1の第5章接続、情報経路または第7章境界が不足しています。",
+  );
+
+  const correctionBaseInformationCard = page.getByTestId(
+    "gnss-correction-base-information-card",
+  );
+  const correctionBaseInformationText =
+    await correctionBaseInformationCard.innerText();
+  assert(
+    (await correctionBaseInformationCard
+      .locator("[data-base-information-id]")
+      .count()) === 2 &&
+      (await correctionBaseInformationCard
+        .locator("[data-rtcm-message]")
+        .count()) === 4 &&
+      [
+        "P1の完成したX・Y・高さを計算して送る装置",
+        "基準局・基準局ARPの位置に関する情報",
+        "基準局側のGNSS観測情報",
+        "1005",
+        "基準局ARPの位置",
+        "1077",
+        "GPSの観測情報",
+        "1097",
+        "Galileoの観測情報",
+        "1127",
+        "BeiDouの観測情報",
+        "平面直角座標X・Yそのものとは説明しません",
+      ].every((expectedText) =>
+        correctionBaseInformationText.includes(expectedText),
+      ),
+    "第6章カード2の基準局側情報または代表RTCM例が不足しています。",
+  );
+
+  const correctionRtcmCard = page.getByTestId("gnss-correction-rtcm-card");
+  const correctionRtcmText = await correctionRtcmCard.innerText();
+  const correctionRtcmStream = correctionRtcmCard.getByTestId(
+    "gnss-correction-rtcm-stream",
+  );
+  assert(
+    (await correctionRtcmStream.locator("[data-stream-message]").count()) === 7 &&
+      (await correctionRtcmStream
+        .locator('[data-stream-message="1077"]')
+        .count()) === 2 &&
+      [
+        "データ形式・メッセージ規格",
+        "GNSS情報の共通の書き方",
+        "RTCMストリーム",
+        "複数種類のメッセージ",
+        "すべて同じ周期とは限りません",
+        "1個ずつ選ぶのではなく",
+      ].every((expectedText) => correctionRtcmText.includes(expectedText)),
+    "第6章カード3のRTCM定義または継続ストリーム表示が不足しています。",
+  );
+
+  const correctionNtripCard = page.getByTestId("gnss-correction-ntrip-card");
+  const correctionNtripText = await correctionNtripCard.innerText();
+  assert(
+    (await correctionNtripCard.locator("[data-correction-concept-id]").count()) ===
+      2 &&
+      [
+        "RTCM",
+        "届ける情報の中身・形式",
+        "Ntrip",
+        "IPネットワーク上で届ける仕組み",
+        "一般的な利用ではインターネット経由",
+        "公衆インターネットが絶対に必要という意味ではありません",
+        "ローカルIPネットワーク",
+      ].every((expectedText) => correctionNtripText.includes(expectedText)),
+    "第6章カード4のRTCM / Ntrip区別またはIPネットワーク説明が不足しています。",
+  );
+
+  const correctionCasterCard = page.getByTestId("gnss-correction-caster-card");
+  const correctionCasterText = await correctionCasterCard.innerText();
+  const correctionBaseAMountpoint = correctionCasterCard.locator(
+    '[data-mountpoint-id="base-a"]',
+  );
+  const correctionSettingsTable = correctionCasterCard.getByTestId(
+    "gnss-correction-settings-table",
+  );
+  assert(
+    (await correctionCasterCard.locator("[data-mountpoint-id]").count()) === 3 &&
+      (await correctionBaseAMountpoint.locator("li").count()) === 5 &&
+      (await correctionSettingsTable.locator("tbody tr").count()) === 3 &&
+      [
+        "複数のGNSSデータストリームを扱う配信所",
+        "P1のFLOAT → FIXを計算する装置ではありません",
+        "1本のGNSSデータストリームを識別する名前",
+        "Mountpoint：BASE_A",
+        "1005",
+        "1077",
+        "1087",
+        "1097",
+        "1127",
+        "RTCM番号・基準局座標・アンテナの物理的据付点",
+        "ntrip.example.jp",
+        "2101",
+        "実在サービスではありません",
+      ].every((expectedText) => correctionCasterText.includes(expectedText)),
+    "第6章カード5のCaster、Mountpointまたは仮想接続設定が不足しています。",
+  );
+
+  const correctionRouteCard = page.getByTestId("gnss-correction-route-card");
+  const correctionRouteText = await correctionRouteCard.innerText();
+  const correctionRequestResponse = correctionRouteCard.getByTestId(
+    "gnss-correction-request-response",
+  );
+  assert(
+    (await correctionRouteCard.locator("[data-correction-map-step-id]").count()) ===
+      9 &&
+      (await correctionRequestResponse.locator("[data-flow-direction-id]").count()) ===
+        2 &&
+      (await correctionRouteCard.locator("[data-ntrip-role-id]").count()) === 3 &&
+      [
+        "「BASE_Aを受信したい」",
+        "BASE_AのRTCMストリーム",
+        "通信上の役割名",
+        "GNSS受信機やアプリの中に",
+        "必ず別々の箱型ハードウェアが必要なわけではありません",
+        "ここから第7章",
+        "RTCMが届いたこととFIXしたことは同じではありません",
+      ].every((expectedText) => correctionRouteText.includes(expectedText)),
+    "第6章カード6の情報経路、双方向通信または章境界が不足しています。",
+  );
+
+  const correctionOtherRouteCard = page.getByTestId(
+    "gnss-correction-other-route-card",
+  );
+  const correctionOtherRouteText = await correctionOtherRouteCard.innerText();
+  assert(
+    (await correctionOtherRouteCard.locator("[data-delivery-method-id]").count()) ===
+      2 &&
+      [
+        "携帯通信圏外では、自前RTKはできないのでしょうか？",
+        "RTCM",
+        "中身",
+        "Ntrip",
+        "届け方の1つ",
+        "Ntripを使用しない直接伝送",
+        "無線・シリアル等",
+        "この経路では不要：Caster / Mountpoint / Ntrip Server / Client",
+        "携帯圏外 ＝ 自前RTKができない、ではありません",
+        "直接RTCM」という正式な通信規格名ではありません",
+        "将来の応用編",
+      ].every((expectedText) => correctionOtherRouteText.includes(expectedText)),
+    "第6章カード7のNtrip / 非Ntrip比較または携帯圏外の説明が不足しています。",
+  );
+
+  const correctionStaticCards = correctionDeliveryLesson.locator(
+    '[data-gnss-correction-card="1"], [data-gnss-correction-card="2"], [data-gnss-correction-card="3"], [data-gnss-correction-card="4"], [data-gnss-correction-card="5"], [data-gnss-correction-card="6"], [data-gnss-correction-card="7"]',
+  );
+  assert(
+    (await correctionStaticCards.getByRole("button").count()) === 0,
+    "第6章カード1～7へ不要な切替操作が追加されています。",
+  );
+
+  const correctionFreshnessCard = page.getByTestId(
+    "gnss-correction-freshness-card",
+  );
+  const correctionFreshnessResult = correctionFreshnessCard.getByTestId(
+    "gnss-correction-freshness-result",
+  );
+  const correctionFreshButton = correctionFreshnessCard.getByTestId(
+    "gnss-correction-freshness-fresh",
+  );
+  const correctionDelayedButton = correctionFreshnessCard.getByTestId(
+    "gnss-correction-freshness-delayed",
+  );
+  const correctionStoppedButton = correctionFreshnessCard.getByTestId(
+    "gnss-correction-freshness-stopped",
+  );
+  assert(
+    (await correctionFreshButton.getAttribute("aria-pressed")) === "true" &&
+      (await correctionFreshnessResult.getAttribute("data-freshness-id")) ===
+        "fresh" &&
+      (await correctionFreshnessResult
+        .getByText("新しいRTCMが継続して到着しています。", { exact: true })
+        .isVisible()),
+    "第6章カード8の正常初期状態が正しくありません。",
+  );
+  await correctionFreshButton.focus();
+  await page.keyboard.press("Tab");
+  const correctionFreshnessVisibleFocus = await hasVisibleKeyboardFocus(
+    correctionDelayedButton,
+  );
+  await page.keyboard.press("Space");
+  const correctionFreshnessKeyboardOperation =
+    (await correctionDelayedButton.getAttribute("aria-pressed")) === "true" &&
+    (await correctionFreshnessResult.getAttribute("data-freshness-id")) ===
+      "delayed" &&
+    (await correctionFreshnessResult
+      .getByText("RTCM更新：間隔が不安定", { exact: true })
+      .isVisible());
+  await correctionStoppedButton.click();
+  const correctionFreshnessText = await correctionFreshnessCard.innerText();
+  assert(
+    correctionFreshnessVisibleFocus &&
+      correctionFreshnessKeyboardOperation &&
+      (await correctionFreshnessResult.getAttribute("data-freshness-id")) ===
+        "stopped" &&
+      [
+        "通信接続できていること",
+        "新しいRTCMが継続して届いていることは別",
+        "正常",
+        "遅延",
+        "停止",
+        "新しいRTCMが来ていません",
+        "最後の更新からの時間",
+        "固定秒数を普遍的な正常・異常のしきい値にしません",
+      ].every((expectedText) => correctionFreshnessText.includes(expectedText)),
+    "第6章カード8の3状態、キーボード操作または鮮度説明が正しくありません。",
+  );
+
+  const correctionDiagnosisCard = page.getByTestId(
+    "gnss-correction-diagnosis-card",
+  );
+  const correctionDiagnosticResult = correctionDiagnosisCard.getByTestId(
+    "gnss-correction-diagnostic-result",
+  );
+  const correctionCaseIds = [
+    "no-rtcm-output",
+    "wrong-mountpoint",
+    "stale-rtcm",
+    "direct-link-receive-failure",
+    "rtcm-ok-float",
+  ];
+  const correctionCaseExpectedChecks = [
+    "基準局側のRTCM出力",
+    "移動局が指定しているMountpoint",
+    "RTCMが継続更新されているか",
+    "Casterではなく、無線の直接通信経路",
+    "第6章の通信経路は、RTCM受信まで正常",
+  ];
+  const correctionFirstCaseButton = correctionDiagnosisCard.getByTestId(
+    `gnss-correction-case-${correctionCaseIds[0]}`,
+  );
+  const correctionSecondCaseButton = correctionDiagnosisCard.getByTestId(
+    `gnss-correction-case-${correctionCaseIds[1]}`,
+  );
+  await correctionFirstCaseButton.focus();
+  await page.keyboard.press("Tab");
+  const correctionDiagnosisVisibleFocus = await hasVisibleKeyboardFocus(
+    correctionSecondCaseButton,
+  );
+  await page.keyboard.press("Space");
+  const correctionDiagnosisKeyboardOperation =
+    (await correctionDiagnosticResult.getAttribute("data-diagnostic-case-id")) ===
+    "wrong-mountpoint";
+
+  for (const [caseIndex, caseId] of correctionCaseIds.entries()) {
+    const expectedCheck = correctionCaseExpectedChecks[caseIndex];
+    assert(expectedCheck !== undefined, `${caseId}の確認場所データがありません。`);
+    await correctionDiagnosisCard
+      .getByTestId(`gnss-correction-case-${caseId}`)
+      .click();
+    assert(
+      (await correctionDiagnosticResult.getAttribute("data-diagnostic-case-id")) ===
+        caseId &&
+        (await correctionDiagnosticResult
+          .getByText(expectedCheck, { exact: true })
+          .isVisible()),
+      `${caseId}の診断結果または正しい確認場所が表示されません。`,
+    );
+  }
+  const correctionDiagnosisText = await correctionDiagnosisCard.innerText();
+  assert(
+    correctionDiagnosisVisibleFocus &&
+      correctionDiagnosisKeyboardOperation &&
+      [
+        "基準局でGNSS観測",
+        "Caster / Mountpoint（Ntrip使用時）",
+        "移動局でRTCM更新",
+        "では、なぜFLOATのままなのか？",
+        "✓ RTCMが正しく継続して届いた",
+        "相対的な位置関係 → FLOAT → FIX",
+      ].every((expectedText) => correctionDiagnosisText.includes(expectedText)),
+    "第6章カード9の上流切り分け、キーボード操作または第7章接続が不足しています。",
+  );
+
+  const correctionQuestionIds = [
+    "rtcm-role",
+    "rtcm-vs-ntrip",
+    "mountpoint-role",
+    "ntrip-stream-request",
+    "offline-rtcm-delivery",
+    "rtcm-freshness",
+    "wrong-mountpoint-diagnosis",
+    "rtcm-ok-still-float",
+  ];
+  const correctionCorrectOptionIndexes = [1, 2, 0, 3, 1, 2, 0, 3];
+  const correctionCorrectOptionLetters = ["B", "C", "A", "D", "B", "C", "A", "D"];
+  assert(
+    ["A", "B", "C", "D"].every(
+      (letter) =>
+        correctionCorrectOptionLetters.filter((current) => current === letter)
+          .length === 2,
+    ),
+    "第6章8問の表示上の正答文字がA～D各2問ではありません。",
+  );
+  const correctionQuestionOne = page.getByTestId(
+    `gnss-quiz-question-${correctionQuestionIds[0]}`,
+  );
+  const correctionQuestionOneOptions = correctionQuestionOne.locator(
+    'input[type="radio"]',
+  );
+  await correctionDiagnosisCard
+    .getByTestId("gnss-correction-case-rtcm-ok-float")
+    .focus();
+  await page.keyboard.press("Tab");
+  const correctionQuizVisibleFocus = await hasVisibleKeyboardFocus(
+    correctionQuestionOneOptions.nth(0),
+  );
+  await page.keyboard.press("Space");
+  const correctionQuizKeyboardOperation =
+    await correctionQuestionOneOptions.nth(0).isChecked();
+  await correctionQuestionOne
+    .getByRole("button", { name: "回答を確認する", exact: true })
+    .click();
+  const correctionQuestionOneFeedback = correctionQuestionOne.locator(
+    ".gnss-quiz-feedback",
+  );
+  assert(
+    correctionQuizVisibleFocus &&
+      correctionQuizKeyboardOperation &&
+      (await correctionQuestionOneFeedback
+        .getByText("不正解", { exact: true })
+        .isVisible()) &&
+      (await correctionQuestionOneFeedback
+        .getByText("正解：B", { exact: true })
+        .isVisible()) &&
+      (await correctionQuestionOneFeedback
+        .getByRole("heading", { name: "Aを選んだ場合の解説", exact: true })
+        .isVisible()) &&
+      (await correctionQuestionOneFeedback
+        .getByText(/IPネットワーク上でGNSSデータを運ぶ仕組みはNtrip/)
+        .isVisible()) &&
+      (await correctionQuestionOneFeedback
+        .getByRole("heading", { name: "解説", exact: true })
+        .isVisible()),
+    "第6章問1のキーボード操作、誤答固有理由、正解文字または正答理由が正しくありません。",
+  );
+
+  for (const [questionIndex, questionId] of correctionQuestionIds.entries()) {
+    const question = page.getByTestId(`gnss-quiz-question-${questionId}`);
+    const correctOptionIndex = correctionCorrectOptionIndexes[questionIndex];
+    const correctOptionLetter = correctionCorrectOptionLetters[questionIndex];
+
+    assert(
+      correctOptionIndex !== undefined && correctOptionLetter !== undefined,
+      `${questionId}の正答位置データがありません。`,
+    );
+    await question.locator('input[type="radio"]').nth(correctOptionIndex).check();
+    await question
+      .getByRole("button", { name: "回答を確認する", exact: true })
+      .click();
+    const feedback = question.locator(".gnss-quiz-feedback");
+    assert(
+      (await feedback.getByText("正解", { exact: true }).isVisible()) &&
+        (await feedback
+          .getByText(`正解：${correctOptionLetter}`, { exact: true })
+          .isVisible()) &&
+        (await feedback.locator(".gnss-quiz-selected-explanation").count()) ===
+          0 &&
+        (await feedback
+          .getByRole("heading", { name: "解説", exact: true })
+          .isVisible()) &&
+        !(await feedback.innerText()).includes("正答"),
+      `${questionId}の正答表示または重複のない解説が正しくありません。`,
+    );
+  }
+  assert(
+    (await correctionDeliveryLesson
+      .getByTestId("gnss-correction-delivery-quiz-panel")
+      .locator(".gnss-quiz-question")
+      .count()) === 8,
+    "GNSS第6章の確認問題が8問ではありません。",
+  );
+
   await lessonNavigation
     .getByRole("button", { name: /第1章.*GNSS測量の全体像/ })
     .click();
@@ -1905,7 +2327,7 @@ try {
         .getAttribute("aria-pressed")) === "true" &&
       (await p1Result.isVisible()) &&
       (await questionThree.getByText("正解", { exact: true }).isVisible()) &&
-      (await overviewLesson.getByText("5 / 5 章", { exact: true }).isVisible()),
+      (await overviewLesson.getByText("5 / 6 章", { exact: true }).isVisible()),
     "第4章から戻ったときにGNSS第1章の状態が保持されません。",
   );
   await chapterTwoNavigationButton.click();
@@ -1977,10 +2399,27 @@ try {
         .isVisible()),
     "GNSS章往復後に第5章の問題・理解状態が保持されません。",
   );
+  await chapterSixNavigationButton.click();
+  assert(
+    (await correctionDeliveryLesson.isVisible()) &&
+      (await correctionFreshnessResult.getAttribute("data-freshness-id")) ===
+        "stopped" &&
+      (await correctionDiagnosticResult.getAttribute("data-diagnostic-case-id")) ===
+        "rtcm-ok-float" &&
+      (await correctionDeliveryLesson
+        .getByTestId("gnss-correction-delivery-quiz-panel")
+        .locator(".gnss-quiz-feedback")
+        .count()) === 8 &&
+      (await page
+        .getByTestId(`gnss-quiz-question-${correctionQuestionIds[7]}`)
+        .getByText("正解", { exact: true })
+        .isVisible()),
+    "GNSS章往復後に第6章の鮮度・診断・問題状態が保持されません。",
+  );
 
   const desktopMetrics = await getPageMetrics(page);
   assert(
-    (await ownBaseStationLesson.isVisible()) &&
+    (await correctionDeliveryLesson.isVisible()) &&
       desktopMetrics.scrollWidth <= desktopMetrics.clientWidth,
     `GNSS教材が1366px幅で横方向にはみ出しています: ${JSON.stringify(desktopMetrics)}`,
   );
@@ -1992,13 +2431,22 @@ try {
     try {
       await page.screenshot({
         fullPage: true,
-        path: "/tmp/gnss-phase5-1366.png",
+        path: "/tmp/gnss-phase6-1366-20260812-final.png",
       });
-      await ownBaseCoordinateSourceCard.screenshot({
-        path: "/tmp/gnss-phase5-card3-1366.png",
+      await correctionCasterCard.screenshot({
+        path: "/tmp/gnss-phase6-card5-1366-20260812-final.png",
       });
-      await ownBaseFinalCheckCard.screenshot({
-        path: "/tmp/gnss-phase5-card8-1366.png",
+      await correctionRouteCard.screenshot({
+        path: "/tmp/gnss-phase6-card6-1366-20260812-final.png",
+      });
+      await correctionOtherRouteCard.screenshot({
+        path: "/tmp/gnss-phase6-card7-1366-20260812-final.png",
+      });
+      await correctionFreshnessCard.screenshot({
+        path: "/tmp/gnss-phase6-card8-1366-20260812-final.png",
+      });
+      await correctionDiagnosisCard.screenshot({
+        path: "/tmp/gnss-phase6-card9-1366-20260812-final.png",
       });
     } finally {
       await screenshotStyle.evaluate((style) => style.remove());
@@ -2024,17 +2472,16 @@ try {
   await page.getByRole("button", { name: "GNSS / Drogger", exact: true }).click();
 
   assert(
-    (await ownBaseStationLesson.isVisible()) &&
+    (await correctionDeliveryLesson.isVisible()) &&
+      (await correctionFreshnessResult.getAttribute("data-freshness-id")) ===
+        "stopped" &&
+      (await correctionDiagnosticResult.getAttribute("data-diagnostic-case-id")) ===
+        "rtcm-ok-float" &&
       (await page
-        .getByTestId(
-          `gnss-quiz-question-${ownBaseQuestionIds[7]}`,
-        )
+        .getByTestId(`gnss-quiz-question-${correctionQuestionIds[7]}`)
         .getByText("正解", { exact: true })
-        .isVisible()) &&
-      (await ownBaseStationLesson
-        .getByRole("button", { name: "理解済み（解除する）" })
         .isVisible()),
-    "教材往復後にGNSS第5章の問題・理解状態が保持されません。",
+    "教材往復後にGNSS第6章の鮮度・診断・問題状態が保持されません。",
   );
   await chapterTwoNavigationButton.click();
   assert(
@@ -2055,7 +2502,7 @@ try {
         .getByTestId(`gnss-quiz-question-${observationQuestionIds[6]}`)
         .getByText("正解", { exact: true })
         .isVisible()) &&
-      (await observationsLesson.getByText("5 / 5 章", { exact: true }).isVisible()),
+      (await observationsLesson.getByText("5 / 6 章", { exact: true }).isVisible()),
     "教材往復後にGNSS第2章の操作・問題・理解状態が保持されません。",
   );
   await chapterThreeNavigationButton.click();
@@ -2090,6 +2537,19 @@ try {
         .isVisible()),
     "教材往復後にGNSS第5章の問題状態が保持されません。",
   );
+  await chapterSixNavigationButton.click();
+  assert(
+    (await correctionDeliveryLesson.isVisible()) &&
+      (await correctionFreshnessResult.getAttribute("data-freshness-id")) ===
+        "stopped" &&
+      (await correctionDiagnosticResult.getAttribute("data-diagnostic-case-id")) ===
+        "rtcm-ok-float" &&
+      (await page
+        .getByTestId(`gnss-quiz-question-${correctionQuestionIds[7]}`)
+        .getByText("正解", { exact: true })
+        .isVisible()),
+    "既存章回帰後にGNSS第6章の状態が保持されません。",
+  );
 
   const storageKeysAfterGnssOperations = await page.evaluate(() =>
     Object.keys(window.localStorage).sort(),
@@ -2117,14 +2577,16 @@ try {
   );
 
   assert(
-    (await ownBaseStationLesson.isVisible()) &&
+    (await correctionDeliveryLesson.isVisible()) &&
+      (await correctionFreshnessResult.getAttribute("data-freshness-id")) ===
+        "stopped" &&
+      (await correctionDiagnosticResult.getAttribute("data-diagnostic-case-id")) ===
+        "rtcm-ok-float" &&
       (await page
-        .getByTestId(
-          `gnss-quiz-question-${ownBaseQuestionIds[7]}`,
-        )
+        .getByTestId(`gnss-quiz-question-${correctionQuestionIds[7]}`)
         .getByText("正解", { exact: true })
         .isVisible()),
-    "390px幅で第5章の確認問題結果を表示できません。",
+    "390px幅で第6章の操作・確認問題結果を表示できません。",
   );
   await chapterFourNavigationButton.click();
   assert(
@@ -2165,6 +2627,35 @@ try {
       }),
     ),
   );
+  const mobileOwnBaseStationVisible = await ownBaseStationLesson.isVisible();
+  await chapterSixNavigationButton.click();
+  const mobileCorrectionTableContainment = await correctionSettingsTable.evaluate(
+    (element) => {
+      const rect = element.getBoundingClientRect();
+
+      return {
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        left: Math.round(rect.left),
+        right: Math.round(rect.right),
+        withinViewport:
+          rect.left >= -1 && rect.right <= window.innerWidth + 1,
+      };
+    },
+  );
+  const mobileCorrectionControls = await Promise.all(
+    [
+      correctionFreshButton,
+      correctionDelayedButton,
+      correctionStoppedButton,
+      ...correctionCaseIds.map((caseId) =>
+        correctionDiagnosisCard.getByTestId(`gnss-correction-case-${caseId}`),
+      ),
+    ].map(async (control) => ({
+      enabled: await control.isEnabled(),
+      visible: await control.isVisible(),
+    })),
+  );
   const mobileMetrics = await getPageMetrics(page);
   const mobileOverflowElements = await page.evaluate(() =>
     Array.from(document.querySelectorAll(".gnss-page, .gnss-page *"))
@@ -2200,13 +2691,22 @@ try {
     mobileCoordinatePanelLayout.count === 4 &&
       JSON.stringify(mobileCoordinatePanelLayout.rowItemCounts) ===
         JSON.stringify([2, 2]) &&
-      (await ownBaseStationLesson.isVisible()) &&
+      mobileOwnBaseStationVisible &&
       mobileOwnBaseTableContainment.every(
         (table) =>
           table.withinViewport && table.clientWidth <= table.scrollWidth,
       ) &&
+      (await correctionDeliveryLesson.isVisible()) &&
+      (await correctionIntroCard.locator("[data-correction-map-step-id]").count()) ===
+        9 &&
+      mobileCorrectionTableContainment.withinViewport &&
+      mobileCorrectionTableContainment.clientWidth <=
+        mobileCorrectionTableContainment.scrollWidth &&
+      mobileCorrectionControls.every(
+        (control) => control.visible && control.enabled,
+      ) &&
       mobileMetrics.scrollWidth <= mobileMetrics.clientWidth,
-    `GNSS第4章の2列×2段または第5章の390px表示が正しくありません: ${JSON.stringify({ mobileCoordinatePanelLayout, mobileOwnBaseTableContainment, mobileMetrics, mobileOverflowElements })}`,
+    `GNSS第4章・第5章回帰または第6章の390px表示が正しくありません: ${JSON.stringify({ mobileCoordinatePanelLayout, mobileOwnBaseStationVisible, mobileOwnBaseTableContainment, mobileCorrectionTableContainment, mobileCorrectionControls, mobileMetrics, mobileOverflowElements })}`,
   );
 
   if (saveScreenshots) {
@@ -2216,13 +2716,22 @@ try {
     try {
       await page.screenshot({
         fullPage: true,
-        path: "/tmp/gnss-phase5-390.png",
+        path: "/tmp/gnss-phase6-390-20260812-final.png",
       });
-      await ownBaseCoordinateSourceCard.screenshot({
-        path: "/tmp/gnss-phase5-card3-390.png",
+      await correctionCasterCard.screenshot({
+        path: "/tmp/gnss-phase6-card5-390-20260812-final.png",
       });
-      await ownBaseFinalCheckCard.screenshot({
-        path: "/tmp/gnss-phase5-card8-390.png",
+      await correctionRouteCard.screenshot({
+        path: "/tmp/gnss-phase6-card6-390-20260812-final.png",
+      });
+      await correctionOtherRouteCard.screenshot({
+        path: "/tmp/gnss-phase6-card7-390-20260812-final.png",
+      });
+      await correctionFreshnessCard.screenshot({
+        path: "/tmp/gnss-phase6-card8-390-20260812-final.png",
+      });
+      await correctionDiagnosisCard.screenshot({
+        path: "/tmp/gnss-phase6-card9-390-20260812-final.png",
       });
     } finally {
       await screenshotStyle.evaluate((style) => style.remove());
@@ -2257,9 +2766,9 @@ try {
   assert(
       (await reloadedOverviewLesson.isVisible()) &&
       (await reloadedOverviewLesson
-        .getByText("0 / 5 章", { exact: true })
+        .getByText("0 / 6 章", { exact: true })
         .isVisible()),
-    "再読込み後にGNSS第1章と0 / 5章の初期進捗へ戻りません。",
+    "再読込み後にGNSS第1章と0 / 6章の初期進捗へ戻りません。",
   );
   await page
     .locator(".gnss-lesson-navigation")
@@ -2433,6 +2942,49 @@ try {
     "再読込み後にGNSS第5章のReact状態が初期化されません。",
   );
 
+  await page
+    .locator(".gnss-lesson-navigation")
+    .getByRole("button", { name: /第6章.*自前RTK② 補正情報を届ける/ })
+    .click();
+  const reloadedCorrectionDeliveryLesson = page.locator(
+    '[data-lesson-id="gnss-correction-delivery"]',
+  );
+  const reloadedCorrectionFreshnessCard = page.getByTestId(
+    "gnss-correction-freshness-card",
+  );
+  const reloadedCorrectionDiagnosisCard = page.getByTestId(
+    "gnss-correction-diagnosis-card",
+  );
+  assert(
+    (await reloadedCorrectionDeliveryLesson.isVisible()) &&
+      (await reloadedCorrectionDeliveryLesson
+        .locator("[data-gnss-correction-card]")
+        .count()) === 9 &&
+      (await reloadedCorrectionDeliveryLesson
+        .getByText("0 / 6 章", { exact: true })
+        .isVisible()) &&
+      (await reloadedCorrectionFreshnessCard
+        .getByTestId("gnss-correction-freshness-fresh")
+        .getAttribute("aria-pressed")) === "true" &&
+      (await reloadedCorrectionFreshnessCard
+        .getByTestId("gnss-correction-freshness-result")
+        .getAttribute("data-freshness-id")) === "fresh" &&
+      (await reloadedCorrectionDiagnosisCard
+        .getByTestId("gnss-correction-case-no-rtcm-output")
+        .getAttribute("aria-pressed")) === "true" &&
+      (await reloadedCorrectionDiagnosisCard
+        .getByTestId("gnss-correction-diagnostic-result")
+        .getAttribute("data-diagnostic-case-id")) === "no-rtcm-output" &&
+      (await reloadedCorrectionDeliveryLesson
+        .getByTestId("gnss-correction-delivery-quiz-panel")
+        .locator(".gnss-quiz-feedback")
+        .count()) === 0 &&
+      (await reloadedCorrectionDeliveryLesson
+        .getByRole("button", { name: "この章を理解できた" })
+        .count()) === 0,
+    "再読込み後にGNSS第6章のReact状態が初期化されません。",
+  );
+
   const storageKeysAfterReload = await page.evaluate(() =>
     Object.keys(window.localStorage).sort(),
   );
@@ -2467,6 +3019,7 @@ try {
           "gnss-coordinate-height",
           "gnss-positioning-methods",
           "gnss-own-base-station",
+          "gnss-correction-delivery",
         ],
         representativeCase: "一般の調査・測量",
         workflowSteps: 9,
@@ -2483,6 +3036,10 @@ try {
         positioningMethodsQuizQuestionsAnswered: 8,
         ownBaseStationCards: 9,
         ownBaseStationQuizQuestionsAnswered: 8,
+        correctionDeliveryCards: 9,
+        correctionFreshnessStates: 3,
+        correctionDiagnosticCases: 5,
+        correctionDeliveryQuizQuestionsAnswered: 8,
         statePreservedAcrossCourses: true,
         stateResetAfterReload: true,
         keyboardOperation: true,
@@ -2495,6 +3052,14 @@ try {
         positioningMethodsVisibleFocus,
         ownBaseStationKeyboardOperation,
         ownBaseStationVisibleFocus,
+        correctionDeliveryKeyboardOperation:
+          correctionFreshnessKeyboardOperation &&
+          correctionDiagnosisKeyboardOperation &&
+          correctionQuizKeyboardOperation,
+        correctionDeliveryVisibleFocus:
+          correctionFreshnessVisibleFocus &&
+          correctionDiagnosisVisibleFocus &&
+          correctionQuizVisibleFocus,
         localStorageKeysUnchanged: true,
         desktopMetrics,
         mobileMetrics,

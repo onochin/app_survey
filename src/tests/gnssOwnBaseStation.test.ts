@@ -33,7 +33,7 @@ import {
 import { gnssPositioningMethodsQuizQuestions } from "../components/gnss/data/gnssPositioningMethods";
 
 describe("GNSS測量 Phase 5 第5章", () => {
-  it("第1章～第4章を維持し、第5章だけを利用可能な章へ追加する", () => {
+  it("第1章～第5章の定義を維持する", () => {
     expect(gnssOverviewLesson).toMatchObject({
       id: "gnss-overview",
       number: 1,
@@ -61,15 +61,17 @@ describe("GNSS測量 Phase 5 第5章", () => {
       learningGoal:
         "自前RTKの基準局について、基準となる座標をどのように用意するかを考え、その座標とGNSSアンテナを正しく結び付け、安定してGNSS観測できる基準局を準備する流れを説明できる。",
     });
-    expect(gnssLessons.map((lesson) => lesson.id)).toEqual([
+    expect(gnssLessons.slice(0, 5).map((lesson) => lesson.id)).toEqual([
       "gnss-overview",
       "gnss-observations",
       "gnss-coordinate-height",
       "gnss-positioning-methods",
       "gnss-own-base-station",
     ]);
-    expect(gnssLessons).toHaveLength(5);
-    expect(gnssLessons.every((lesson) => lesson.number <= 5)).toBe(true);
+    expect(gnssLessons).toHaveLength(6);
+    expect(gnssLessons.slice(0, 5).every((lesson) => lesson.number <= 5)).toBe(
+      true,
+    );
     expect(gnssQuizQuestions).toHaveLength(3);
     expect(gnssObservationsQuizQuestions).toHaveLength(7);
     expect(gnssCoordinateHeightQuizQuestions).toHaveLength(8);

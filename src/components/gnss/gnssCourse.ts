@@ -155,10 +155,43 @@ export const gnssOwnBaseStationLesson = {
   ],
 } as const satisfies GnssLessonMetadata;
 
+export const gnssCorrectionDeliveryLesson = {
+  id: "gnss-correction-delivery",
+  number: 6,
+  title: "自前RTK② 補正情報を届ける",
+  description:
+    "基準局側の情報がRTCMとして表され、Ntripやその他の通信経路を通って移動局へ継続して届く仕組みを学ぶ。",
+  learningGoal:
+    "自前RTKで、基準局側の情報がRTCMとしてどのように表され、Ntripやその他の通信経路を通って移動局へ届くかを説明し、RTCM・Ntrip・Caster・Mountpointの役割を区別できる。また、RTCMが正常に届かない場合に、情報経路を順番に確認できる。",
+  terms: [
+    "RTCM",
+    "RTCMメッセージ",
+    "RTCMストリーム",
+    "Ntrip",
+    "Ntrip Server",
+    "Ntrip Caster",
+    "Ntrip Client",
+    "Mountpoint",
+    "Host",
+    "Port",
+    "IPネットワーク",
+    "通信経路",
+    "RTCM更新",
+    "RTCMの鮮度",
+  ],
+  cautions: [
+    "RTCMは情報の形式、NtripはIPネットワーク上で届ける仕組みです。",
+    "MountpointはRTCM番号や物理的な据付点ではなく、ストリームの識別名です。",
+    "通信接続中でも、新しいRTCMが継続して届いているとは限りません。",
+    "RTCM受信とFIX成立は同じではありません。",
+  ],
+} as const satisfies GnssLessonMetadata;
+
 export const gnssLessons = [
   gnssOverviewLesson,
   gnssObservationsLesson,
   gnssCoordinateHeightLesson,
   gnssPositioningMethodsLesson,
   gnssOwnBaseStationLesson,
+  gnssCorrectionDeliveryLesson,
 ] as const;

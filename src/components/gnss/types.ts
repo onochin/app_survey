@@ -3,11 +3,12 @@ export type GnssLessonId =
   | "gnss-observations"
   | "gnss-coordinate-height"
   | "gnss-positioning-methods"
-  | "gnss-own-base-station";
+  | "gnss-own-base-station"
+  | "gnss-correction-delivery";
 
 export interface GnssLessonMetadata {
   readonly id: GnssLessonId;
-  readonly number: 1 | 2 | 3 | 4 | 5;
+  readonly number: 1 | 2 | 3 | 4 | 5 | 6;
   readonly title: string;
   readonly description: string;
   readonly learningGoal: string;
@@ -175,3 +176,12 @@ export interface GnssCarrierPhaseExample {
   readonly fractionalWavelengths: number;
   readonly totalWavelengths: number;
 }
+
+export type GnssCorrectionFreshnessId = "fresh" | "delayed" | "stopped";
+
+export type GnssCorrectionDiagnosticCaseId =
+  | "no-rtcm-output"
+  | "wrong-mountpoint"
+  | "stale-rtcm"
+  | "direct-link-receive-failure"
+  | "rtcm-ok-float";

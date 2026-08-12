@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { gnssLessons } from "./gnssCourse";
+import GnssCorrectionDeliveryLesson from "./lessons/GnssCorrectionDeliveryLesson";
 import GnssCoordinateHeightLesson from "./lessons/GnssCoordinateHeightLesson";
 import GnssOwnBaseStationLesson from "./lessons/GnssOwnBaseStationLesson";
 import GnssOverviewLesson from "./lessons/GnssOverviewLesson";
@@ -115,6 +116,16 @@ function SurveyGnss({
           completedLessonCount={completedLessonCount}
           isUnderstood={understoodLessonIds.includes("gnss-own-base-station")}
           onToggleUnderstood={() => toggleUnderstood("gnss-own-base-station")}
+          totalLessonCount={totalLessonCount}
+        />
+      </div>
+
+      <div
+        className="gnss-lesson-panel"
+        hidden={activeLessonId !== "gnss-correction-delivery"}
+      >
+        <GnssCorrectionDeliveryLesson
+          completedLessonCount={completedLessonCount}
           totalLessonCount={totalLessonCount}
         />
       </div>
